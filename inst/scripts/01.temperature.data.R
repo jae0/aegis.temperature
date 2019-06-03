@@ -8,7 +8,7 @@ if (!exists("year.assessment")) {
   year.assessment=lubridate::year(Sys.Date()) - 1
 }
 
-p = aegis::aegis_parameters( DS="temperature", yrs=1950:year.assessment )  # these are default years
+p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years
 
 # ------------------------------
   # 0 data assimilation

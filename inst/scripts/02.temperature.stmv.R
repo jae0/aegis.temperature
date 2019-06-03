@@ -2,14 +2,12 @@
   # twostep:  ~ 160+ hrs
 
 
-
   if (!exists("year.assessment")) {
     year.assessment=lubridate::year(Sys.Date())
     year.assessment=lubridate::year(Sys.Date()) - 1
   }
 
-  p = aegis::aegis_parameters( DS="temperature", yrs=1950:year.assessment )  # these are default years
-
+  p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years
 
     scale_ram_required_main_process = 0.8 # GB twostep / fft
     scale_ram_required_per_process  = 1.25 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB) -- 20 hrs
@@ -21,8 +19,7 @@
 
     nyrs = year.assessment-1950
 
-    p = aegis::aegis_parameters(
-      DS="temperature",
+    p = aegis.temperature::temperature_parameters(
       data_root = project.datadirectory( "aegis", "temperature" ),
       spatial.domain = "canada.east", # default
       DATA = 'temperature.db( p=p, DS="stmv.inputs" )',
@@ -88,7 +85,8 @@
 
 # 7. maps
   # run only on local cores ... file swapping seem to reduce efficiency
-  # p = aegis::aegis_parameters( DS="temperature", yrs=1950:year.assessment )
+  # p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )
+
 
   temperature.map( p=p, DS="all", yr=p$yrs ) # default is to do all
 

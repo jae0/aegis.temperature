@@ -3,7 +3,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # over-ride default dependent variable name if it exists
 
-  if (is.null(p)) p = aegis_parameters( DS="temperature" )
+  if (is.null(p)) p = temperature_parameters()
 
   voi = NULL
   if (exists("variables", p)) if(exists("Y", p$variables)) voi=p$variables$Y  # used in stmv
