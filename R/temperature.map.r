@@ -41,7 +41,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
         dir.create (bottomdir.maps, showWarnings=FALSE, recursive =TRUE)
         fn = file.path( bottomdir.maps, paste(outfn, "png", sep="." ) )
         png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-        lp = aegis::aegis_map( xyz=cbind(loc, H[,w]), depthcontours=TRUE, pts=NULL,
+        lp = aegis_map( xyz=cbind(loc, H[,w]), depthcontours=TRUE, pts=NULL,
           annot=annot, annot.cex=annot.cex,
           at=datarange, col.regions=cols, corners=p$corners, spatial.domain=p$spatial.domain )
         print(lp)
@@ -113,7 +113,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
         dir.create (bottomdir.maps, showWarnings=FALSE, recursive =TRUE)
         fn = file.path( bottomdir.maps, paste(outfn, "png", sep="." ) )
         png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-        lp = aegis::aegis_map( xyz=cbind(loc, H[,iy]), depthcontours=TRUE, pts=NULL,
+        lp = aegis_map( xyz=cbind(loc, H[,iy]), depthcontours=TRUE, pts=NULL,
           annot=annot, annot.cex=annot.cex,
           at=datarange ,col.regions=cols, corners=p$corners, spatial.domain=p$spatial.domain )
         print(lp)
@@ -178,7 +178,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
       fn = file.path( bottomdir.maps, paste(outfn, "png", sep="." ) )
       png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-      lp = aegis::aegis_map( xyz=cbind(loc, H[,which( p$bstats==vname)]), depthcontours=TRUE, pts=NULL, annot=annot, annot.cex=annot.cex,
+      lp = aegis_map( xyz=cbind(loc, H[,which( p$bstats==vname)]), depthcontours=TRUE, pts=NULL, annot=annot, annot.cex=annot.cex,
         at=datarange , col.regions=cols,
         corners=p$corners, spatial.domain=p$spatial.domain )
       print(lp)
@@ -292,7 +292,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
       dir.create (bottomdir.maps, showWarnings=FALSE, recursive =TRUE)
       fn = file.path( bottomdir.maps, paste(outfn, "png", sep="." ) )
       png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-      lp = aegis::aegis_map( xyz=xyz, depthcontours=TRUE, pts=NULL,
+      lp = aegis_map( xyz=xyz, depthcontours=TRUE, pts=NULL,
         annot=annot, annot.cex=annot.cex,
         at=datarange, col.regions=cols,
         corners=p$corners, spatial.domain=p$spatial.domain )

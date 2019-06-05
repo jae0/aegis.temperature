@@ -410,7 +410,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           Y$pressure = NULL
 
           if ("groundfish" %in% p$additional.data ) {
-            grdfish = aegis::groundfish.db( DS="gshyd.georef" )
+            grdfish = aegis.survey::groundfish.db( DS="gshyd.georef" )
             gfkeep = c( "id", "sdepth", "temp", "sal", "oxyml", "lon", "lat", "yr", "timestamp")
             gf = grdfish[ which( grdfish$yr == yt ) , gfkeep ]
             if (nrow(gf) > 0) {
