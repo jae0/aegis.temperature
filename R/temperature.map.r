@@ -247,14 +247,14 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
         xyz=cbind(loc, (H[,vname]))
       }
 
-      if (vname %in% c("range") ) {
-        datarange = seq( log(0.5), log(median(p$stmv_distance_scale)*3), length.out=100)
-        cols = color.code( "blue.black", datarange )
-        outfn = paste( "range", sep=".")
-        annot = paste("Temperature bottom range\n",  sep="")
-        xyz=cbind(loc, log(H[,vname]))
-        xyz = xyz[which( is.finite(rowSums(xyz))),]
-      }
+      # if (vname %in% c("range") ) {
+      #   datarange = seq( log(0.5), log(median(p$stmv_distance_scale)*3), length.out=100)
+      #   cols = color.code( "blue.black", datarange )
+      #   outfn = paste( "range", sep=".")
+      #   annot = paste("Temperature bottom range\n",  sep="")
+      #   xyz=cbind(loc, log(H[,vname]))
+      #   xyz = xyz[which( is.finite(rowSums(xyz))),]
+      # }
 
       if (vname %in% c("phi") ) {
         datarange = seq(log(0.15), log(median(p$stmv_distance_scale)*2), length.out=100)
