@@ -41,7 +41,8 @@
       stmv_twostep_time = "gam",
       stmv_twostep_space = "fft",  # everything else is too slow ...
       stmv_fft_filter="lowpass_matern_tapered",  #  matern, krige (very slow), lowpass, lowpass_matern
-      stmv_range_correlation_fft_taper = 0.5,  # in local smoothing convolutions occur of this correlation scale
+      stmv_fft_taper_fraction = sqrt(0.5),  # in local smoothing convolutions taper to this areal expansion factor sqrt( r=0.5 ) ~ 70% of variance in variogram
+      stmv_autocorrelation_fft_taper = 0,  # benchmark from which to taper
       stmv_local_model_distanceweighted = TRUE,
       stmv_rsquared_threshold = 0, # lower threshold .. not used if twostep method
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
