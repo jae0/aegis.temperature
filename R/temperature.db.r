@@ -205,8 +205,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     lob = fsrsT
     names(lob) = tolower( names(lob))
 
-    lon = trunc( lob$longitude / 100)
-    lat = trunc( lob$latitude / 100)
+    lon = floor( lob$longitude / 100)
+    lat = floor( lob$latitude / 100)
 
     potential.errors = NULL
     i =  which( (lob$longitude - (lon*100) ) / 60 < -1)
@@ -533,8 +533,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
           # don't need year as this is a yearly breakdown but just to be clear ..
           Y$id =  paste(
-            floor(Y$plon/p$pres_discretization_temperature) * p$pres_discretization_temperature,
-            floor(Y$plat/p$pres_discretization_temperature) * p$pres_discretization_temperature,
+            floor(Y$plon/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
+            floor(Y$plat/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
             paste(Y$yr, cut( Y$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
             sep="~"
           )
