@@ -39,16 +39,15 @@ p = aegis.temperature::temperature_parameters(
     ) ),
   stmv_twostep_time = "gam",
   stmv_twostep_space = "fft",  # everything else is too slow ...
-  stmv_fft_filter="lowpass_matern_tapered",  #  matern, krige (very slow), lowpass, lowpass_matern
+  stmv_fft_filter="matern_tapered",  #  matern, krige (very slow), lowpass, lowpass_matern
   stmv_fft_taper_method = "modelled",  # vs "empirical"
   # stmv_fft_taper_fraction = 0.5,  # if empirical: in local smoothing convolutions taper to this areal expansion factor sqrt( r=0.5 ) ~ 70% of variance in variogram
-  stmv_lowpass_nu = 0.1,
-  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.25, nu=0.1, cor=0.5 ), # default p$res = 0.5;
+  # stmv_lowpass_nu = 0.1,
+  # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.25, nu=0.1, cor=0.5 ), # default p$res = 0.5;
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
   stmv_autocorrelation_localrange=0.1,
   stmv_autocorrelation_interpolation = c(0.5, 0.1, 0.05, 0.01),
   stmv_variogram_method = "fft",
-  stmv_variogram_nbreaks = 50,
   depth.filter = 0, # the depth covariate is input as log(depth) so, choose stats locations with elevation > log(1 m) as being on land
   stmv_local_model_distanceweighted = TRUE,
   stmv_rsquared_threshold = 0, # lower threshold .. not used if twostep method

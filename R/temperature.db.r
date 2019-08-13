@@ -205,8 +205,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     lob = fsrsT
     names(lob) = tolower( names(lob))
 
-    lon = floor( lob$longitude / 100)
-    lat = floor( lob$latitude / 100)
+    lon = round( lob$longitude / 100)
+    lat = round( lob$latitude / 100)
 
     potential.errors = NULL
     i =  which( (lob$longitude - (lon*100) ) / 60 < -1)
@@ -533,8 +533,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
           # don't need year as this is a yearly breakdown but just to be clear ..
           Y$id =  paste(
-            floor(Y$plon/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
-            floor(Y$plat/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
+            round(Y$plon/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
+            round(Y$plat/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
             paste(Y$yr, cut( Y$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
             sep="~"
           )
@@ -724,7 +724,9 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             L1$plon_1 = L1$plon # store original coords
             L1$plat_1 = L1$plat
             L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
-            p1$wght = fields::setup.image.smooth( nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres, theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
+            p1$wght = fields::setup.image.smooth( nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
+              theta=p1$pres/3, xwidth=4*p1$pres, ywidth=4*p1$pres )
+            # theta=p1$pres/3 assume at pres most of variance is accounted ... correct if dense pre-intepolated matrices .. if not can be noisy
             P = Pl = Pu = matrix( NA, ncol=p$nw, nrow=nrow(L1) )
             for (iw in 1:p$nw) {
               P[,iw]  = spatial_warp( PP0[,iw], L0, L1, p0, p1, "fast", L0i, L1i )
@@ -998,7 +1000,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       L1$plon_1 = L1$plon # store original coords
       L1$plat_1 = L1$plat
       L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
-      p1$wght = fields::setup.image.smooth( nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres, theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
+      p1$wght = fields::setup.image.smooth( nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
+        theta=p1$pres/3, xwidth=4*p1$pres, ywidth=4*p1$pres )
+      # theta=p1$pres/3 assume at pres most of variance is accounted ... correct if dense pre-intepolated matrices .. if not can be noisy
+
       stats = matrix( NA, ncol=ncol(S0), nrow=nrow(L1) )
       for ( i in 1:ncol(S0) ) {
         stats[,i] = spatial_warp( S0[,i], L0, L1, p0, p1, "fast", L0i, L1i )
