@@ -26,7 +26,7 @@ p = aegis.temperature::temperature_parameters(
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
   stmv_dimensionality="space-year-season",
-  stmv_global_modelformula = "none",  # only marginally useful .. consider removing it and use "none",
+  stmv_global_modelengine = "none",  # only marginally useful
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
     't',

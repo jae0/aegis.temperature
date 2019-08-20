@@ -59,9 +59,9 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
     # global model options
     # using covariates as a first pass essentially makes it ~ kriging with external drift
     # marginally useful .. consider removing it.
+    if (!exists("stmv_global_modelengine", p)) p$stmv_global_modelengine = "none"
     if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = formula( t ~ s(z, bs="ts" + s(s.range, bs="ts") + s(dZ, bs="ts") + s(ddZ, bs="ts") + s(log(substrate.grainsize), bs="ts")  ) )
     if (!exists("stmv_global_family", p))  p$stmv_global_family = gaussian()
-    if (!exists("stmv_global_modelengine", p)) p$stmv_global_modelengine = "glm"
 
     # local model options
     if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine = "gam" # gam is the most flexible
