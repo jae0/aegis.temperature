@@ -7,7 +7,7 @@ if (!exists("year.assessment")) {
   year.assessment=lubridate::year(Sys.Date()) - 1
 }
 
-scale_ram_required_main_process = 0.8 # GB twostep / fft
+scale_ram_required_main_process = 25 # GB twostep / fft
 scale_ram_required_per_process  = 1.25 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB) -- 20 hrs
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
@@ -26,9 +26,7 @@ p = aegis.temperature::temperature_parameters(
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
   stmv_dimensionality="space-year-season",
-  stmv_global_modelengine = "none",
   stmv_global_modelformula = "none",  # only marginally useful .. consider removing it and use "none",
-  stmv_global_family ="none",
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
     't',
@@ -60,12 +58,13 @@ p = aegis.temperature::temperature_parameters(
     globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-        cor_0.5 = rep("localhost", interpolate_ncpus),
-        cor_0.1 = rep("localhost", interpolate_ncpus),
-        cor_0.05 = rep("localhost", max(1, interpolate_ncpus-1)),
-        cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
-      ),  # ncpus for each runmode
+      cor_0.5 = rep("localhost", interpolate_ncpus),
+      cor_0.1 = rep("localhost", interpolate_ncpus),
+      cor_0.05 = rep("localhost", max(1, interpolate_ncpus-1)),
+      cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
+    ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
+    restart_load = TRUE,
     save_intermediate_results = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )  # ncpus for each runmode

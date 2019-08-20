@@ -16,7 +16,7 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
   # create/update library list
   p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
     "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) )
-  p$libs = c( p$libs, project.library ( "aegis", "aegis.temperature" ) )
+  p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline", "aegis.polygons", "aegis.substrate", "aegis.temperature" ) )
 
   p$project.name = ifelse ( !is.null(project.name), project.name, "temperature" )
 
