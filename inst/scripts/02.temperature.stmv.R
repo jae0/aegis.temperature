@@ -7,8 +7,8 @@ if (!exists("year.assessment")) {
   year.assessment=lubridate::year(Sys.Date()) - 1
 }
 
-scale_ram_required_main_process = 25 # GB twostep / fft
-scale_ram_required_per_process  = 1.25 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB) -- 20 hrs
+scale_ram_required_main_process = 27 # GB twostep / fft
+scale_ram_required_per_process  = 1.5 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB) -- 20 hrs
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 interpolate_ram_required_main_process = 24 # GB twostep / fft
@@ -64,7 +64,7 @@ p = aegis.temperature::temperature_parameters(
       cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
     ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
-    restart_load = TRUE,
+    # restart_load = TRUE,
     save_intermediate_results = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )  # ncpus for each runmode
