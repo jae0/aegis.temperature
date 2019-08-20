@@ -51,6 +51,7 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
     if (!exists("variables", p)) p$variables = list()
     if (!exists("LOCS", p$variables)) p$variables$LOCS=c("plon", "plat")
     if (!exists("TIME", p$variables)) p$variables$TIME="tiyr"
+    if (!exists("Y", p$variables)) p$variables$Y="t"
 
     if ( !exists("pres_discretization_temperature", p) )  p$pres_discretization_temperature = p$pres / 10# controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
 
@@ -67,81 +68,84 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
     if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine = "gam" # gam is the most flexible
     if (!exists("stmv_local_model_distanceweighted", p)) p$stmv_local_model_distanceweighted = TRUE
 
-    if (p$stmv_local_modelengine =="gam") {
-      if (!exists("stmv_gam_optimizer", p)) p$stmv_gam_optimizer=c("outer", "bfgs")
-      if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula( paste(
-        't ~ s(yr, k=25, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
-          '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
-          '+ s(log(z), plon, plat, k=25, bs="ts") + s( cos.w, sin.w, yr, k=25, bs="ts")') )
-        # more than 100 knots and it takes a very long time, 50 seems sufficient, given the large-scaled pattern outside of the prediction box
-        # other possibilities:
-        #     seasonal.basic = ' s(yr) + s(dyear, bs="cc") ',
-        #     seasonal.smoothed = ' s(yr, dyear) + s(yr) + s(dyear, bs="cc")  ',
-        #     seasonal.smoothed.depth.lonlat = ' s(yr, dyear) + s(yr, k=3) + s(dyear, bs="cc") +s(z) +s(plon) +s(plat) + s(plon, plat, by=yr), s(plon, plat, k=10, by=dyear ) ',
+    if (exists("stmv_local_modelengine", p)) {
 
-    }
+      if (p$stmv_local_modelengine =="gam") {
+        if (!exists("stmv_gam_optimizer", p)) p$stmv_gam_optimizer=c("outer", "bfgs")
+        if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula( paste(
+          't ~ s(yr, k=25, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
+            '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
+            '+ s(log(z), plon, plat, k=25, bs="ts") + s( cos.w, sin.w, yr, k=25, bs="ts")') )
+          # more than 100 knots and it takes a very long time, 50 seems sufficient, given the large-scaled pattern outside of the prediction box
+          # other possibilities:
+          #     seasonal.basic = ' s(yr) + s(dyear, bs="cc") ',
+          #     seasonal.smoothed = ' s(yr, dyear) + s(yr) + s(dyear, bs="cc")  ',
+          #     seasonal.smoothed.depth.lonlat = ' s(yr, dyear) + s(yr, k=3) + s(dyear, bs="cc") +s(z) +s(plon) +s(plat) + s(plon, plat, by=yr), s(plon, plat, k=10, by=dyear ) ',
 
-    if (p$stmv_local_modelengine =="fft") {
-      # no need for formulas, etc
-      # lowpass seems a bit too noisy
-      # matern and lowpass_matern are over-smooth
-      # p$stmv_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use:
-      # p$stmv_fft_filter = "matern" # to ~ unviersal krige with external drift
-      # for fft-based methods that require lowpass:
-      if (!exists("stmv_lowpass_phi", p))  p$stmv_lowpass_phi = p$pres / 5 # FFT-baed methods cov range parameter .. not required for "matern" ..
-      if (!exists("stmv_lowpass_nu", p))  p$stmv_lowpass_nu = 0.5
-    }
-
-    if (p$stmv_local_modelengine == "gaussianprocess2Dt") {
-      message( "NOTE:: The gaussianprocess2Dt method is really slow .. " )
-    }
-
-    if (p$stmv_local_modelengine =="twostep") {
-      # similar to GAM model but no spatial interpolation .. space is handled via simple FFT-based kriging
-      # if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
-      #   't ~ s(yr, k=5, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
-      #     '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
-      #     '+ s(log(z), plon, plat, cos.w, sin.w, yr, k=100, bs="ts")') )
-
-      if (!exists("stmv_twostep_time", p)) p$stmv_twostep_time = "gam"
-      if (!exists("stmv_twostep_space", p))  p$stmv_twostep_space = "fft" #  matern, krige (very slow), lowpass, lowpass_matern
-
-      if (p$stmv_twostep_time == "gam")  {
-        if (!exists("stmv_local_modelformula_time", p))  p$stmv_local_modelformula_time = formula( paste(
-           't',  '~ s(yr, k=10, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
-           '+ s( log(z), k=3, bs="ts") + s( plon, k=3, bs="ts") + s( plat, k=3, bs="ts")  ',
-           '+ s( cos.w, sin.w, yr, k=15, bs="ts") + s( log(z), plon, plat, k=15, bs="ts")  '
-          ) )
       }
 
-      if (p$stmv_twostep_space == "gam")  {
-        # very resource intensive ..
-        if (!exists("stmv_local_modelformula_space", p))  p$stmv_local_modelformula_space = formula( paste(
-        't ~ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") + s( log(z), plon, plat, k=27, bs="ts")  ') )
-      }
-
-      if (p$stmv_twostep_space == "fft" ) {
-        if (!exists("stmv_fft_filter", p)) p$stmv_fft_filter="matern"  #  matern, krige (very slow), lowpass, lowpass_matern
+      if (p$stmv_local_modelengine =="fft") {
+        # no need for formulas, etc
+        # lowpass seems a bit too noisy
+        # matern and lowpass_matern are over-smooth
+        # p$stmv_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use:
+        # p$stmv_fft_filter = "matern" # to ~ unviersal krige with external drift
         # for fft-based methods that require lowpass:
         if (!exists("stmv_lowpass_phi", p))  p$stmv_lowpass_phi = p$pres / 5 # FFT-baed methods cov range parameter .. not required for "matern" ..
         if (!exists("stmv_lowpass_nu", p))  p$stmv_lowpass_nu = 0.5
       }
 
+      if (p$stmv_local_modelengine == "gaussianprocess2Dt") {
+        message( "NOTE:: The gaussianprocess2Dt method is really slow .. " )
+      }
+
+      if (p$stmv_local_modelengine =="twostep") {
+        # similar to GAM model but no spatial interpolation .. space is handled via simple FFT-based kriging
+        # if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
+        #   't ~ s(yr, k=5, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
+        #     '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
+        #     '+ s(log(z), plon, plat, cos.w, sin.w, yr, k=100, bs="ts")') )
+
+        if (!exists("stmv_twostep_time", p)) p$stmv_twostep_time = "gam"
+        if (!exists("stmv_twostep_space", p))  p$stmv_twostep_space = "fft" #  matern, krige (very slow), lowpass, lowpass_matern
+
+        if (p$stmv_twostep_time == "gam")  {
+          if (!exists("stmv_local_modelformula_time", p))  p$stmv_local_modelformula_time = formula( paste(
+            't',  '~ s(yr, k=10, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
+            '+ s( log(z), k=3, bs="ts") + s( plon, k=3, bs="ts") + s( plat, k=3, bs="ts")  ',
+            '+ s( cos.w, sin.w, yr, k=15, bs="ts") + s( log(z), plon, plat, k=15, bs="ts")  '
+            ) )
+        }
+
+        if (p$stmv_twostep_space == "gam")  {
+          # very resource intensive ..
+          if (!exists("stmv_local_modelformula_space", p))  p$stmv_local_modelformula_space = formula( paste(
+          't ~ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") + s( log(z), plon, plat, k=27, bs="ts")  ') )
+        }
+
+        if (p$stmv_twostep_space == "fft" ) {
+          if (!exists("stmv_fft_filter", p)) p$stmv_fft_filter="matern"  #  matern, krige (very slow), lowpass, lowpass_matern
+          # for fft-based methods that require lowpass:
+          if (!exists("stmv_lowpass_phi", p))  p$stmv_lowpass_phi = p$pres / 5 # FFT-baed methods cov range parameter .. not required for "matern" ..
+          if (!exists("stmv_lowpass_nu", p))  p$stmv_lowpass_nu = 0.5
+        }
+
+      }
+
+      if (p$stmv_local_modelengine == "bayesx") {
+        # bayesx families are specified as characters, this forces it to pass as is and
+        # then the next does the transformation internal to the "stmv__bayesx"
+        if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
+          't ~ sx(yr,   bs="ps") + sx(cos.w, bs="ps") + s(sin.w, bs="ps")',
+            ' + sx(plon, bs="ps") + sx(plat, bs="ps") ',
+            ' + sx(plon, plat, cos.w, sin.w, yr, bs="te")'  # te is tensor spline
+        ))
+        if (!exists("stmv_local_model_bayesxmethod", p))  p$stmv_local_model_bayesxmethod="MCMC"
+        if (!exists("stmv_local_model_distanceweighted", p))  p$stmv_local_model_distanceweighted = FALSE
+      }
     }
 
-    if (p$stmv_local_modelengine == "bayesx") {
-      # bayesx families are specified as characters, this forces it to pass as is and
-      # then the next does the transformation internal to the "stmv__bayesx"
-      if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
-        't ~ sx(yr,   bs="ps") + sx(cos.w, bs="ps") + s(sin.w, bs="ps")',
-          ' + sx(plon, bs="ps") + sx(plat, bs="ps") ',
-          ' + sx(plon, plat, cos.w, sin.w, yr, bs="te")'  # te is tensor spline
-      ))
-      if (!exists("stmv_local_model_bayesxmethod", p))  p$stmv_local_model_bayesxmethod="MCMC"
-      if (!exists("stmv_local_model_distanceweighted", p))  p$stmv_local_model_distanceweighted = FALSE
-    }
-
-    if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = formula( paste( 'z ~ 1') )
+    if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = "none"
 
     if (!exists("stmv_dimensionality", p)) p$stmv_dimensionality="space-year-season"
 
