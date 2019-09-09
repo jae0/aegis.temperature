@@ -12,10 +12,8 @@ scale_ram_required_per_process  = 1.5 # twostep / fft /fields vario ..  (mostly 
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 interpolate_ram_required_main_process = 24 # GB twostep / fft
-interpolate_ram_required_per_process  = 1.25 # 1 GB seems enough for twostep / fft /fields vario .. but make 2 in case
+interpolate_ram_required_per_process  = 3  # 1 GB seems enough for twostep / fft /fields vario .. but make 2 in case
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
-
-nyrs = year.assessment-1950
 
 p = aegis.temperature::temperature_parameters(
   project.mode="stmv",
@@ -30,41 +28,41 @@ p = aegis.temperature::temperature_parameters(
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
     't',
-    '~ s( yr, k=20, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
-    '+ s( yr, cos.w, sin.w, k=30, bs="ts") ',
+    '~ s( yr, k=30, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
+    '+ s( yr, cos.w, sin.w, k=20, bs="ts") ',
     '+ s( log(z), k=3, bs="ts") + s( plon, k=3, bs="ts") + s( plat, k=3, bs="ts")  ',
-    '+ s( log(z), plon, plat, k=30, bs="ts")  '
+    '+ s( log(z), plon, plat, k=20, bs="ts")  '
     ) ),
   stmv_twostep_time = "gam",
   stmv_twostep_space = "fft",  # everything else is too slow ...
-  stmv_fft_filter="matern_tapered",  #  matern, krige (very slow), lowpass, lowpass_matern
-  stmv_fft_taper_method = "modelled",  # vs "empirical"
-  # stmv_fft_taper_fraction = 0.5,  # if empirical: in local smoothing convolutions taper to this areal expansion factor sqrt( r=0.5 ) ~ 70% of variance in variogram
+  stmv_fft_filter="matern_tapered_modelled",  #  matern, krige (very slow), lowpass, lowpass_matern
   # stmv_lowpass_nu = 0.1,
   # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.25, nu=0.1, cor=0.5 ), # default p$res = 0.5;
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
   stmv_autocorrelation_localrange=0.1,
-  stmv_autocorrelation_interpolation = c(0.5, 0.1, 0.05, 0.01),
+  stmv_autocorrelation_interpolation = c( 0.2, 0.1, 0.05, 0.01 ),
   stmv_variogram_method = "fft",
-  depth.filter = 0, # the depth covariate is input as log(depth) so, choose stats locations with elevation > log(1 m) as being on land
+  depth.filter = 5, # the depth covariate is input as  depth (m)
   stmv_local_model_distanceweighted = TRUE,
-  stmv_rsquared_threshold = 0, # lower threshold .. not used if twostep method
+  stmv_rsquared_threshold = 0.25, # lower threshold .. not used if twostep method
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c( 20, 30, 40, 50 ), # km ... approx guess of 95% AC range
-  stmv_distance_prediction_fraction = 0.95, #
-  stmv_nmin = 16*nyrs,  # ~ 1000 min number of data points req before attempting to model timeseries in a localized space .. control no error in local model
-  stmv_nmax = 25*nyrs, # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
+  stmv_distance_scale = c( 5, 10, 20, 30, 40 ), # km ... approx guess of 95% AC range
+  stmv_distance_prediction_max = 5 * 1.25 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
+  stmv_nmin = 100, # min number of unique spatial data points req before attempting to model timeseries in a localized space .. control no error in local model
+  stmv_nmax = 400, # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
+  stmv_tmin = round( 1.25 * (year.assessment-1950) ),  # min no of time slices for timeseries part
+  stmv_force_complete_method = "linear",
   stmv_runmode = list(
-    globalmodel = TRUE,
+    globalmodel = FALSE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-      cor_0.5 = rep("localhost", interpolate_ncpus),
+      cor_0.2 = rep("localhost", interpolate_ncpus),
       cor_0.1 = rep("localhost", interpolate_ncpus),
-      cor_0.05 = rep("localhost", max(1, interpolate_ncpus-1)),
-      cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
+      cor_0.05 = rep("localhost", interpolate_ncpus )),
+      cor_0.01 = rep("localhost", max(1, interpolate_ncpus-1))
     ),  # ncpus for each runmode
-    interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
-    # restart_load = TRUE,
+    interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus/2)),
+    restart_load = FALSE,
     save_intermediate_results = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )  # ncpus for each runmode
@@ -84,9 +82,10 @@ p = aegis.temperature::temperature_parameters(
 
 
 # quick view
-  predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
+  predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean", yr=2000 )
   statistics  = stmv_db( p=p, DS="stmv.stats" )
-  locations   = spatial_grid( p )
+
+  locations = bathymetry.db( spatial.domain=p$spatial.domain, DS="baseline") # these are the prediction locations
 
   # comparisons
   dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
@@ -95,7 +94,7 @@ p = aegis.temperature::temperature_parameters(
   (p$statsvars)
   dev.new(); levelplot( predictions[,1] ~ locations[,1] + locations[,2], aspect="iso" )
   dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
-  dev.new(); levelplot( statistics[,match("sdTot", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
+  dev.new(); levelplot( statistics[,match("sdTotal", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
   dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
 
