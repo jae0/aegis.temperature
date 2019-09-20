@@ -20,7 +20,7 @@ p = aegis.temperature::temperature_parameters(
   data_root = project.datadirectory( "aegis", "temperature" ),
   DATA = 'temperature.db( p=p, DS="stmv.inputs" )',
   spatial.domain = "canada.east", # default
-  pres_discretization_temperature = 1 / 20, # 1==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  inputdata_spatial_discretization_planar_km = 1 / 20, # 1==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
   stmv_dimensionality="space-year-season",
@@ -42,12 +42,12 @@ p = aegis.temperature::temperature_parameters(
   stmv_autocorrelation_localrange=0.1,
   stmv_autocorrelation_interpolation = c( 0.2, 0.1, 0.05, 0.01 ),
   stmv_variogram_method = "fft",
-  depth.filter = 5, # the depth covariate is input as  depth (m)
+  stmv_filter_depth_m = 5, # the depth covariate is input as  depth (m)
   stmv_local_model_distanceweighted = TRUE,
   stmv_rsquared_threshold = 0.25, # lower threshold .. not used if twostep method
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c( 5, 10, 20, 30, 40 ), # km ... approx guess of 95% AC range
-  stmv_distance_prediction_max = 5 * 1.25 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
+  stmv_distance_prediction_fraction = 0.95 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
   stmv_nmin = 100, # min number of unique spatial data points req before attempting to model timeseries in a localized space .. control no error in local model
   stmv_nmax = 400, # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   stmv_tmin = round( 1.25 * (year.assessment-1950) ),  # min no of time slices for timeseries part

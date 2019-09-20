@@ -10,7 +10,7 @@
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
     if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
-    if (is.null(id)) id = paste( p$resolution, p$spatial.domain, p$overlay, sep="_" )
+    if (is.null(id)) id = paste( p$spatial.domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, sep="_" )
 
     if ( DS=="aggregated_data") {
 

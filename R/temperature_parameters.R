@@ -53,7 +53,7 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
     if (!exists("TIME", p$variables)) p$variables$TIME="tiyr"
     if (!exists("Y", p$variables)) p$variables$Y="t"
 
-    if ( !exists("pres_discretization_temperature", p) )  p$pres_discretization_temperature = p$pres / 10# controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+    if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres / 10# controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
 
     if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
 

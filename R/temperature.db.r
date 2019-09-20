@@ -533,8 +533,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
           # don't need year as this is a yearly breakdown but just to be clear ..
           Y$id =  paste(
-            round(Y$plon/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
-            round(Y$plat/p$pres_discretization_temperature + 1) * p$pres_discretization_temperature,
+            round(Y$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
+            round(Y$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
             paste(Y$yr, cut( Y$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
             sep="~"
           )
@@ -620,7 +620,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if (DS=="stmv.inputs") {
     # default output grid
     vars_required = c(p$variables$LOCS, p$variables$COV )
-    Bout = bathymetry.db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depth filtered
+    Bout = bathymetry.db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
     tokeep = which( names(Bout) %in% vars_required )
     toadd = setdiff( 1:length(vars_required),  which( vars_required %in% names(Bout)) )
     Bout = Bout[,tokeep]
