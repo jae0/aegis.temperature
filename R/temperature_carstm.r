@@ -5,12 +5,12 @@
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
     if ( is.null(p)) p = temperature_parameters(...)
 
-    if ( !exists("project.name", p)) p$project.name = "temperature"
-    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+    if ( !exists("project_name", p)) p$project_name = "temperature"
+    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
     if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
-    if (is.null(id)) id = paste( p$spatial.domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, sep="_" )
+    if (is.null(id)) id = paste( p$spatial_domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, sep="_" )
 
     if ( DS=="aggregated_data") {
 

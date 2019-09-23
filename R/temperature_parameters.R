@@ -1,6 +1,6 @@
 
 
-temperature_parameters = function( p=NULL, project.name=NULL, project.mode="default", ... ) {
+temperature_parameters = function( p=NULL, project_name=NULL, project_class="default", ... ) {
 
   # ---------------------
   # deal with additional passed parameters
@@ -18,17 +18,17 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
     "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline", "aegis.polygons", "aegis.substrate", "aegis.temperature" ) )
 
-  p$project.name = ifelse ( !is.null(project.name), project.name, "temperature" )
+  p$project_name = ifelse ( !is.null(project_name), project_name, "temperature" )
 
-  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
   if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
   if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=F, recursive=T )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=F, recursive=T )
 
-  if ( !exists("spatial.domain", p) ) p$spatial.domain = "canada.east" # canada.east.highres and canada.east.superhighres result in memory overflow
-  if ( !exists("spatial.domain.subareas", p) )  p$spatial.domain.subareas = c( "SSE.mpa", "SSE", "snowcrab" ) # target domains and resolution for additional data subsets .. add here your are of interest
+  if ( !exists("spatial_domain", p) ) p$spatial_domain = "canada.east" # canada.east.highres and canada.east.superhighres result in memory overflow
+  if ( !exists("spatial_domain_subareas", p) )  p$spatial_domain_subareas = c( "SSE.mpa", "SSE", "snowcrab" ) # target domains and resolution for additional data subsets .. add here your are of interest
 
   p = spatial_parameters( p=p )  # default grid and resolution
 
@@ -39,14 +39,14 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
 
 
 
-  if (project.mode=="default") {
+  if (project_class=="default") {
     return(p)
   }
 
-  if (project.mode=="stmv") {
+  if (project_class=="stmv") {
     p$libs = c( p$libs, project.library ( "stmv" ) )
 
-    if (!exists("DATA", p) ) p$DATA = 'temperature.db( p=p, DS="stmv.inputs" )'
+    if (!exists("DATA", p) ) p$DATA = 'temperature.db( p=p, DS="stmv_inputs" )'
 
     if (!exists("variables", p)) p$variables = list()
     if (!exists("LOCS", p$variables)) p$variables$LOCS=c("plon", "plat")
@@ -161,7 +161,7 @@ temperature_parameters = function( p=NULL, project.name=NULL, project.mode="defa
 
 
 
-  if (project.mode=="carstm") {
+  if (project_class=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
 
     return(p)

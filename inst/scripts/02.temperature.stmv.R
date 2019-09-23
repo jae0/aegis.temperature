@@ -16,10 +16,10 @@ interpolate_ram_required_per_process  = 3  # 1 GB seems enough for twostep / fft
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 p = aegis.temperature::temperature_parameters(
-  project.mode="stmv",
+  project_class="stmv",
   data_root = project.datadirectory( "aegis", "temperature" ),
-  DATA = 'temperature.db( p=p, DS="stmv.inputs" )',
-  spatial.domain = "canada.east", # default
+  DATA = 'temperature.db( p=p, DS="stmv_inputs" )',
+  spatial_domain = "canada.east", # default
   inputdata_spatial_discretization_planar_km = 1 / 20, # 1==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
@@ -40,14 +40,13 @@ p = aegis.temperature::temperature_parameters(
   # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.25, nu=0.1, cor=0.5 ), # default p$res = 0.5;
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
   stmv_autocorrelation_localrange=0.1,
-  stmv_autocorrelation_interpolation = c( 0.2, 0.1, 0.05, 0.01 ),
+  stmv_autocorrelation_basis_interpolation = c( 0.2, 0.1, 0.05, 0.01 ),
   stmv_variogram_method = "fft",
   stmv_filter_depth_m = 5, # the depth covariate is input as  depth (m)
   stmv_local_model_distanceweighted = TRUE,
   stmv_rsquared_threshold = 0.25, # lower threshold .. not used if twostep method
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c( 5, 10, 20, 30, 40 ), # km ... approx guess of 95% AC range
-  stmv_distance_prediction_fraction = 0.95 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
   stmv_nmin = 100, # min number of unique spatial data points req before attempting to model timeseries in a localized space .. control no error in local model
   stmv_nmax = 400, # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   stmv_tmin = round( 1.25 * (year.assessment-1950) ),  # min no of time slices for timeseries part
@@ -85,7 +84,7 @@ p = aegis.temperature::temperature_parameters(
   predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean", yr=2000 )
   statistics  = stmv_db( p=p, DS="stmv.stats" )
 
-  locations = bathymetry.db( spatial.domain=p$spatial.domain, DS="baseline") # these are the prediction locations
+  locations = bathymetry.db( spatial_domain=p$spatial_domain, DS="baseline") # these are the prediction locations
 
   # comparisons
   dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
@@ -99,7 +98,7 @@ p = aegis.temperature::temperature_parameters(
 
 
   # 2.  collect predictions from stmv and warp/break into sub-areas defined by
-  #     p$spatial.domain.subareas = c( "SSE", "SSE.mpa", "snowcrab" )
+  #     p$spatial_domain_subareas = c( "SSE", "SSE.mpa", "snowcrab" )
   temperature.db( p=p, DS="predictions.redo" ) # ~1hr
   temperature.db( p=p, DS="stmv.stats.redo" ) # warp to sub grids
 
@@ -125,7 +124,7 @@ p = aegis.temperature::temperature_parameters(
 
   # just redo a couple maps for ResDoc in the  SSE domain
   #p$bstats = "tmean"
-  p = spatial_parameters( p=p, spatial.domain = "SSE.mpa" )  # default grid and resolution
+  p = spatial_parameters( p=p, spatial_domain = "SSE.mpa" )  # default grid and resolution
   p$corners = data.frame(plon=c(150, 1022), plat=c(4600, 5320) )  # alter corners ..
   temperature.map( p=p, DS='climatology' )
   temperature.map( p=p, DS='stmv.stats' )
