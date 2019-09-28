@@ -6,6 +6,7 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
   if ( is.null(p)) p = temperature_parameters(...)
 
   if ( !exists("project_name", p)) p$project_name = "temperature"
+
   if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
   if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
   if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
@@ -127,15 +128,15 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
 
-    M$z = M$z.mean + p$constant_offset # make all positive
+    M$t = M$t.mean # make all positive
     M$tag = "observations"
 
     sppoly_df = as.data.frame(sppoly)
-    sppoly_df$z = NA
+    sppoly_df$t = NA
     sppoly_df$StrataID = as.character( sppoly_df$StrataID )
     sppoly_df$tag ="predictions"
 
-    vn = c("z", "tag", "StrataID")
+    vn = c("t", "tag", "StrataID", "z")
 
     M = rbind( M[, vn], sppoly_df[, vn] )
     sppoly_df = NULL
