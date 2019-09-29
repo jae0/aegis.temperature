@@ -1,5 +1,5 @@
 
-temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NULL, redo=FALSE, ... ) {
+temperature_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, redo=FALSE, ... ) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -7,21 +7,7 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
 
   if ( !exists("project_name", p)) p$project_name = "temperature"
 
-  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
-  if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
-  if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
-
-
-  if (!exists("areal_units_strata_type", p )) p$areal_units_strata_type = "lattice" #
-  if (!exists("areal_units_constraint", p )) p$areal_units_constraint = "none" #
-  if (!exists("areal_units_overlay", p )) p$areal_units_overlay = "none" #
-  if (!exists("areal_units_resolution_km", p )) stop( "areal_units_resolution_km should be defined ... " ) # km
-  if (!exists("areal_units_proj4string_planar_km", p )) stop( "areal_units_proj4string_planar_km should be defined ... " ) # km
-  if (!exists("timeperiod", p) )  p$timeperiod="default"
-
-
-
-  if (is.null(id)) id = paste( p$spatial_domain, paste0(p$areal_units_overlay, collapse="_"), p$areal_units_resolution_km, p$areal_units_strata_type, p$areal_units_constraint, p$timeperiod, sep="_" )
+  p = aegis_parameters( p=p, DS="carstm" )
 
 
   # -----------------------
@@ -29,7 +15,7 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
 
   if ( DS=="aggregated_data") {
 
-    fn = file.path( p$modeldir, paste( "temperature", "aggregated_data", id, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "temperature", "aggregated_data", p$auid, "rdata", sep=".") )
     if (!redo)  {
       print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
       if (file.exists(fn)) {
@@ -99,7 +85,7 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
 
   if ( DS=="carstm_inputs") {
 
-    fn = file.path( p$modeldir, paste( "temperature", "carstm_inputs", id, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "temperature", "carstm_inputs", p$auid, "rdata", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
         load( fn)
@@ -157,8 +143,8 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", id=NULL, sppoly=NUL
 
   if ( DS=="carstm_modelled") {
 
-    fn = file.path( p$modeldir, paste( "temperature", "carstm_modelled", id, p$carstm_modelengine, "rdata", sep=".") )
-    fn_fit = file.path( p$modeldir, paste( "temperature", "carstm_modelled_fit", id, p$carstm_modelengine, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "temperature", "carstm_modelled", p$auid, p$carstm_modelengine, "rdata", sep=".") )
+    fn_fit = file.path( p$modeldir, paste( "temperature", "carstm_modelled_fit", p$auid, p$carstm_modelengine, "rdata", sep=".") )
 
     if (!redo)  {
       print( "Warning: carstm_modelled is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
