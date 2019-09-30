@@ -163,7 +163,8 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
   if (project_class=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
-
+    if ( !exists("project_name", p)) p$project_name = "temperature"
+    p = aegis_parameters( p=p, DS="carstm" )
     return(p)
   }
 
