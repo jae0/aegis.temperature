@@ -5,6 +5,7 @@ p = aegis.temperature::temperature_parameters(
   project_class = "carstm", # defines which parameter set to load
   inputdata_spatial_discretization_planar_km = 1,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
   inputdata_temporal_discretization_yr = 1/365,  # ie., daily .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+  yrs = 1970:2019,
   spatial_domain = "snowcrab",  # defines spatial area, currenty: "snowcrab" or "SSE"
   # spatial_domain = "SSE",  # defines spatial area, currenty: "snowcrab" or "SSE"
   areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
