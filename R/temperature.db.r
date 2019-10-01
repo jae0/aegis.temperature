@@ -1,5 +1,5 @@
 
-temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, ... ) {
+temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, redo=FALSE, ... ) {
 
   # over-ride default dependent variable name if it exists
 
@@ -612,6 +612,73 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     save(O, file=fbAll, compress=TRUE)
     return(fbAll)
   }
+
+
+  # ----------------------
+
+
+  if ( DS=="aggregated_data") {
+
+    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", p$inputdata_spatial_discretization_planar_km, round(p$inputdata_temporal_discretization_yr,6), "rdata", sep=".") )
+    if (!redo)  {
+      if (file.exists(fn)) {
+        load( fn)
+        return( M )
+      }
+    }
+
+    M = temperature.db( p=p, DS="bottom.all"  )
+    M = M[ which(M$yr %in% p$yrs), ]
+    M$tiyr = lubridate::decimal_date ( M$date )
+
+    # globally remove all unrealistic data
+    keep = which( M$t >= -3 & M$t <= 25 ) # hard limits
+    if (length(keep) > 0 ) M = M[ keep, ]
+    TR = quantile(M$t, probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+    keep = which( M$t >=  TR[1] & M$t <=  TR[2] )
+    if (length(keep) > 0 ) M = M[ keep, ]
+    keep = which( M$z >=  2 ) # ignore very shallow areas ..
+    if (length(keep) > 0 ) M = M[ keep, ]
+
+    M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+    M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+    M$dyear = M$tiyr - M$yr
+
+    dyear_discretization_rawdata = c( (c(1:365)-1) * p$inputdata_temporal_discretization_yr, 1)  # i.e., on a daily basis
+    M$subyear = discretize_data( M$dyear, dyear_discretization_rawdata, digits=6 )
+
+    bb = as.data.frame( t( simplify2array(
+      tapply( X=M$t, INDEX=list(paste( M$plon, M$plat, M$yr, M$subyear, sep="_") ),
+        FUN = function(w) { c(
+          mean(w, na.rm=TRUE),
+          sd(w, na.rm=TRUE),
+          length( which(is.finite(w)) )
+        ) }, simplify=TRUE )
+    )))
+    colnames(bb) = c("temperature.mean", "temperature.sd", "temperature.n")
+    bb$id = rownames(bb)
+    out = bb
+
+    bb = as.data.frame( t( simplify2array(
+      tapply( X=M$z, INDEX=list(paste( M$plon, M$plat, M$yr, M$subyear, sep="_") ),
+        FUN = function(w) { c(
+          mean(w, na.rm=TRUE),
+          sd(w, na.rm=TRUE),
+          length( which(is.finite(w)) )
+        ) }, simplify=TRUE )
+    )))
+    colnames(bb) = c("z.mean", "z.sd", "z.n")
+    bb$id = rownames(bb)
+
+    ii = match( out$id, bb$id )
+    out$z = bb$z.mean[ii]
+
+    M = out
+    save( M, file=fn, compress=TRUE )
+    return( M )
+  }
+
 
 
   # -----------------------

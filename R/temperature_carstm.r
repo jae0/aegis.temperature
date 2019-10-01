@@ -1,5 +1,5 @@
 
-temperature_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, redo=FALSE, ... ) {
+temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -13,91 +13,6 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, redo=F
 
 
   # -----------------------
-
-
-  if ( DS=="aggregated_data") {
-
-    fn = file.path( p$modeldir, paste( "temperature", "aggregated_data", p$auid, "rdata", sep=".") )
-    if (!redo)  {
-      print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
-      if (file.exists(fn)) {
-        load( fn)
-        return( M )
-      }
-      print( "Warning: aggregated_data load from saved instance failed ... " )
-    }
-
-    print( "Warning: aggregated_data is being recreated ... " )
-
-    M = temperature.db( p=p, DS="bottom.all"  )
-    M = M[ which(M$yr %in% p$yrs), ]
-    M$tiyr = lubridate::decimal_date ( M$date )
-
-    # globally remove all unrealistic data
-    keep = which( M$t >= -3 & M$t <= 25 ) # hard limits
-    if (length(keep) > 0 ) M = M[ keep, ]
-    TR = quantile(M$t, probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
-    keep = which( M$t >=  TR[1] & M$t <=  TR[2] )
-    if (length(keep) > 0 ) M = M[ keep, ]
-    keep = which( M$z >=  2 ) # ignore very shallow areas ..
-    if (length(keep) > 0 ) M = M[ keep, ]
-
-
-    M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-    M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-
-
-    # prediction surface
-    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
-
-    crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
-    M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
-    M = M[ !is.na(M$StrataID ) ,]
-
-    o = NULL
-    M$lon = NULL
-    M$lat = NULL
-    gc()
-
-    M$dyear = M$tiyr - M$yr
-
-    dyear_discretization_rawdata = c( (c(1:365)-1) * p$inputdata_temporal_discretization_yr, 1)  # i.e., on a daily basis
-    M$subyear = discretize_data( M$dyear, dyear_discretization_rawdata, digits=6 )
-
-    bb = as.data.frame( t( simplify2array(
-      tapply( X=M$t, INDEX=list(paste( as.character(M$StrataID), M$yr, M$subyear, sep="_") ),
-        FUN = function(w) { c(
-          mean(w, na.rm=TRUE),
-          sd(w, na.rm=TRUE),
-          length( which(is.finite(w)) )
-        ) }, simplify=TRUE )
-    )))
-    colnames(bb) = c("temperature.mean", "temperature.sd", "temperature.n")
-    bb$id = rownames(bb)
-    out = bb
-
-    bb = as.data.frame( t( simplify2array(
-      tapply( X=M$z, INDEX=list(paste( as.character(M$StrataID), M$yr, M$subyear, sep="_") ),
-        FUN = function(w) { c(
-          mean(w, na.rm=TRUE),
-          sd(w, na.rm=TRUE),
-          length( which(is.finite(w)) )
-        ) }, simplify=TRUE )
-    )))
-    colnames(bb) = c("z.mean", "z.sd", "z.n")
-    bb$id = rownames(bb)
-
-    ii = match( out$id, bb$id )
-    out$z = bb$z.mean[ii]
-
-    M = out
-    save( M, file=fn, compress=TRUE )
-    return( M )
-  }
-
-
-
-  # ------------
 
 
   if ( DS=="carstm_inputs") {
@@ -117,7 +32,7 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, redo=F
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
 
-    M = temperature_carstm ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
+    M = temperature.db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
 
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
@@ -143,25 +58,6 @@ temperature_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, redo=F
 
     vn = c("t", "tag", "StrataID", "z")
     APS = APS[, vn]
-
-    if (!exists("ny", p)) p$ny = length(p$yrs) # default value of 10 time steps number of intervals in time within a year for all temp and indicators
-
-    if (!exists("nw", p)) p$nw = 10 # default value of 10 time steps number of intervals in time within a year for all temp and indicators
-    p$tres = 1/ p$nw # time resolution .. predictions are made with models that use seasonal components
-    p$dyears = (c(1:p$nw)-1) / p$nw # intervals of decimal years... fractional year breaks
-    p$dyear_centre = p$dyears[ round(p$nw/2) ] + p$tres/2
-
-    if (!exists("prediction_dyear", p)) p$prediction_dyear = lubridate::decimal_date( lubridate::ymd("0000/Sep/01")) # used for creating timeslices and predictions  .. needs to match the values in aegis_parameters()
-
-
-    p$nt = p$nw*p$ny # i.e., seasonal with p$nw (default is annual: nt=ny)
-    tout = expand.grid( yr=p$yrs, dyear=1:p$nw, KEEP.OUT.ATTRS=FALSE )
-    tout$tiyr = tout$yr + tout$dyear/p$nw - p$tres/2 # mid-points
-    tout = tout[ order(tout$tiyr), ]
-    # output timeslices for predictions in decimla years, yes all of them here
-    if (!exists("prediction_ts", p)) p$prediction_ts = tout$tiyr   # predictions at these time values (decimal-year)
-
-    if (!exists("prediction_dyear", p)) p$prediction_dyear = lubridate::decimal_date( lubridate::ymd("0000/Sep/01")) # used for creating timeslices and predictions  .. needs to match the values in aegis_parameters()
 
     n_aps = nrow(APS)
     APS = cbind( APS[ rep.int(1:n_aps, p$nt), ],
