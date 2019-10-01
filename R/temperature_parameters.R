@@ -34,6 +34,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
   # define focal years
   if (!exists( "yrs", p)) p$yrs = 1950:lubridate::year(lubridate::now())  # default
+  p = temporal_parameters(p=p, aegis_dimensionality="space-year-season")
 
   if ( !exists("additional.data", p) )  p$additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster")
 
@@ -150,9 +151,6 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
     if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = "none"
 
-    if (!exists("stmv_dimensionality", p)) p$stmv_dimensionality="space-year-season"
-
-    p = aegis_parameters( p=p, DS="stmv_spatiotemporal_model" )
 
     # intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..)
     #.. need to close right side for "cut" .. controls resolution of data prior to modelling
@@ -167,26 +165,8 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   if (project_class=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
     if ( !exists("project_name", p)) p$project_name = "temperature"
+
     p = aegis_parameters( p=p, DS="carstm" )
-
-    if (!exists("ny", p)) p$ny = length(p$yrs) # default value of 10 time steps number of intervals in time within a year for all temp and indicators
-
-    if (!exists("nw", p)) p$nw = 10 # default value of 10 time steps number of intervals in time within a year for all temp and indicators
-    p$tres = 1/ p$nw # time resolution .. predictions are made with models that use seasonal components
-    p$dyears = (c(1:p$nw)-1) / p$nw # intervals of decimal years... fractional year breaks
-    p$dyear_centre = p$dyears[ round(p$nw/2) ] + p$tres/2
-
-    if (!exists("prediction_dyear", p)) p$prediction_dyear = lubridate::decimal_date( lubridate::ymd("0000/Sep/01")) # used for creating timeslices and predictions  .. needs to match the values in aegis_parameters()
-
-
-    p$nt = p$nw*p$ny # i.e., seasonal with p$nw (default is annual: nt=ny)
-    tout = expand.grid( yr=p$yrs, dyear=1:p$nw, KEEP.OUT.ATTRS=FALSE )
-    tout$tiyr = tout$yr + tout$dyear/p$nw - p$tres/2 # mid-points
-    tout = tout[ order(tout$tiyr), ]
-    # output timeslices for predictions in decimla years, yes all of them here
-    if (!exists("prediction_ts", p)) p$prediction_ts = tout$tiyr   # predictions at these time values (decimal-year)
-
-    if (!exists("prediction_dyear", p)) p$prediction_dyear = lubridate::decimal_date( lubridate::ymd("0000/Sep/01")) # used for creating timeslices and predictions  .. needs to match the values in aegis_parameters()
 
     return(p)
   }

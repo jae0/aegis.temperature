@@ -23,7 +23,7 @@ p = aegis.temperature::temperature_parameters(
   inputdata_spatial_discretization_planar_km = 1 / 20, # 1==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
-  stmv_dimensionality="space-year-season",
+  aegis_dimensionality="space-year-season",
   stmv_global_modelengine = "none",  # only marginally useful
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(

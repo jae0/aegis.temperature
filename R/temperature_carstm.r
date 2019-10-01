@@ -54,7 +54,17 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
     APS$z = NA
-    APS$z = match(M, B)
+
+    pb = p
+    pb$modeldir = NULL  # resetting forces default bathymetry model dir to be used
+    pb$project_name = NULL
+    pb$data_root = NULL
+    pb$datadir  = NULL
+    pb = bathymetry_parameters(p=pb, DS="carstm")
+    BI = bathymetry_carstm ( p=pb, DS="carstm_modelled" )  # unmodeled!
+    jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
+    APS$z = BI$z[jj]
+    jj =NULL
 
     vn = c("t", "tag", "StrataID", "z")
     APS = APS[, vn]
