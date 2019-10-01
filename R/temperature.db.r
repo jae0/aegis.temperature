@@ -646,10 +646,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$dyear = M$tiyr - M$yr
 
     dyear_discretization_rawdata = c( (c(1:365)-1) * p$inputdata_temporal_discretization_yr, 1)  # i.e., on a daily basis
-    M$subyear = discretize_data( M$dyear, dyear_discretization_rawdata, digits=6 )
+    M$dyear = discretize_data( M$dyear, dyear_discretization_rawdata, digits=6 )
 
     bb = as.data.frame( t( simplify2array(
-      tapply( X=M$t, INDEX=list(paste( M$plon, M$plat, M$yr, M$subyear, sep="_") ),
+      tapply( X=M$t, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
         FUN = function(w) { c(
           mean(w, na.rm=TRUE),
           sd(w, na.rm=TRUE),
@@ -660,8 +660,9 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     bb$id = rownames(bb)
     out = bb
 
+    # keep depth at collection .. potentially the biochem data as well (at least until biochem is usable)
     bb = as.data.frame( t( simplify2array(
-      tapply( X=M$z, INDEX=list(paste( M$plon, M$plat, M$yr, M$subyear, sep="_") ),
+      tapply( X=M$z, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
         FUN = function(w) { c(
           mean(w, na.rm=TRUE),
           sd(w, na.rm=TRUE),
@@ -674,7 +675,20 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     ii = match( out$id, bb$id )
     out$z = bb$z.mean[ii]
 
-    M = out
+    bb = NULL
+    labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
+
+    out$plon = labs[,1]
+    out$plat = labs[,2]
+    out$yr = labs[,3]
+    out$dyear = labs[,4]
+    labs = NULL
+
+    M = out[ which( is.finite( out$temperature.mean )) ,]
+    out =NULL
+    gc()
+    M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+
     save( M, file=fn, compress=TRUE )
     return( M )
   }
