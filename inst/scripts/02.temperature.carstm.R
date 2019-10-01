@@ -21,15 +21,18 @@ p = aegis.temperature::temperature_parameters(
     inla(
       formula = temperature ~ 1
         + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
+        + f(tiyr, model="ar1", hyper=H$ar1 )
+        + f(year,  model="ar1", hyper=H$ar1 )
+        + f(tiyr2, model="seasonal", season.length=10 )
         + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
         + f(iid_error, model="iid", hyper=H$iid),
-      family = "lognormal", # "zeroinflatedpoisson0",
+      family = "normal",
       data= M,
       control.compute=list(dic=TRUE, config=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
       control.predictor=list(compute=FALSE, link=1 ),
       control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-      control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+      # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
       # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
       num.threads=4,
       blas.num.threads=4,

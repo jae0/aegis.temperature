@@ -50,9 +50,9 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     M$tag = "observations"
 
     APS = as.data.frame(sppoly)
-    APS$t = NA
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
+    APS$t = NA
     APS$z = NA
 
     pb = p
@@ -63,24 +63,25 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     pb = bathymetry_parameters(p=pb, DS="carstm")
     BI = bathymetry_carstm ( p=pb, DS="carstm_modelled" )  # unmodeled!
     jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
-    APS$z = BI$z[jj]
+    APS$z = BI$z.predicted[jj]
     jj =NULL
+    BI = NULL
 
     vn = c("t", "tag", "StrataID", "z")
     APS = APS[, vn]
 
+    # expand APS to all time slices
     n_aps = nrow(APS)
-    APS = cbind( APS[ rep.int(1:n_aps, p$nt), ],
-                      rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
+    APS = cbind( APS[ rep.int(1:n_aps, p$nt), ], rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
     names(APS) = c(vn, "tiyr")
 
+    M$temperature = M$temperature.mean
+    M$tiyr = M$yr + M$dyear
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
     sppoly = NULL
-    M$strata  = as.numeric( M$StrataID)
-    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
     save( M, file=fn, compress=TRUE )
     return( M )
@@ -97,8 +98,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     fn_fit = file.path( p$modeldir, paste( "temperature", "carstm_modelled_fit", p$auid, p$carstm_modelengine, "rdata", sep=".") )
 
     if (!redo)  {
-      print( "Warning: carstm_modelled is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
-      if (file.exists(fn)) {
+         if (file.exists(fn)) {
         load( fn)
         return( sppoly )
       }
@@ -108,95 +108,151 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
           return( fit )
         }
       }
-      print( "Warning: carstm_modelled load from saved instance failed ... " )
     }
 
-    print( "Warning: carstm_modelled is being recreated ... " )
-    print( "Warning: this needs a lot of RAM .. ~XX GB depending upon resolution of discretization .. a few hours " )
-
-    # prediction surface
+       # prediction surface
     if (is.null(sppoly))  sppoly = areal_units( p=p )  # will redo if not found
 
-    M = temperature.db ( p=p, DS="lonlat.highres" )  # 16 GB in RAM just to store!
-    crs_lonlat = sp::CRS("+proj=longlat +datum=WGS84")
-    spp = sppoly["StrataID"]
+    M = temperature_carstm ( p=p, DS="carstm_inputs" )  # 16 GB in RAM just to store!
 
-    # do this immediately to reduce storage for spp (before adding other variables)
-    M$StrataID = as.character( over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(spp, crs_lonlat ) )$StrataID) # match each datum to an area
-    o = NULL
-    M$lon = NULL
-    M$lat = NULL
-    # M$temperature
-    M$tag = "observations"
+    fit  = NULL
 
-    spp = as.data.frame(spp)
-    spp$temperature = NA
-    spp$StrataID = as.character( spp$StrataID )
-    spp$tag ="predictions"
+    if ( grepl("glm", p$carstm_modelengine) ) {
 
-    M = rbind( M, spp[, names(M)] )
-    M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
-    M$strata  = as.numeric( M$StrataID)
-    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
+      assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+      if (is.null(fit)) error("model fit error")
+      if ("try-error" %in% class(fit) ) error("model fit error")
+      save( fit, file=fn_fit, compress=TRUE )
 
-    spp = NULL
-    gc()
+      # s = summary(fit)
+      # AIC(fit)  # 104487274
+      # reformat predictions into matrix form
+      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+      preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
 
-    B = aegis.bathymetry::bathymetry_carstm( p=p, DS="carstm_modelled" )
+      # out = reformat_to_matrix(
+      #   input = preds$fit,
+      #   matchfrom = list( StrataID=M$StrataID[ii] ),
+      #   matchto   = list( StrataID=sppoly$StrataID  )
+      # )
+      # iy = match( as.character(sppoly$StrataID), aps$StrataID )
+        sppoly@data[,"temperature.predicted"] = exp( preds$fit)
+        sppoly@data[,"temperature.predicted_se"] = exp( preds$se.fit)
+        sppoly@data[,"temperature.predicted_lb"] = exp( preds$fit - preds$se.fit )
+        sppoly@data[,"temperature.predicted_ub"] = exp( preds$fit + preds$se.fit )
+        save( sppoly, file=fn, compress=TRUE )
+      }
 
-    M$depth = discretize_data( M$depth, p$discretization$z )
+      if ( grepl("gam", p$carstm_modelengine) ) {
+        assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+        if (is.null(fit)) error("model fit error")
+        if ("try-error" %in% class(fit) ) error("model fit error")
+        save( fit, file=fn_fit, compress=TRUE )
 
-    mm = match( as.character(M$StrataID), as.character(B$StrataID) )
-    tokeep = c("depth", "depth.sd")
-    M = cbind(M, B[mm, tokeep])
+        s = summary(fit)
+        AIC(fit)  # 104487274
+        # reformat predictions into matrix form
+        ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+        preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
+        sppoly@data[,"temperature.predicted"] = exp( preds$fit)
+        sppoly@data[,"temperature.predicted_se"] = exp( preds$se.fit)
+        sppoly@data[,"temperature.predicted_lb"] = exp( preds$fit - preds$se.fit )
+        sppoly@data[,"temperature.predicted_ub"] = exp( preds$fit + preds$se.fit )
+        save( sppoly, file=fn, compress=TRUE )
+    }
 
-    H = carstm_hyperparameters( sd(log(M$temperature), na.rm=TRUE), alpha=0.5, median( log(M$temperature), na.rm=TRUE) )
-    fit = inla(
-      formula =
-        temperature ~ 1 +
-          + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
-          + f(depth, model="rw2", hyper=H$rw2)
-          + f(depth.sd, model="rw2", hyper=H$rw2)
-          + f(iid_error, model="iid", hyper=H$iid)
-        ,
-      family = "lognormal",
-      data= M,
-      control.compute=list(dic=TRUE, config=TRUE),
-      control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
-      control.predictor=list(compute=FALSE, link=1 ),
-      # control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-      # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
-      # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
-      num.threads=2,
-      blas.num.threads=2,
-      verbose=TRUE
-    )
-    s = summary(fit)
-    s$dic$dic  # 31225
-    s$dic$p.eff # 5200
 
-    plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+    if ( grepl("inla", p$carstm_modelengine) ) {
 
-    # reformat predictions into matrix form
-    ii = which(M$tag=="predictions")
-    jj = match(M$StrataID[ii], sppoly$StrataID)
-    sppoly@data$temperature.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - 2500
-    sppoly@data$temperature.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - 2500
-    sppoly@data$temperature.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - 2500
-    sppoly@data$temperature.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
-    sppoly@data$temperature.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
-    sppoly@data$temperature.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
+      H = carstm_hyperparameters( sd(M$temperature, na.rm=TRUE), alpha=0.5, median( M$temperature, na.rm=TRUE) )
 
-    attr( spplot, "fit") = fit
-    save( spplot, file=fn, compress=TRUE )
+      M$zi = discretize_data( M$z, p$discretization$z )
+      M$tiyr2 = M$tiyr  # use a copy for "seasonal" models
+      M$year = floor(M$tiyr)
+      M$dyear  =  M$tiyr - M$year
+      M$strata  = as.numeric( M$StrataID)
+      M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
-    vn = "temperature.predicted"
-    brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-    dev.new()
-    spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
+      assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+      if (is.null(fit)) error("model fit error")
+      if ("try-error" %in% class(fit) ) error("model fit error")
+      save( fit, file=fn_fit, compress=TRUE )
+
+      s = summary(fit)
+      s$dic$dic  # 31225
+      s$dic$p.eff # 5200
+
+      plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+
+      # reformat predictions into matrix form
+      ii = which(M$tag=="predictions")
+      jj = match(M$StrataID[ii], sppoly$StrataID)
+      sppoly@data$temperature.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ])
+      sppoly@data$temperature.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ])
+      sppoly@data$temperature.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ])
+      sppoly@data$temperature.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
+      sppoly@data$temperature.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
+      sppoly@data$temperature.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
+      save( sppoly, file=fn, compress=TRUE )
+    }
+
+
+    if (map_results) {
+      vn = "temperature.predicted"
+      brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
+      dev.new();  spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
+    }
 
     return( sppoly )
 
   }
+
+  #   fit = inla(
+  #     formula =
+  #       temperature ~ 1 +
+  #         + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+  #         + f(depth, model="rw2", hyper=H$rw2)
+  #         + f(depth.sd, model="rw2", hyper=H$rw2)
+  #         + f(iid_error, model="iid", hyper=H$iid)
+  #       ,
+  #     family = "lognormal",
+  #     data= M,
+  #     control.compute=list(dic=TRUE, config=TRUE),
+  #     control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+  #     control.predictor=list(compute=FALSE, link=1 ),
+  #     # control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+  #     # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+  #     # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
+  #     num.threads=2,
+  #     blas.num.threads=2,
+  #     verbose=TRUE
+  #   )
+  #   s = summary(fit)
+  #   s$dic$dic  # 31225
+  #   s$dic$p.eff # 5200
+
+  #   plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+
+  #   # reformat predictions into matrix form
+  #   ii = which(M$tag=="predictions")
+  #   jj = match(M$StrataID[ii], sppoly$StrataID)
+  #   sppoly@data$temperature.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - 2500
+  #   sppoly@data$temperature.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - 2500
+  #   sppoly@data$temperature.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - 2500
+  #   sppoly@data$temperature.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
+  #   sppoly@data$temperature.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
+  #   sppoly@data$temperature.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
+
+  #   attr( spplot, "fit") = fit
+  #   save( spplot, file=fn, compress=TRUE )
+
+  #   vn = "temperature.predicted"
+  #   brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
+  #   dev.new()
+  #   spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
+
+  #   return( sppoly )
+
+  # }
 
 }
