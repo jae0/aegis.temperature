@@ -28,6 +28,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
         return( M )
       }
     }
+    warning( "Generating carstm_inputs ... ")
 
     # prediction surface
     if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
