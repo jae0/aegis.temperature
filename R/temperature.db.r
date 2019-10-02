@@ -619,6 +619,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if ( DS=="aggregated_data") {
 
+    # param list needs to be reset but keeping the relevent parts;
+    p = temperature_parameters( yrs=p$yrs,
+      inputdata_spatial_discretization_planar_km=p$inputdata_spatial_discretization_planar_km,
+      inputdata_temporal_discretization_yr=p$inputdata_temporal_discretization_yr )
+
     fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", p$inputdata_spatial_discretization_planar_km, round(p$inputdata_temporal_discretization_yr,6), "rdata", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
@@ -645,9 +650,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
     M$dyear = M$tiyr - M$yr
-
-    dyear_discretization_rawdata = c( (c(1:365)-1) * p$inputdata_temporal_discretization_yr, 1)  # i.e., on a daily basis
-    M$dyear = discretize_data( M$dyear, dyear_discretization_rawdata, digits=6 )
+    M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
 
     bb = as.data.frame( t( simplify2array(
       tapply( X=M$t, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
