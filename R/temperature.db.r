@@ -626,6 +626,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         return( M )
       }
     }
+    warning( "Generating aggregated data ... ")
 
     M = temperature.db( p=p, DS="bottom.all"  )
     M = M[ which(M$yr %in% p$yrs), ]

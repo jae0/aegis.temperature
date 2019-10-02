@@ -1,11 +1,18 @@
 
+        + f(tiyr, model="ar1", hyper=H$ar1 )
+        + f(year,  model="ar1", hyper=H$ar1 )
+
+
+#   !!! WARNING, this uses a lot of RAM !!! 96 GB
+
+
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.temperature::temperature_parameters(
   project_class = "carstm", # defines which parameter set to load
   inputdata_spatial_discretization_planar_km = 1,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
   inputdata_temporal_discretization_yr = 1/365,  # ie., daily .. controls resolution of data prior to modelling to reduce data set and speed up modelling
-  yrs = 1970:2019,
+  yrs = 2000:2019,
   spatial_domain = "snowcrab",  # defines spatial area, currenty: "snowcrab" or "SSE"
   # spatial_domain = "SSE",  # defines spatial area, currenty: "snowcrab" or "SSE"
   areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
@@ -21,8 +28,6 @@ p = aegis.temperature::temperature_parameters(
     inla(
       formula = temperature ~ 1
         + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
-        + f(tiyr, model="ar1", hyper=H$ar1 )
-        + f(year,  model="ar1", hyper=H$ar1 )
         + f(tiyr2, model="seasonal", season.length=10 )
         + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
         + f(iid_error, model="iid", hyper=H$iid),
@@ -35,7 +40,7 @@ p = aegis.temperature::temperature_parameters(
       # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
       # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
       num.threads=4,
-      blas.num.threads=4,
+      blas.num.threads=2,
       verbose=TRUE
     ) ',
   # carstm_modelcall = 'glm( formula = temperature ~ 1 + StrataID + log(z),  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) ',  # for modelengine='glm'
@@ -47,20 +52,18 @@ p = aegis.temperature::temperature_parameters(
 # run model and obtain predictions
 sppoly = temperature_carstm( p=p, DS="carstm_modelled", redo=TRUE )
 
+
+
 if (0) {
+  # to recreate the underlying data
   sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-
   M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-
   M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-
+  # to extract fits and predictions
   sppoly = temperature_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
   fit =  temperature_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
-
   plot(fit)
-
   s = summary(fit)
-
   s$dic$dic
   s$dic$p.eff
 
