@@ -11,7 +11,7 @@
 p = aegis.temperature::temperature_parameters(
   project_class = "carstm", # defines which parameter set to load
   inputdata_spatial_discretization_planar_km = 1,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
-  inputdata_temporal_discretization_yr = 1/365,  # ie., daily .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+  inputdata_temporal_discretization_yr = 24/365,  # ie., daily .. controls resolution of data prior to modelling to reduce data set and speed up modelling
   yrs = 2000:2019,
   spatial_domain = "snowcrab",  # defines spatial area, currenty: "snowcrab" or "SSE"
   # spatial_domain = "SSE",  # defines spatial area, currenty: "snowcrab" or "SSE"
@@ -57,7 +57,7 @@ sppoly = temperature_carstm( p=p, DS="carstm_modelled", redo=TRUE )
 if (0) {
   # to recreate the underlying data
   sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-  M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = temperature.db( p=temperature_parameters( yrs=p$yrs ), DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   # to extract fits and predictions
   sppoly = temperature_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
