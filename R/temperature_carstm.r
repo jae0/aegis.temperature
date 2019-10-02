@@ -50,7 +50,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
 
-    M$t = M$t.mean
+    M$t = M$temperature.mean
     M$tag = "observations"
 
     APS = as.data.frame(sppoly)
@@ -64,6 +64,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     pb$project_name = NULL
     pb$data_root = NULL
     pb$datadir  = NULL
+
     pb = bathymetry_parameters(p=pb, DS="carstm")
     BI = bathymetry_carstm ( p=pb, DS="carstm_modelled" )  # unmodeled!
     jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
