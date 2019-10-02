@@ -98,11 +98,11 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
   if ( DS=="carstm_modelled") {
 
-    auids = paste(  p$carstm_modelengine, p$auid, p$inputdata_spatial_discretization_planar_km,
+    auids = paste(  p$auid, p$inputdata_spatial_discretization_planar_km,
       round(p$inputdata_temporal_discretization_yr, 6),   sep="_" )
 
-    fn = file.path( p$modeldir, paste("temperature", "carstm_modelled", auids, "rdata", sep="." )
-    fn_fit = file.path( p$modeldir, paste( "temperature", "carstm_modelled_fit", p$auid, p$carstm_modelengine, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste("temperature", "carstm_modelled", p$carstm_modelengine, auids, "rdata", sep="." )
+    fn_fit = file.path( p$modeldir, paste( "temperature", "carstm_modelled_fit", p$carstm_modelengine, auids,  "rdata", sep=".") )
 
     if (!redo)  {
          if (file.exists(fn)) {
