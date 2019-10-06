@@ -39,11 +39,10 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   if ( !exists("additional.data", p) )  p$additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster")
 
 
-  if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres/3  # =3x3=9 units possible per location .. km controls resolution of data prior to modelling to reduce data set and speed up modelling
-  if ( !exists("inputdata_temporal_discretization_yr", p) )  p$inputdata_temporal_discretization_yr = 1/12  # ie., monthly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
-
 
   if (project_class=="default") {
+    if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres/3  # =3x3=9 units possible per location .. km controls resolution of data prior to modelling to reduce data set and speed up modelling
+    if ( !exists("inputdata_temporal_discretization_yr", p) )  p$inputdata_temporal_discretization_yr = 1/12  # ie., monthly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
     return(p)
   }
 
@@ -58,8 +57,8 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
     if (!exists("Y", p$variables)) p$variables$Y="t"
 
     # increase resolution from defaults as we can with stmv
-    if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres / 10 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
-    if ( !exists("inputdata_temporal_discretization_yr", p) )  p$inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+    p$inputdata_spatial_discretization_planar_km = p$pres / 10 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+    p$inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
 
     if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
 
@@ -165,13 +164,70 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
 
   if (project_class=="carstm") {
-    p$libs = c( p$libs, project.library ( "carstm" ) )
+    p$libs = c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) )
+
     if ( !exists("project_name", p)) p$project_name = "temperature"
 
     p = aegis_parameters( p=p, DS="carstm" )
 
+    # if ( !exists("spatial_domain", p)) p$spatial_domain = "snowcrab"  # defines spatial area, currenty: "snowcrab" or "SSE"
+    if ( !exists("spatial_domain", p)) p$spatial_domain = "SSE"  # defines spatial area, currenty: "snowcrab" or "SSE"
+    if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
+
+    if ( p$spatial_domain == "SSE" ) {
+      if ( !exists("areal_units_overlay", p)) p$areal_units_overlay = "groundfish_strata" #.. additional polygon layers for subsequent analysis for now ..
+      if ( !exists("areal_units_resolution_km", p)) p$areal_units_resolution_km = 25 # km dim of lattice ~ 1 hr
+      if ( !exists("areal_units_proj4string_planar_km", p)) p$areal_units_proj4string_planar_km = projection_proj4string("utm20")  # coord system to use for areal estimation and gridding for carstm
+      p$inputdata_spatial_discretization_planar_km = 1  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
+      p$inputdata_temporal_discretization_yr = 1/12  #  24/365,  # ie., monthly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+    }
+
+    if ( p$spatial_domain == "snowcrab" ) {
+      if ( !exists("areal_units_overlay", p)) p$areal_units_overlay = "snowcrab_managementareas" # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
+      if ( !exists("areal_units_resolution_km", p)) p$areal_units_resolution_km = 25 # km dim of lattice ~ 1 hr
+      if ( !exists("areal_units_proj4string_planar_km", p)) p$areal_units_proj4string_planar_km = projection_proj4string("utm20")  # coord system to use for areal estimation and gridding for carstm
+      # if ( !exists("areal_units_proj4string_planar_km", p)) p$areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
+      p$inputdata_spatial_discretization_planar_km = 1  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
+      p$inputdata_temporal_discretization_yr = 1/52  # ie., every 1 weeks .. controls resolution of data prior to modelling to reduce data set and speed up modelling }
+    }
+
+    if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla.default"  # {model engine}.{label to use to store}
+
+    if ( !exists("carstm_modelcall", p)) {
+      if ( grepl("inla", p$carstm_modelengine) ) {
+        p$libs = c( p$libs, RLibrary ( "INLA" ) )
+        p$carstm_modelcall = '
+          inla(
+            formula = temperature ~ 1
+              + f(tiyr2, model="seasonal", season.length=10 )
+              + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
+              + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+              + f(iid_error, model="iid", hyper=H$iid),
+            family = "normal",
+            data= M,
+            control.compute=list(dic=TRUE, config=TRUE),
+            control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+            control.predictor=list(compute=FALSE, link=1 ),
+            control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+            # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+            # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
+            num.threads=4,
+            blas.num.threads=4,
+            verbose=TRUE
+          ) '
+      }
+        #    + f(tiyr, model="ar1", hyper=H$ar1 )
+        # + f(year,  model="ar1", hyper=H$ar1 )
+
+      if ( grepl("glm", p$carstm_modelengine) ) {
+        # p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='glm'
+      }
+      if ( grepl("gam", p$carstm_modelengine) ) {
+        p$libs = c( p$libs, RLibrary ( "mgcv" ) )
+        # p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='gam'
+      }
+    }
     return(p)
   }
-
 
 }
