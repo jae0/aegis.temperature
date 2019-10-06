@@ -127,22 +127,17 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     fit  = NULL
 
     if ( grepl("glm", p$carstm_modelengine) ) {
-
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-      # s = summary(fit)
-      # AIC(fit)  # 104487274
-      # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+      jj = match( M$StrataID[ii], res$StrataID )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-
-      res[,"temperature.predicted"] = exp( preds$fit)
-      res[,"temperature.predicted_se"] = exp( preds$se.fit)
-      res[,"temperature.predicted_lb"] = exp( preds$fit - preds$se.fit )
-      res[,"temperature.predicted_ub"] = exp( preds$fit + preds$se.fit )
+      res[,"temperature.predicted"] = exp( preds$fit[jj])
+      res[,"temperature.predicted_se"] = exp( preds$se.fit[jj])
+      res[,"temperature.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] )
+      res[,"temperature.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] )
       save( res, file=fn, compress=TRUE )
     }
 
@@ -151,56 +146,47 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-      s = summary(fit)
-      AIC(fit)  # 104487274
-      # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+      jj = match( M$StrataID[ii], res$StrataID )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-      res[,"temperature.predicted"] = exp( preds$fit)
-      res[,"temperature.predicted_se"] = exp( preds$se.fit)
-      res[,"temperature.predicted_lb"] = exp( preds$fit - preds$se.fit )
-      res[,"temperature.predicted_ub"] = exp( preds$fit + preds$se.fit )
+      res[,"temperature.predicted"] = exp( preds$fit[jj])
+      res[,"temperature.predicted_se"] = exp( preds$se.fit[jj])
+      res[,"temperature.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] )
+      res[,"temperature.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] )
       save( res, file=fn, compress=TRUE )
     }
 
 
     if ( grepl("inla", p$carstm_modelengine) ) {
-
       H = carstm_hyperparameters( sd(M$temperature, na.rm=TRUE), alpha=0.5, median( M$temperature, na.rm=TRUE) )
-
       M$zi = discretize_data( M$z, p$discretization$z )
       M$tiyr2 = M$tiyr  # use a copy for "seasonal" models
       M$year = floor(M$tiyr)
       M$dyear  =  M$tiyr - M$year
       M$strata  = as.numeric( M$StrataID)
       M$iid_error = 1:nrow(M) # for inla indexing for set level variation
-
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-      s = summary(fit)
-      s$dic$dic  # 31225
-      s$dic$p.eff # 5200
-
-      plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-
       # reformat predictions into matrix form
       ii = which(M$tag=="predictions")
-      jj = match(M$StrataID[ii], res$StrataID)
+      res = list()
 
-      # reformat predictions into matrix form
-      ii = which(M$tag=="predictions")
-      res = reformat_to_array(
+      # res[ res>1e10] = NA
+
+      res$temperature.predicted = reformat_to_array(
         input = fit$summary.fitted.values[ ii, "mean" ],
         matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
         matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
       )
-      # res[ res>1e10] = NA
 
-      res$temperature.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ])
+      res$temperature.predicted_lb = reformat_to_array(
+        input = fit$summary.fitted.values[ ii, "0.025quant" ],
+        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
+        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+      )
+
       res$temperature.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ])
       res$temperature.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ])
       res$temperature.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])

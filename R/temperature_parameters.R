@@ -14,9 +14,9 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   # ---------------------
 
   # create/update library list
-  p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
-    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) )
-  p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline", "aegis.polygons", "aegis.substrate", "aegis.temperature" ) )
+  p$libs = unique( c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
+    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) ) )
+  p$libs = unique( c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline", "aegis.polygons", "aegis.substrate", "aegis.temperature" ) ) )
 
   p$project_name = ifelse ( !is.null(project_name), project_name, "temperature" )
 
@@ -47,7 +47,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   }
 
   if (project_class=="stmv") {
-    p$libs = c( p$libs, project.library ( "stmv" ) )
+    p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )
 
     if (!exists("DATA", p) ) p$DATA = 'temperature.db( p=p, DS="stmv_inputs" )'
 
@@ -164,14 +164,12 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
 
   if (project_class=="carstm") {
-    p$libs = c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) )
+    p$libs = unique( c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) ) )
 
     if ( !exists("project_name", p)) p$project_name = "temperature"
 
     p = aegis_parameters( p=p, DS="carstm" )
 
-    # if ( !exists("spatial_domain", p)) p$spatial_domain = "snowcrab"  # defines spatial area, currenty: "snowcrab" or "SSE"
-    if ( !exists("spatial_domain", p)) p$spatial_domain = "SSE"  # defines spatial area, currenty: "snowcrab" or "SSE"
     if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
 
     if ( p$spatial_domain == "SSE" ) {
@@ -195,8 +193,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
     if ( !exists("carstm_modelcall", p)) {
       if ( grepl("inla", p$carstm_modelengine) ) {
-        p$libs = c( p$libs, RLibrary ( "INLA" ) )
-        p$carstm_modelcall = '
+        p$carstm_modelcall = paste('
           inla(
             formula = temperature ~ 1
               + f(tiyr2, model="seasonal", season.length=10 )
@@ -214,17 +211,16 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
             num.threads=4,
             blas.num.threads=4,
             verbose=TRUE
-          ) '
+          ) ' )
       }
         #    + f(tiyr, model="ar1", hyper=H$ar1 )
         # + f(year,  model="ar1", hyper=H$ar1 )
 
       if ( grepl("glm", p$carstm_modelengine) ) {
-        # p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='glm'
+        p$carstm_modelcall = 'glm( formula = temperature ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='glm'
       }
       if ( grepl("gam", p$carstm_modelengine) ) {
-        p$libs = c( p$libs, RLibrary ( "mgcv" ) )
-        # p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='gam'
+        p$carstm_modelcall = 'gam( formula = temperature ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='gam'
       }
     }
     return(p)
