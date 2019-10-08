@@ -57,7 +57,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
     APS$temperature = NA
-    APS$z = NA
+
 
     pb = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
     BI = bathymetry_carstm ( p=pb, DS="carstm_modelled" )  # unmodeled!
@@ -120,8 +120,8 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
     if ( grepl("glm", p$carstm_modelengine) ) {
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
-      if (is.null(fit)) error("model fit error")
-      if ("try-error" %in% class(fit) ) error("model fit error")
+      if (is.null(fit)) warning("model fit error")
+      if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       jj = match( M$StrataID[ii], res$StrataID )
@@ -135,8 +135,8 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
     if ( grepl("gam", p$carstm_modelengine) ) {
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
-      if (is.null(fit)) error("model fit error")
-      if ("try-error" %in% class(fit) ) error("model fit error")
+      if (is.null(fit)) warning("model fit error")
+      if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       jj = match( M$StrataID[ii], res$StrataID )
@@ -152,7 +152,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     if ( grepl("inla", p$carstm_modelengine) ) {
       H = carstm_hyperparameters( sd(M$temperature, na.rm=TRUE), alpha=0.5, median( M$temperature, na.rm=TRUE) )
 
-      M$tiyr  = trunc( M$tiyr / p$tres )*p$tres + p$tres/2  # discretize for inla .. midpoints
+      M$tiyr  = trunc( M$tiyr / p$tres )*p$tres    # discretize for inla .. midpoints
 
       M$zi = discretize_data( M$z, p$discretization$z )
       M$year = floor(M$tiyr)
@@ -160,11 +160,12 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
       M$strata  = as.numeric( M$StrataID)
       M$iid_error = 1:nrow(M) # for inla indexing for set level variation
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
-      if (is.null(fit)) error("model fit error")
-      if ("try-error" %in% class(fit) ) error("model fit error")
+      if (is.null(fit)) warning("model fit error")
+      if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
       # reformat predictions into matrix form
-      ii = which(M$tag=="predictions")
+      ii = which( M$tag=="predictions" )
+      jj = match( M$StrataID[ii], res$StrataID )
       res = list()
 
       # res[ res>1e10] = NA
@@ -176,16 +177,35 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
       )
 
       res$temperature.predicted_lb = reformat_to_array(
-        input = fit$summary.fitted.values[ ii, "0.025quant" ],
+        input = exp(fit$summary.fitted.values[ ii, "0.025quant" ]),
         matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
         matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
       )
 
-      res$temperature.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ])
-      res$temperature.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ])
-      res$temperature.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
-      res$temperature.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
-      res$temperature.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
+      res$temperature.predicted_ub = reformat_to_array(
+        input = exp( fit$summary.fitted.values[ ii, "0.975quant" ]),
+        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
+        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+      )
+
+      res$temperature.random_strata_nonspatial = reformat_to_array(
+        input = exp( fit$summary.random$strata[ jj, "mean" ]),
+        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
+        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+      )
+
+      res$temperature.random_strata_spatial = reformat_to_array(
+        input = exp( fit$summary.random$strata[ jj+max(jj), "mean" ]),
+        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
+        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+      )
+
+      res$temperature.random_sample_iid = reformat_to_array(
+        input = exp( fit$summary.random$iid_error[ ii, "mean" ]),
+        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
+        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+      )
+
       save( res, file=fn, compress=TRUE )
     }
 
