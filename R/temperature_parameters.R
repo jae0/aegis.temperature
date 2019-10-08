@@ -216,7 +216,9 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
         p$carstm_modelcall = paste('
           inla(
             formula = temperature ~ 1
-              + f(tiyr2, model="seasonal", season.length=10 )
+              + f(tiyrdisc, model="ar1", hyper=H$ar1 )
+              + f(dyeardisc, model="ar1", hyper=H$ar1 )
+              + f(year, model="ar1", hyper=H$ar1 )
               + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
               + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
               + f(iid_error, model="iid", hyper=H$iid),
@@ -233,8 +235,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
             verbose=TRUE
           ) ' )
       }
-        #    + f(tiyr, model="ar1", hyper=H$ar1 )
-        # + f(year,  model="ar1", hyper=H$ar1 )
+         #     + f(tiyr2, model="seasonal", season.length=10 )
 
       if ( grepl("glm", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'glm( formula = temperature ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='glm'

@@ -49,14 +49,14 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     M$plat = NULL
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
-
-    M$t = M$temperature.mean
+    M$tiyr = M$yr + M$dyear
+    M$temperature = M$temperature.mean
     M$tag = "observations"
 
     APS = as.data.frame(sppoly)
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
-    APS$t = NA
+    APS$temperature = NA
     APS$z = NA
 
     pb = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
@@ -66,7 +66,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     jj =NULL
     BI = NULL
 
-    vn = c("t", "tag", "StrataID", "z")
+    vn = c("temperature", "tag", "StrataID", "z" )
     APS = APS[, vn]
 
     # expand APS to all time slices
@@ -74,8 +74,6 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     APS = cbind( APS[ rep.int(1:n_aps, p$nt), ], rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
     names(APS) = c(vn, "tiyr")
 
-    M$temperature = M$temperature.mean
-    M$tiyr = M$yr + M$dyear
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
@@ -154,7 +152,6 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
     if ( grepl("inla", p$carstm_modelengine) ) {
       H = carstm_hyperparameters( sd(M$temperature, na.rm=TRUE), alpha=0.5, median( M$temperature, na.rm=TRUE) )
       M$zi = discretize_data( M$z, p$discretization$z )
-      M$tiyr2 = M$tiyr  # use a copy for "seasonal" models
       M$year = floor(M$tiyr)
       M$dyear  =  M$tiyr - M$year
       M$strata  = as.numeric( M$StrataID)
