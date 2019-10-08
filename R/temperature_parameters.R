@@ -216,8 +216,8 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
         p$carstm_modelcall = paste('
           inla(
             formula = temperature ~ 1
-              + f(tiyrdisc, model="ar1", hyper=H$ar1 )
-              + f(dyeardisc, model="ar1", hyper=H$ar1 )
+              + f(tiyr, model="ar1", hyper=H$ar1 )
+              + f(dyear, model="ar1", hyper=H$ar1 )
               + f(year, model="ar1", hyper=H$ar1 )
               + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
               + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
