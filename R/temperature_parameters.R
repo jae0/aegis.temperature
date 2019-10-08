@@ -217,7 +217,6 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
           inla(
             formula = temperature ~ 1
               + f(tiyr, model="ar1", hyper=H$ar1 )
-              + f(dyear, model="ar1", hyper=H$ar1 )
               + f(year, model="ar1", hyper=H$ar1 )
               + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
               + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
@@ -230,12 +229,13 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
             control.fixed=H$fixed,  # priors for fixed effects, generic is ok
             # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
             # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
-            # num.threads=4,
-            blas.num.threads=8,
+            num.threads=4,
+            blas.num.threads=4,
             verbose=TRUE
           ) ' )
       }
          #     + f(tiyr2, model="seasonal", season.length=10 )
+        # + f(dyear, model="ar1", hyper=H$ar1 )
 
       if ( grepl("glm", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'glm( formula = temperature ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) '  # for modelengine='glm'
