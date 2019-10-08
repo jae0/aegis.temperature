@@ -151,6 +151,9 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
     if ( grepl("inla", p$carstm_modelengine) ) {
       H = carstm_hyperparameters( sd(M$temperature, na.rm=TRUE), alpha=0.5, median( M$temperature, na.rm=TRUE) )
+
+      M$tiyr  = trunc( M$tiyr / p$tres )*p$tres + p$tres/2  # discretize for inla .. midpoints
+
       M$zi = discretize_data( M$z, p$discretization$z )
       M$year = floor(M$tiyr)
       M$dyear  =  M$tiyr - M$year
