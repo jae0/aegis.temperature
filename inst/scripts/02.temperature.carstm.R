@@ -5,6 +5,8 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.temperature::temperature_parameters(
   project_class = "carstm", # defines which parameter set to load
+  project_name = "temperature",
+  variabletomodel = "temperature",
   inputdata_spatial_discretization_planar_km = 1,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
   inputdata_temporal_discretization_yr = 24/365,  # ie., every 2 weeks .. controls resolution of data prior to modelling to reduce data set and speed up modelling
   yrs = 1999:2010,
@@ -27,7 +29,7 @@ if (0) {
     # basic model, single CAR effect across time
     p$carstm_modelcall = paste('
       inla(
-        formula = temperature ~ 1
+        formula = ', p$variabletomodel, ' ~ 1
           + f(tiyr, model="ar1", hyper=H$ar1 )
           + f(year, model="ar1", hyper=H$ar1 )
           + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -51,7 +53,7 @@ if (0) {
     # CAR effect for each year
     p$carstm_modelcall = paste('
       inla(
-        formula = temperature ~ 1
+        formula = ', p$variabletomodel, ' ~ 1
           + f(tiyr, model="ar1", hyper=H$ar1 )
           + f(year, model="ar1", hyper=H$ar1 )
           + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -74,7 +76,7 @@ if (0) {
     # CAR effect for each year, no year AC
     p$carstm_modelcall = paste('
       inla(
-        formula = temperature ~ 1
+        formula = ', p$variabletomodel, ' ~ 1
           + f(tiyr, model="ar1", hyper=H$ar1 )
           + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
           + f(strata, model="bym2", graph=sppoly@nb ,group= year,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
@@ -109,12 +111,13 @@ if (0) {
   s$dic$p.eff
 
   # maps of some of the results
-  carstm_plot( p=p, res=res, vn="temperature.predicted" )
+  vn = paste(p$variabletomodel, "predicted", sep=".")
+  carstm_plot( p=p, res=res, vn=vn )
 
-  vn = "temperature.random_sample_iid"
+  vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
   if (exists(vn, res)) carstm_plot( p=p, res=res, vn=vn, time_match=list(year="1950", dyear="0") )
 
-  vn = "temperature.random_strata_nonspatial"
+  vn = paste(p$variabletomodel, "random_strata_nonspatial", sep=".")
   if (exists(vn, res)) {
     res_dim = dim( res[[vn]] )
     if (res_dim == 1 ) time_match = NULL
@@ -123,7 +126,7 @@ if (0) {
     carstm_plot( p=p, res=res, vn=vn, time_match=time_match )
   }
 
-  vn="temperature.random_strata_spatial"
+  vn = paste(p$variabletomodel, "random_strata_spatial", sep=".")
   if (exists(vn, res)) {
     res_dim = dim( res[[vn]] )
     if (res_dim == 1 ) time_match = NULL
