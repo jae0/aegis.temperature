@@ -21,11 +21,87 @@ if (0) {
   M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   # to extract fits and predictions
 
+  if (0) {
+    # choose model:
+
+    # basic model, single CAR effect across time
+    p$carstm_modelcall = paste('
+      inla(
+        formula = temperature ~ 1
+          + f(tiyr, model="ar1", hyper=H$ar1 )
+          + f(year, model="ar1", hyper=H$ar1 )
+          + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
+          + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+          + f(iid_error, model="iid", hyper=H$iid),
+        family = "normal",
+        data= M,
+        control.compute=list(dic=TRUE, config=TRUE),
+        control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+        control.predictor=list(compute=FALSE, link=1 ),
+        control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+        control.inla=list(strategy="gaussian", int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
+        num.threads=4,
+        blas.num.threads=4,
+        verbose=TRUE
+    ) ' )
+
+
+    # CAR effect for each year
+    p$carstm_modelcall = paste('
+      inla(
+        formula = temperature ~ 1
+          + f(tiyr, model="ar1", hyper=H$ar1 )
+          + f(year, model="ar1", hyper=H$ar1 )
+          + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
+          + f(strata, model="bym2", graph=sppoly@nb ,group= year,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+          + f(iid_error, model="iid", hyper=H$iid),
+        family = "normal",
+        data= M,
+        control.compute=list(dic=TRUE, config=TRUE),
+        control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+        control.predictor=list(compute=FALSE, link=1 ),
+        control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+        control.inla=list(strategy="gaussian", int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
+        num.threads=4,
+        blas.num.threads=4,
+        verbose=TRUE
+    ) ' )
+
+    # CAR effect for each year, no year AC
+    p$carstm_modelcall = paste('
+      inla(
+        formula = temperature ~ 1
+          + f(tiyr, model="ar1", hyper=H$ar1 )
+          + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
+          + f(strata, model="bym2", graph=sppoly@nb ,group= year,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+          + f(iid_error, model="iid", hyper=H$iid),
+        family = "normal",
+        data= M,
+        control.compute=list(dic=TRUE, config=TRUE),
+        control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+        control.predictor=list(compute=FALSE, link=1 ),
+        control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+        control.inla=list(strategy="gaussian", int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+        # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
+        num.threads=4,
+        blas.num.threads=4,
+        verbose=TRUE
+    ) ' )
+
+  }
+
+
   # run model and obtain predictions
   res = temperature_carstm( p=p, DS="carstm_modelled", redo=TRUE )
 
+  # extract results
   res = temperature_carstm( p=p, DS="carstm_modelled" ) # to load currently saved res
-  fit =  temperature_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  fit = temperature_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
   plot(fit)
   plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
   s = summary(fit)
@@ -34,8 +110,27 @@ if (0) {
 
   # maps of some of the results
   carstm_plot( p=p, res=res, vn="temperature.predicted" )
-  carstm_plot( p=p, res=res, vn="temperature.random_strata_nonspatial" )
-  carstm_plot( p=p, res=res, vn="temperature.random_strata_spatial" )
+
+  vn = "temperature.random_sample_iid"
+  if (exists(vn, res)) carstm_plot( p=p, res=res, vn=vn, time_match=list(year="1950", dyear="0") )
+
+  vn = "temperature.random_strata_nonspatial"
+  if (exists(vn, res)) {
+    res_dim = dim( res[[vn]] )
+    if (res_dim == 1 ) time_match = NULL
+    if (res_dim == 2 ) time_match = list(year="2000")
+    if (res_dim == 3 ) time_match = list(year="2000", dyear="0.8" )
+    carstm_plot( p=p, res=res, vn=vn, time_match=time_match )
+  }
+
+  vn="temperature.random_strata_spatial"
+  if (exists(vn, res)) {
+    res_dim = dim( res[[vn]] )
+    if (res_dim == 1 ) time_match = NULL
+    if (res_dim == 2 ) time_match = list(year="2000")
+    if (res_dim == 3 ) time_match = list(year="2000", dyear="0.8" )
+    carstm_plot( p=p, res=res, vn=vn, time_match=time_match )
+  }
 
 }
 

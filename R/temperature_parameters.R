@@ -19,6 +19,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
     P = temperature_parameters(
       project_class = "carstm", # defines which parameter class / set to load
       project_name = "temperature",
+      yrs = p$yrs,
       spatial_domain = p$spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
       areal_units_overlay = p$areal_units_overlay, # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
       areal_units_resolution_km = p$areal_units_resolution_km, # km dim of lattice ~ 1 hr
@@ -227,6 +228,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
             control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
             control.predictor=list(compute=FALSE, link=1 ),
             control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+            control.inla=list(strategy="gaussian", int.strategy="eb") ,# to get empirical Bayes results much faster.
             # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
             # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
             num.threads=4,

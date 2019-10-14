@@ -112,9 +112,12 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
     # prediction surface
     sppoly = areal_units( p=p )  # will redo if not found
-    res = sppoly@data["StrataID"]  # init results data frame
+
+    res = list(StrataID = sppoly[["StrataID"]])  # init results list
+    res$strata = as.numeric(res$StrataID)
 
     M = temperature_carstm ( p=p, DS="carstm_inputs" )  # 16 GB in RAM just to store!
+    M$strata  = as.numeric( M$StrataID)
 
     fit  = NULL
 
@@ -123,13 +126,13 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
       if (is.null(fit)) warning("model fit error")
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
-      jj = match( M$StrataID[ii], res$StrataID )
+      ii = which( M$tag=="predictions" & M$strata %in% M[ which(M$tag=="observations"), "strata"] )
+      jj = match( M$strata[ii], res$strata )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-      res[,"temperature.predicted"] = exp( preds$fit[jj])
-      res[,"temperature.predicted_se"] = exp( preds$se.fit[jj])
-      res[,"temperature.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] )
-      res[,"temperature.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] )
+      res[,"temperature.predicted"] =  preds$fit[jj]
+      res[,"temperature.predicted_se"] =  preds$se.fit[jj]
+      res[,"temperature.predicted_lb"] =  preds$fit[jj] - preds$se.fit[jj]
+      res[,"temperature.predicted_ub"] =  preds$fit[jj] + preds$se.fit[jj]
       save( res, file=fn, compress=TRUE )
     }
 
@@ -138,13 +141,13 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
       if (is.null(fit)) warning("model fit error")
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
-      jj = match( M$StrataID[ii], res$StrataID )
+      ii = which( M$tag=="predictions" & M$strata %in% M[ which(M$tag=="observations"), "strata"] )
+      jj = match( M$strata[ii], res$strata )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-      res[,"temperature.predicted"] = exp( preds$fit[jj])
-      res[,"temperature.predicted_se"] = exp( preds$se.fit[jj])
-      res[,"temperature.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] )
-      res[,"temperature.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] )
+      res[,"temperature.predicted"] =  preds$fit[jj]
+      res[,"temperature.predicted_se"] =  preds$se.fit[jj]
+      res[,"temperature.predicted_lb"] =  preds$fit[jj] - preds$se.fit[jj]
+      res[,"temperature.predicted_ub"] =  preds$fit[jj] + preds$se.fit[jj]
       save( res, file=fn, compress=TRUE )
     }
 
@@ -156,56 +159,119 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
 
       M$zi = discretize_data( M$z, p$discretization$z )
       M$year = floor(M$tiyr)
-      M$dyear  =  M$tiyr - M$year
-      M$strata  = as.numeric( M$StrataID)
+      M$dyear  =  factor( as.character( trunc(  (M$tiyr - M$year )/ p$tres )*p$tres), levels=p$dyears)
       M$iid_error = 1:nrow(M) # for inla indexing for set level variation
+
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
       if (is.null(fit)) warning("model fit error")
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      # reformat predictions into matrix form
-      ii = which( M$tag=="predictions" )
-      jj = match( M$StrataID[ii], res$StrataID )
-      res = list()
 
-      # res[ res>1e10] = NA
+      # reformat predictions into matrix form
+      ii = which(
+        M$tag=="predictions" &
+        M$strata %in% res$strata &
+        M$year %in% p$yrs
+      )  # filter by strata and years in case additional data in other areas and times are used in the input data
+
+      matchfrom = list( strata=M$strata[ii], year=as.character(M$year[ii]), dyear=M$dyear[ii] )
+      matchto   = list( strata=res$strata, year=as.character(p$yrs), dyear=factor(p$dyears) )
 
       res$temperature.predicted = reformat_to_array(
         input = fit$summary.fitted.values[ ii, "mean" ],
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+        matchfrom=matchfrom, matchto=matchto
       )
 
       res$temperature.predicted_lb = reformat_to_array(
-        input = exp(fit$summary.fitted.values[ ii, "0.025quant" ]),
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+        input = fit$summary.fitted.values[ ii, "0.025quant" ],
+        matchfrom=matchfrom, matchto=matchto
       )
 
       res$temperature.predicted_ub = reformat_to_array(
-        input = exp( fit$summary.fitted.values[ ii, "0.975quant" ]),
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
+        input =  fit$summary.fitted.values[ ii, "0.975quant" ],
+        matchfrom=matchfrom, matchto=matchto
       )
 
-      res$temperature.random_strata_nonspatial = reformat_to_array(
-        input = exp( fit$summary.random$strata[ jj, "mean" ]),
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
-      )
+      # random effects results ..
+      if (exists("summary.random", fit)) {
 
-      res$temperature.random_strata_spatial = reformat_to_array(
-        input = exp( fit$summary.random$strata[ jj+max(jj), "mean" ]),
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
-      )
+        nstrata = length(res$StrataID)
 
-      res$temperature.random_sample_iid = reformat_to_array(
-        input = exp( fit$summary.random$iid_error[ ii, "mean" ]),
-        matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii], dyear=M$dyear[ii] ),
-        matchto   = list( StrataID=res$StrataID, yr_factor=factor(p$yrs), dyear=p$dyears )
-      )
+        # reformat predictions into matrix form
+        ii = which(
+          M$tag=="predictions" &
+          M$strata %in% res$strata &
+          M$year %in% p$yrs
+        )  # filter by strata and years in case additional data in other areas and times are used in the input data
 
+
+        if (exists("iid_error", fit$summary.random)) {
+          # IID random effects
+          matchfrom = list( strata=M$strata[ii], year=M$year[ii], dyear=M$dyear[ii] )
+          matchto   = list( strata=res$strata, year=p$yrs, dyear=factor(p$dyears) )
+          res$temperature.random_sample_iid = reformat_to_array(
+            input =  fit$summary.random$iid_error[ ii, "mean" ],
+            matchfrom=matchfrom, matchto=matchto
+          )
+          # carstm_plot( p=p, res=res, vn="temperature.random_sample_iid", time_match=list(year="1950", dyear="0") )
+        }
+
+        if (exists("strata", fit$summary.random)) {
+
+          if (nrow(fit$summary.random$strata) == nstrata*2) {
+            # CAR random effects can be of variable length depending upon model construct:
+
+            # a single spatial and nonspatial effect (no grouping across time)
+            jj = 1:nstrata
+            matchfrom = list( strata=fit$summary.random$strata$ID[jj]  )
+            matchto   = list( strata=res$strata  )
+            res$temperature.random_strata_nonspatial = reformat_to_array(
+              fit$summary.random$strata[ jj, "mean" ],
+              matchfrom=matchfrom, matchto=matchto
+            )
+            res$temperature.random_strata_spatial =reformat_to_array(
+              fit$summary.random$strata[ jj+nstrata, "mean" ],
+              matchfrom=matchfrom, matchto=matchto
+            )
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_nonspatial"  )
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_spatial" )
+
+          } else if (nrow(fit$summary.random$strata) == nstrata*2 * p$ny ) {
+            # spatial and nonspatial effects grouped by year
+            matchfrom = list( strata=M$strata[ii], year=M$year[ii] )
+            matchto   = list( strata=res$strata, year=p$yrs )
+
+            res$temperature.random_strata_nonspatial = reformat_to_array(
+              input =  fit$summary.random$strata[ ii, "mean" ],
+              matchfrom = matchfrom, matchto = matchto
+            )
+            res$temperature.random_strata_spatial = reformat_to_array(
+              input = fit$summary.random$strata[ ii+max(ii), "mean" ],
+              matchfrom = matchfrom, matchto = matchto
+            )
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_nonspatial", time_match=list(year="2000" ) )
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_spatial", time_match=list(year="2000" ) )
+
+          } else if (nrow(fit$summary.random$strata) == nstrata*2 * p$nt ) {
+
+            # need to test/fix ...
+            matchfrom = list( StrataID=M$StrataID[ii], year=M$year[ii], dyear=M$dyear[ii] ),
+            matchto   = list( StrataID=res$StrataID, year=p$yrs, dyear=factor(p$dyears) )
+
+            res$temperature.random_strata_nonspatial = reformat_to_array(
+              input = fit$summary.random$strata[ jj, "mean" ],
+              matchfrom = matchfrom,  matchto   = matchto
+            )
+            res$temperature.random_strata_spatial = reformat_to_array(
+              input = fit$summary.random$strata[ ii+max(ii), "mean" ],
+              matchfrom = matchfrom, matchto   = matchto
+            )
+
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_nonspatial", time_match=list(year="2000", dyear="0.8" ) )
+            # carstm_plot( p=p, res=res, vn="temperature.random_strata_spatial", time_match=list(year="2000", dyear="0.8" ) )
+
+          }
+        }
       save( res, file=fn, compress=TRUE )
     }
 
