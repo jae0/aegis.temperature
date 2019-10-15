@@ -245,7 +245,7 @@ temperature_carstm = function( p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, ... ) {
           } else if (nrow(fit$summary.random$strata) == nstrata*2 * p$nt ) {
 
             # need to test/fix ...
-            matchfrom = list( StrataID=M$StrataID[ii], year=M$year[ii], dyear=M$dyear[ii] ),
+            matchfrom = list( StrataID=M$StrataID[ii], year=M$year[ii], dyear=M$dyear[ii] )
             matchto   = list( StrataID=res$StrataID, year=p$yrs, dyear=factor(p$dyears) )
 
             vn = paste( p$variabletomodel, "random_strata_nonspatial", sep=".")
