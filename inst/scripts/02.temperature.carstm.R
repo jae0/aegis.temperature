@@ -17,11 +17,6 @@ p = aegis.temperature::temperature_parameters(
 
 
 if (0) {
-  # to recreate the underlying data
-  sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-  M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-  M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-  # to extract fits and predictions
 
   if (0) {
     # choose model:
@@ -97,13 +92,18 @@ if (0) {
 
   }
 
+  # to recreate the underlying data
+  sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
+  M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = temperature.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  # to extract fits and predictions
 
-  # run model and obtain predictions
-  res = temperature_carstm( p=p, DS="carstm_modelled", redo=TRUE )
+  res = carstm_model( p=p, M=M )
 
   # extract results
-  res = temperature_carstm( p=p, DS="carstm_modelled" ) # to load currently saved res
-  fit = temperature_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  res = carstm_model( p=p, DS="carstm_modelled" ) # to load currently saved res
+  fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+
   plot(fit)
   plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
   s = summary(fit)
