@@ -55,6 +55,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
   # define focal years
   if (!exists( "yrs", p)) p$yrs = 1950:lubridate::year(lubridate::now())  # default
+
   p = temporal_parameters(p=p, aegis_dimensionality="space-year-season")
 
   if ( !exists("additional.data", p) )  p$additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster")
