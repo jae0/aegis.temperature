@@ -19,6 +19,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
     P = temperature_parameters(
       project_class = "carstm", # defines which parameter class / set to load
       project_name = "temperature",
+      variabletomodel = "t",
       yrs = p$yrs,
       spatial_domain = p$spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
       areal_units_overlay = p$areal_units_overlay, # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
@@ -47,6 +48,8 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=F, recursive=T )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=F, recursive=T )
+
+  if ( !exists("variabletomodel", p) ) p$variabletomodel = "t"
 
   if ( !exists("spatial_domain", p) ) p$spatial_domain = "canada.east" # canada.east.highres and canada.east.superhighres result in memory overflow
   if ( !exists("spatial_domain_subareas", p) )  p$spatial_domain_subareas = c( "SSE.mpa", "SSE", "snowcrab" ) # target domains and resolution for additional data subsets .. add here your are of interest
@@ -100,7 +103,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
       if (p$stmv_local_modelengine =="gam") {
         if (!exists("stmv_gam_optimizer", p)) p$stmv_gam_optimizer=c("outer", "bfgs")
         if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula( paste(
-          't ~ s(yr, k=25, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
+          p$variabletomodel, ' ~ s(yr, k=25, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
             '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
             '+ s(log(z), plon, plat, k=25, bs="ts") + s( cos.w, sin.w, yr, k=25, bs="ts")') )
           # more than 100 knots and it takes a very long time, 50 seems sufficient, given the large-scaled pattern outside of the prediction box
@@ -129,7 +132,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
       if (p$stmv_local_modelengine =="twostep") {
         # similar to GAM model but no spatial interpolation .. space is handled via simple FFT-based kriging
         # if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
-        #   't ~ s(yr, k=5, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
+        #   p$variabletomodel, ' ~ s(yr, k=5, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
         #     '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
         #     '+ s(log(z), plon, plat, cos.w, sin.w, yr, k=100, bs="ts")') )
 
@@ -138,7 +141,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
         if (p$stmv_twostep_time == "gam")  {
           if (!exists("stmv_local_modelformula_time", p))  p$stmv_local_modelformula_time = formula( paste(
-            't',  '~ s(yr, k=10, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
+            p$variabletomodel,  '~ s(yr, k=10, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
             '+ s( log(z), k=3, bs="ts") + s( plon, k=3, bs="ts") + s( plat, k=3, bs="ts")  ',
             '+ s( cos.w, sin.w, yr, k=15, bs="ts") + s( log(z), plon, plat, k=15, bs="ts")  '
             ) )
@@ -147,7 +150,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
         if (p$stmv_twostep_space == "gam")  {
           # very resource intensive ..
           if (!exists("stmv_local_modelformula_space", p))  p$stmv_local_modelformula_space = formula( paste(
-          't ~ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") + s( log(z), plon, plat, k=27, bs="ts")  ') )
+          p$variabletomodel, ' ~ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") + s( log(z), plon, plat, k=27, bs="ts")  ') )
         }
 
         if (p$stmv_twostep_space == "fft" ) {
@@ -163,7 +166,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
         # bayesx families are specified as characters, this forces it to pass as is and
         # then the next does the transformation internal to the "stmv__bayesx"
         if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
-          't ~ sx(yr,   bs="ps") + sx(cos.w, bs="ps") + s(sin.w, bs="ps")',
+          p$variabletomodel, ' ~ sx(yr,   bs="ps") + sx(cos.w, bs="ps") + s(sin.w, bs="ps")',
             ' + sx(plon, bs="ps") + sx(plat, bs="ps") ',
             ' + sx(plon, plat, cos.w, sin.w, yr, bs="te")'  # te is tensor spline
         ))

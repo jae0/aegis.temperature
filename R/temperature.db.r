@@ -743,16 +743,16 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS = as.data.frame(sppoly)
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
-    APS$temperature = NA
+    APS[, p$variabletomodel] = NA
 
     pb = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
     BI = bathymetry.db ( p=pb, DS="carstm_modelled" )  # unmodeled!
     jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
-    APS$z = BI$z.predicted[jj]
+    APS[, pb$variabletomodel] = BI$z.predicted[jj]
     jj =NULL
     BI = NULL
 
-    vn = c("temperature", "tag", "StrataID", "z" )
+    vn = c( p$variabletomodel, pb$variabletomodel, "tag", "StrataID", "z" )
     APS = APS[, vn]
 
     # expand APS to all time slices
@@ -763,7 +763,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
-    M$zi = discretize_data( M$z, p$discretization$z )
+    M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
+    M$strata  = as.numeric( M$StrataID)
+    M$zi = discretize_data( M[, pb$variabletomodel], p$discretization$z )
+    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
     save( M, file=fn, compress=TRUE )
     return( M )
