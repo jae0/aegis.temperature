@@ -745,8 +745,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
 
-    pb = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
-    BI = bathymetry.db ( p=pb, DS="carstm_modelled" )  # unmodeled!
+    pb = p$p_bathymetry # transcribes relevant parts of p to load bathymetry
+    BI = carstm_model ( p=pb, DS="carstm_modelled" )  # unmodeled!
     jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
     APS[, pb$variabletomodel] = BI$z.predicted[jj]
     jj =NULL
