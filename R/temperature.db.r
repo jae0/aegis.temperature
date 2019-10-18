@@ -740,17 +740,24 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M[, p$variabletomodel] = M$temperature.mean
     M$tag = "observations"
 
+    pB = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
+    # already has depth .. no need to match
+    # BI = bathymetry.db ( p=pB, DS="carstm_inputs" )  # unmodeled!
+    # jj = match( as.character( M$StrataID), as.character( BI$StrataID) )
+    # M$z = BI$z[jj]
+    # jj =NULL
+
+
     APS = as.data.frame(sppoly)
     APS$StrataID = as.character( APS$StrataID )
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
 
-    pB = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
-    BI = carstm_model ( p=pB, DS="carstm_modelled" )  # unmodeled!
-    jj = match( as.character( APS$StrataID), as.character( BI$StrataID) )
-    APS[, pB$variabletomodel] = BI$z.predicted[jj]
+    BM = carstm_model ( p=pB, DS="carstm_modelled" )  # unmodeled!
+    jj = match( as.character( APS$StrataID), as.character( BM$StrataID) )
+    APS[, pB$variabletomodel] = BM$z.predicted[jj]
     jj =NULL
-    BI = NULL
+    BM = NULL
 
     vn = c( p$variabletomodel, pB$variabletomodel, "tag", "StrataID", "z" )
     APS = APS[, vn]
