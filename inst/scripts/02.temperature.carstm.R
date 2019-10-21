@@ -52,7 +52,7 @@ if (0) {
           + f(tiyr, model="ar1", hyper=H$ar1 )
           + f(year, model="ar1", hyper=H$ar1 )
           + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
-          + f(strata, model="bym2", graph=sppoly@nb ,group= year,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+          + f(strata, model="bym2", graph=sppoly@nb ,group= year_factor,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
           + f(iid_error, model="iid", hyper=H$iid),
         family = "normal",
         data= M,
@@ -74,7 +74,7 @@ if (0) {
         formula = ', p$variabletomodel, ' ~ 1
           + f(tiyr, model="ar1", hyper=H$ar1 )
           + f(zi, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
-          + f(strata, model="bym2", graph=sppoly@nb ,group= year,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+          + f(strata, model="bym2", graph=sppoly@nb ,group= year_factor,  scale.model=TRUE, constr=TRUE, hyper=H$bym2)
           + f(iid_error, model="iid", hyper=H$iid),
         family = "normal",
         data= M,

@@ -770,8 +770,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
+
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
     M$strata  = as.numeric( M$StrataID)
+    M$year = trunc( M$tiyr)
+    M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
     M$zi = discretize_data( M[, pB$variabletomodel], p$discretization$z )
     M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
