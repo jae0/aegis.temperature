@@ -620,7 +620,9 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if ( DS=="aggregated_data") {
 
     # param list needs to be reset but keeping the relevent parts;
-    p = temperature_parameters( yrs=p$yrs,
+    p = temperature_parameters(
+      variabletomodel = p$variabletomodel,
+      yrs=p$yrs,
       inputdata_spatial_discretization_planar_km=p$inputdata_spatial_discretization_planar_km,
       inputdata_temporal_discretization_yr=p$inputdata_temporal_discretization_yr )
 
@@ -638,10 +640,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$tiyr = lubridate::decimal_date ( M$date )
 
     # globally remove all unrealistic data
-    keep = which( M$t >= -3 & M$t <= 25 ) # hard limits
+    keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits
     if (length(keep) > 0 ) M = M[ keep, ]
-    TR = quantile(M$t, probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
-    keep = which( M$t >=  TR[1] & M$t <=  TR[2] )
+    TR = quantile(M[,p$variabletomodel], probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+    keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
     if (length(keep) > 0 ) M = M[ keep, ]
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) M = M[ keep, ]
@@ -653,14 +655,14 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
 
     bb = as.data.frame( t( simplify2array(
-      tapply( X=M$t, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+      tapply( X=M[,p$variabletomodel], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
         FUN = function(w) { c(
           mean(w, na.rm=TRUE),
           sd(w, na.rm=TRUE),
           length( which(is.finite(w)) )
         ) }, simplify=TRUE )
     )))
-    colnames(bb) = c("temperature.mean", "temperature.sd", "temperature.n")
+    colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
     bb$id = rownames(bb)
     out = bb
 
@@ -673,7 +675,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           length( which(is.finite(w)) )
         ) }, simplify=TRUE )
     )))
-    colnames(bb) = c("z.mean", "z.sd", "z.n")
+    colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
     bb$id = rownames(bb)
 
     ii = match( out$id, bb$id )
@@ -737,7 +739,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
     M$tiyr = M$yr + M$dyear
-    M[, p$variabletomodel] = M$temperature.mean
+    # M[, p$variabletomodel] = M$temperature.mean
+    names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
     M$tag = "observations"
 
     pB = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm_auid" ) # transcribes relevant parts of p to load bathymetry
@@ -770,12 +773,13 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
-
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
     M$strata  = as.numeric( M$StrataID)
     M$year = trunc( M$tiyr)
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
-    M$zi = discretize_data( M[, pB$variabletomodel], p$discretization$z )
+
+    M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
+
     M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
     save( M, file=fn, compress=TRUE )
@@ -817,10 +821,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     B$tiyr = lubridate::decimal_date ( B$date )
 
     # globally remove all unrealistic data
-    keep = which( B$t >= -3 & B$t <= 25 ) # hard limits
+    keep = which( B[,p$variabletomodel] >= -3 & B[,p$variabletomodel] <= 25 ) # hard limits
     if (length(keep) > 0 ) B = B[ keep, ]
-    TR = quantile(B$t, probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
-    keep = which( B$t >=  TR[1] & B$t <=  TR[2] )
+    TR = quantile(B[,p$variabletomodel], probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+    keep = which( B[,p$variabletomodel] >=  TR[1] & B[,p$variabletomodel] <=  TR[2] )
     if (length(keep) > 0 ) B = B[ keep, ]
     keep = which( B$z >=  2 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) B = B[ keep, ]
