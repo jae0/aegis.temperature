@@ -3,7 +3,8 @@
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-p = aegis.temperature::temperature_parameters(
+p = aegis.temperature::temperature_carstm(
+  DS = "parameters",
   project_class = "carstm", # defines which parameter set to load
   project_name = "temperature",
   variabletomodel = "temperature",
@@ -94,8 +95,8 @@ if (0) {
 
   # to recreate the underlying data
   sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-  M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-  M = temperature.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  M = temperature_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   # to extract fits and predictions
 
   res = carstm_model( p=p, M=M )
