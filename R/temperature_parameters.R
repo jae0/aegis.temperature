@@ -194,8 +194,6 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
     if ( !exists("project_name", p)) p$project_name = "temperature"
 
-    p = aegis_parameters( p=p, DS="carstm" )
-
     if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
 
     if ( p$spatial_domain == "SSE" ) {
@@ -254,6 +252,9 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
         p$carstm_modelcall = paste( 'gam( formula = ', p$variabletomodel, ' ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="identity")  ) ' ) # for modelengine='gam'
       }
     }
+
+    p = carstm_parameters( p=p, DS="basic" )  # fill in anything missing and some checks
+
     return(p)
   }
 

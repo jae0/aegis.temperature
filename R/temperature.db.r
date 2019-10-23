@@ -282,7 +282,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     misc$t =misc$temperature
     misc$z = NA  # no data
-    misc$z = bathymetry.lookup( p=p, locs=misc[, c("plon","plat")], vnames="z" )
+  #  misc$z = bathymetry_stmv_lookup( p=p, locs=misc[, c("plon","plat")], vnames="z" )
 
     keep = c("z", "lon", "lat", "timestamp", "id", "salinity", "oxyml", "t", "sigmat", "date", "yr", "dyear" )
     misc = misc[, keep]
