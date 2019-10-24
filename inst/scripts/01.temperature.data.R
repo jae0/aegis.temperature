@@ -39,7 +39,4 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
   (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
   temperature.db ( DS="bottom.all.redo", p=p )
 
-  M = temperature_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-
-
 # finished

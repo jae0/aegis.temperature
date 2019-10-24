@@ -2,12 +2,13 @@
 temperature_carstm = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, redo=FALSE, ... ) {
 
   # over-ride default dependent variable name if it exists
-
   if (is.null(p)) p = temperature_parameters()
 
-  voi = NULL
-  if (exists("variables", p)) if(exists("Y", p$variables)) voi=p$variables$Y  # used in stmv
-  if (is.null(voi)) voi="t"  # default
+  if ( !exists("project_name", p)) p$project_name = "temperature"
+  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
+  if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
+  if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
+
 
 
   # manipulate temperature databases from osd, groundfish and snow crab and grid them
