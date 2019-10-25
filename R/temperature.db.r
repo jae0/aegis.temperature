@@ -282,7 +282,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     misc$t =misc$temperature
     misc$z = NA  # no data
-  #  misc$z = bathymetry_stmv_lookup( p=p, locs=misc[, c("plon","plat")], vnames="z" )
+  #  misc$z = lookup_bathymetry_from_stmv( p=p, locs=misc[, c("plon","plat")], vnames="z" )
 
     keep = c("z", "lon", "lat", "timestamp", "id", "salinity", "oxyml", "t", "sigmat", "date", "yr", "dyear" )
     misc = misc[, keep]
@@ -614,12 +614,107 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   }
 
 
+
+
+  # -----------------------
+
+
+
+  if ( DS=="aggregated_data") {
+
+    loc.bottom = file.path( basedir, "basedata", "bottom"  )
+    dir.create( loc.bottom, recursive=TRUE, showWarnings=FALSE )
+
+    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", p$inputdata_spatial_discretization_planar_km, round(p$inputdata_temporal_discretization_yr,6), "rdata", sep=".") )
+    if (!redo)  {
+      if (file.exists(fn)) {
+        load( fn)
+        return( M )
+      }
+    }
+    warning( "Generating aggregated data ... ")
+
+    M = temperature.db( p=p, DS="bottom.all"  )
+    M = M[ which(M$yr %in% p$yrs), ]
+    M$tiyr = lubridate::decimal_date ( M$date )
+
+    # globally remove all unrealistic data
+    keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits
+    if (length(keep) > 0 ) M = M[ keep, ]
+
+    # p$quantile_bounds_data = c(0.0005, 0.9995)
+    if (exists("quantile_bounds_data", p)) {
+      TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+      keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+      if (length(keep) > 0 ) M = M[ keep, ]
+       # this was -1.7, 21.8 in 2015
+    }
+
+    keep = which( M$z >=  2 ) # ignore very shallow areas ..
+    if (length(keep) > 0 ) M = M[ keep, ]
+
+
+    M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+    M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+    M$dyear = M$tiyr - M$yr
+    M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
+
+    bb = as.data.frame( t( simplify2array(
+      tapply( X=M[,p$variabletomodel], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+        FUN = function(w) { c(
+          mean(w, na.rm=TRUE),
+          sd(w, na.rm=TRUE),
+          length( which(is.finite(w)) )
+        ) }, simplify=TRUE )
+    )))
+    colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
+    bb$id = rownames(bb)
+    out = bb
+
+    # keep depth at collection .. potentially the biochem data as well (at least until biochem is usable)
+    bb = as.data.frame( t( simplify2array(
+      tapply( X=M$z, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+        FUN = function(w) { c(
+          mean(w, na.rm=TRUE),
+          sd(w, na.rm=TRUE),
+          length( which(is.finite(w)) )
+        ) }, simplify=TRUE )
+    )))
+    colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
+    bb$id = rownames(bb)
+
+    ii = match( out$id, bb$id )
+    out$z = bb$z.mean[ii]
+
+    bb = NULL
+    labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
+
+    out$plon = labs[,1]
+    out$plat = labs[,2]
+    out$yr = labs[,3]
+    out$dyear = labs[,4]
+    labs = NULL
+
+    M = out[ which( is.finite( out$temperature.mean )) ,]
+    out =NULL
+    gc()
+    M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+
+    save( M, file=fn, compress=TRUE )
+    return( M )
+  }
+
+
+
+
   # -----------------------
 
 
   if (DS=="stmv_inputs") {
     # default output grid
     vars_required = c(p$variables$LOCS, p$variables$COV )
+
     Bout = bathymetry.db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
     tokeep = which( names(Bout) %in% vars_required )
     toadd = setdiff( 1:length(vars_required),  which( vars_required %in% names(Bout)) )
@@ -643,18 +738,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       OUT  = list( LOCS = Bout[,p$variables$LOCS], COV=as.list( Bout[,p$variables$COV] ) )
     }
 
-    B = temperature.db( p=p, DS="bottom.all"  )
-    B = B[ which(B$yr %in% p$yrs), ]
-    B$tiyr = lubridate::decimal_date ( B$date )
 
-    # globally remove all unrealistic data
-    keep = which( B[,p$variabletomodel] >= -3 & B[,p$variabletomodel] <= 25 ) # hard limits
-    if (length(keep) > 0 ) B = B[ keep, ]
-    TR = quantile(B[,p$variabletomodel], probs=c(0.0005, 0.9995), na.rm=TRUE ) # this was -1.7, 21.8 in 2015
-    keep = which( B[,p$variabletomodel] >=  TR[1] & B[,p$variabletomodel] <=  TR[2] )
-    if (length(keep) > 0 ) B = B[ keep, ]
-    keep = which( B$z >=  2 ) # ignore very shallow areas ..
-    if (length(keep) > 0 ) B = B[ keep, ]
+    B = temperature.db( p=p, DS="aggregated_data"  )
+     B$lon = NULL
+      B$lat = NULL
+      names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
 
     locsmap = match(
       stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
