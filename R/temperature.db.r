@@ -622,10 +622,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if ( DS=="aggregated_data") {
 
-    loc.bottom = file.path( basedir, "basedata", "bottom"  )
-    dir.create( loc.bottom, recursive=TRUE, showWarnings=FALSE )
-
-    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", p$inputdata_spatial_discretization_planar_km, round(p$inputdata_temporal_discretization_yr,6), "rdata", sep=".") )
+    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6), round(p$inputdata_temporal_discretization_yr, 6), "rdata", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
         load( fn)
@@ -696,7 +693,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     out$dyear = labs[,4]
     labs = NULL
 
-    M = out[ which( is.finite( out$temperature.mean )) ,]
+    M = out[ which( is.finite( out[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
     out =NULL
     gc()
     M = planar2lonlat( M, p$aegis_proj4string_planar_km)
