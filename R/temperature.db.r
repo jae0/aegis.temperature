@@ -650,6 +650,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) M = M[ keep, ]
 
+    # in case plon/plats are from an alternate projection  .. as there are multiple data sources
+    M = lonlat2planar( M, p$aegis_proj4string_planar_km)
 
     M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
     M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
