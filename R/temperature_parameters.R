@@ -55,10 +55,10 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
     if (!exists("DATA", p) ) p$DATA = 'temperature.db( p=p, DS="stmv_inputs" )'
 
-    if (!exists("variables", p)) p$variables = list()
-    if (!exists("LOCS", p$variables)) p$variables$LOCS=c("plon", "plat")
-    if (!exists("TIME", p$variables)) p$variables$TIME="tiyr"
-    if (!exists("Y", p$variables)) p$variables$Y="t"
+    if (!exists("stmv_variables", p)) p$stmv_variables = list()
+    if (!exists("LOCS", p$stmv_variables)) p$stmv_variables$LOCS=c("plon", "plat")
+    if (!exists("TIME", p$stmv_variables)) p$stmv_variables$TIME="tiyr"
+    if (!exists("Y", p$stmv_variables)) p$stmv_variables$Y="t"
 
     # increase resolution from defaults as we can with stmv
     p$inputdata_spatial_discretization_planar_km = p$pres / 10 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)

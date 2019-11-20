@@ -6,7 +6,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if (is.null(p)) p = temperature_parameters()
 
   voi = NULL
-  if (exists("variables", p)) if(exists("Y", p$variables)) voi=p$variables$Y  # used in stmv
+  if (exists("stmv_variables", p)) if(exists("Y", p$stmv_variables)) voi=p$stmv_variables$Y  # used in stmv
   if (is.null(voi)) voi="t"  # default
 
 
@@ -37,7 +37,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   dir.create( loc.bottom, recursive=T, showWarnings=F )
 
 
-  # OSD data series variables of interest
+  # OSD data series stmv_variables of interest
 
 
   if ( DS == "osd.rawdata" ) {
@@ -712,7 +712,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS=="stmv_inputs") {
     # default output grid
-    vars_required = c(p$variables$LOCS, p$variables$COV )
+    vars_required = c(p$stmv_variables$LOCS, p$stmv_variables$COV )
 
     Bout = bathymetry.db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
     tokeep = which( names(Bout) %in% vars_required )
@@ -729,12 +729,12 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
       Sout = NULL; gc()
     }
-    if (length(p$variables$COV)==1) {
-      covs = list( Bout[,p$variables$COV] )
-      names(covs) = p$variables$COV
-      OUT  = list( LOCS = Bout[,p$variables$LOCS], COV=covs )
+    if (length(p$stmv_variables$COV)==1) {
+      covs = list( Bout[,p$stmv_variables$COV] )
+      names(covs) = p$stmv_variables$COV
+      OUT  = list( LOCS = Bout[,p$stmv_variables$LOCS], COV=covs )
     } else {
-      OUT  = list( LOCS = Bout[,p$variables$LOCS], COV=as.list( Bout[,p$variables$COV] ) )
+      OUT  = list( LOCS = Bout[,p$stmv_variables$LOCS], COV=as.list( Bout[,p$stmv_variables$COV] ) )
     }
 
 
@@ -747,7 +747,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
       stmv::array_map( "xy->1", bathymetry.db(p=p, DS="baseline"), gridparams=p$gridparams ) )
 
-    newvars = setdiff(p$variables$COV, names(B) )
+    newvars = setdiff(p$stmv_variables$COV, names(B) )
     if (length(newvars) > 0) {
       sn = Bout[locsmap,newvars]
       if (ncol(sn) > 0) {
@@ -755,7 +755,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
     }
 
-    varstokeep = unique( c( p$variables$Y, p$variables$LOCS, p$variables$TIME, p$variables$COV ) )
+    varstokeep = unique( c( p$stmv_variables$Y, p$stmv_variables$LOCS, p$stmv_variables$TIME, p$stmv_variables$COV ) )
     B = B[,varstokeep]
 
 
