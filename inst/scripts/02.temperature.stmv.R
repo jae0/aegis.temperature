@@ -60,7 +60,7 @@ p = aegis.temperature::temperature_parameters(
       cor_0.05 = rep("localhost", interpolate_ncpus ),
       cor_0.01 = rep("localhost", max(1, interpolate_ncpus-1) )
     ),  # ncpus for each runmode
-    interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus/2)),
+    interpolate_predictions = TRUE,
     restart_load = FALSE,
     save_intermediate_results = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
