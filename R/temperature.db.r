@@ -3,7 +3,14 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # over-ride default dependent variable name if it exists
 
-  if (is.null(p)) p = temperature_parameters()
+  if ( is.null(p))  {
+    p_add = list(...)
+    if (length(p_add) > 0 ) {
+      p = temperature_parameters(...)
+    } else {
+      p = temperature_parameters()
+    }
+  }
 
   voi = NULL
   if (exists("stmv_variables", p)) if(exists("Y", p$stmv_variables)) voi=p$stmv_variables$Y  # used in stmv
@@ -317,7 +324,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
     con = ROracle::dbConnect( DBI::dbDriver("Oracle"), username=oracle.personal.user, password=oracle.personal.password, dbname="PTRAN" )
-    cruises   <- ROracle::dbGetQuery(con, "select * from ODF_ARCHIVE.ODF_CRUISE_EVENT" )
+    cruises   = ROracle::dbGetQuery(con, "select * from ODF_ARCHIVE.ODF_CRUISE_EVENT" )
 
     for ( y in yr ) {
       fny = file.path( fn.root, paste( y, "rdata", sep="."))
@@ -343,7 +350,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # ----------------
 
-  if (DS %in% c( "profiles.annual.redo", "profiles.annual" ) ) {
+  if (DS %in% c( "_retired_profiles.annual.redo", "_retired_profiles.annual" ) ) {
     # read in annual depth profiles then extract bottom temperatures
 
     if (DS=="profiles.annual") {
@@ -354,6 +361,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
     if (is.null(yr)) yr = p$yrs
+
 
     # bring in snow crab, groundfish and OSD data ...
     set = bio.snowcrab::snowcrab.db( DS="setInitial" )
@@ -377,7 +385,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       runindex=list( yrs=yr ),
       set=set,
       loc.profile=loc.profile,
-      FUNC= function( ip, p, set, loc.profile ) {
+      FUNC= function( ip=NULL, p, set, loc.profile ) {
         if (exists( "libs", p)) RLibrary( p$libs )
         if (is.null(ip)) ip = 1:p$nruns
 
@@ -487,11 +495,70 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (is.null(yr)) yr = p$yrs
 
+     con = ROracle::dbConnect( DBI::dbDriver("Oracle"),
+      username = oracle.snowcrab.user,
+      password = oracle.snowcrab.password,
+      dbname = oracle.snowcrab.server
+    )
+    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'")
+    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF'")
+    res = ROracle::dbSendQuery( con, "ALTER SESSION SET  NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
+    res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
+
+    # str(res):
+    #   data.frame':	2914559 obs. of  6 variables:
+    # $ PROJECT: chr  "Vemco" "Vemco" "Vemco" "Vemco" ...
+    # $ T_DATE : POSIXct, format: "2010-06-24 21:27:36" "2010-06-24 21:42:36" "2010-06-24 21:57:36" "2010-06-24 22:12:36" ...
+    # $ LAT_DD : num  43.7 43.7 43.7 43.7 43.7 ...
+    # $ LON_DD : num  -65.8 -65.8 -65.8 -65.8 -65.8 ...
+    # $ T_UID  : chr  "AAA090-1" "AAA090-1" "AAA090-1" "AAA090-1" ...
+    # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
+
+    names(res) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
+    res$yr = yt
+    res$dyear = lubridate::decimal_date( res$date ) - res$yr
+    # res$id =  paste( round(res$longitude,4), round(res$latitude,4), as.character(res$data), sep="~" )
+    # res$depth = decibar2depth ( P=res$pressure, lat=res$latitude )
+#      res$oxyml = NA
+    # next should not be necessary .. but just in case the osd data types get altered
+    # res$temperature = as.numeric(res$temperature )
+#      res$salinity= as.numeric(res$salinity)
+#      res$sigmat = as.numeric(res$sigmat)
+    bad = which( res$temperature < -5 | res$temperature > 30 )
+    if (length(bad)>0) res=res[-bad,]
+
+    for (yt in p$yrs) {
+      Z = res[ res$yr==yt , ]
+      if ( is.null( nrow(Z) ) ) next()
+      if ( nrow(Z) < 5 ) next()
+      if ( is.null(Z) ) next()
+      fn = file.path( loc.bottom, paste("bottom", yt, "rdata", sep="."))
+      print (fn)
+      save( Z, file=fn, compress=T)
+    )
+    return ("Completed")
+  }
+
+
+  # ----------------
+
+  if (DS %in% c( "_retired_bottom.annual", "_retired_bottom.annual.redo" ) ) {
+    # extract bottom temperatures and save annual time slice
+
+    if (DS=="bottom.annual") {
+      fn = file.path( loc.bottom, paste("bottom", yr, "rdata", sep="."))
+      Z = NULL
+      if (file.exists(fn) ) load (fn )
+      return(Z)
+    }
+
+    if (is.null(yr)) yr = p$yrs
+
     parallel_run(
       p=p,
       runindex=list( yrs=yr ),
       loc.bottom=loc.bottom,
-      FUNC= function( ip, p, set, loc.bottom ) {
+      FUNC= function( ip=NULL, p, set, loc.bottom ) {
         if (exists( "libs", p)) RLibrary( p$libs )
         if (is.null(ip)) ip = 1:p$nruns
         Ynames = names( temperature.db( DS="profiles.annual", yr=1950, p=p ) ) # 1950 because it is small (fast to load)
@@ -788,7 +855,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       p=p,
       runindex=list( yrs=yr ),
       voi=voi,
-      FUNC= function( ip, p=p, voi=voi ) {
+      FUNC= function( ip=NULL, p=p, voi=voi ) {
         if (exists( "libs", p)) RLibrary( p$libs )
         if (is.null(ip)) ip = 1:p$nruns
         # downscale and warp from p(0) -> p1
