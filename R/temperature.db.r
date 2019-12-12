@@ -247,6 +247,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # ----------------------
 
+
   if (DS %in% c("misc","misc.redo")) {
     # mostly scallop data right now...
     fn_datadump = file.path( project.datadirectory("aegis", "temperature"), "archive", "bottom_temps_survey.csv" )
@@ -500,9 +501,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       password = oracle.snowcrab.password,
       dbname = oracle.snowcrab.server
     )
+
     res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'")
     res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF'")
-    res = ROracle::dbSendQuery( con, "ALTER SESSION SET  NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
+    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
     res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
 
     # str(res):
@@ -535,7 +537,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       fn = file.path( loc.bottom, paste("bottom", yt, "rdata", sep="."))
       print (fn)
       save( Z, file=fn, compress=T)
-    )
+    }
+
     return ("Completed")
   }
 
