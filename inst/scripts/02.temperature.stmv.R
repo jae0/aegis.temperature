@@ -24,6 +24,7 @@ p = aegis.temperature::temperature_parameters(
   additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
   yrs = 1950:year.assessment,
   aegis_dimensionality="space-year-season",
+  stmv_variables = list(Y="t"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # only marginally useful
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
