@@ -826,6 +826,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
     varstokeep = unique( c( p$stmv_variables$Y, p$stmv_variables$LOCS, p$stmv_variables$TIME, p$stmv_variables$COV ) )
+    B$tiyr = B$yr + B$dyear
     B = B[,varstokeep]
 
 
