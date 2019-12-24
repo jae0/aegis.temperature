@@ -59,9 +59,10 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
     if (!exists("LOCS", p$stmv_variables)) p$stmv_variables$LOCS=c("plon", "plat")
     if (!exists("TIME", p$stmv_variables)) p$stmv_variables$TIME="tiyr"
     if (!exists("Y", p$stmv_variables)) p$stmv_variables$Y="t"
+    if (!exists("COV", p$stmv_variables)) p$stmv_variables$COV="z"
 
     # increase resolution from defaults as we can with stmv
-    p$inputdata_spatial_discretization_planar_km = p$pres / 10 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+    p$inputdata_spatial_discretization_planar_km = p$pres / 4 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
     p$inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
 
     if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
