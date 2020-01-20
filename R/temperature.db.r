@@ -529,6 +529,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     bad = which( res$temperature < -5 | res$temperature > 30 )
     if (length(bad)>0) res=res[-bad,]
 
+    # add approximate depth for crude filtering
+    pn = spatial_parameters( spatial_domain=p$spatial_domain )
+    pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
+    res$z = lookup_bathymetry_from_surveys( p=pn, locs=res[, c("lon", "lat")] )
+
     for (yt in p$yrs) {
       Z = res[ res$yr==yt , ]
       if ( is.null( nrow(Z) ) ) next()
@@ -720,8 +725,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) M = M[ keep, ]
 
-    # in case plon/plats are from an alternate projection  .. as there are multiple data sources
     M = lonlat2planar( M, p$aegis_proj4string_planar_km)
+    # in case plon/plats are from an alternate projection  .. as there are multiple data sources
 
     M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
     M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
@@ -741,20 +746,6 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     bb$id = rownames(bb)
     out = bb
 
-    # keep depth at collection .. potentially the biochem data as well (at least until biochem is usable)
-    bb = as.data.frame( t( simplify2array(
-      tapply( X=M$z, INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
-        FUN = function(w) { c(
-          mean(w, na.rm=TRUE),
-          sd(w, na.rm=TRUE),
-          length( which(is.finite(w)) )
-        ) }, simplify=TRUE )
-    )))
-    colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
-    bb$id = rownames(bb)
-
-    ii = match( out$id, bb$id )
-    out$z = bb$z.mean[ii]
 
     bb = NULL
     labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
