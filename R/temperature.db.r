@@ -517,7 +517,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
 
     names(res) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
-    res$yr = yt
+    res$yr = lubridate::year( res$date )
     res$dyear = lubridate::decimal_date( res$date ) - res$yr
     # res$id =  paste( round(res$longitude,4), round(res$latitude,4), as.character(res$data), sep="~" )
     # res$depth = decibar2depth ( P=res$pressure, lat=res$latitude )
