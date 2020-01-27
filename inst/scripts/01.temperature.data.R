@@ -30,7 +30,7 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
   # }
 
   # Merge depth profiles from all data streams: OSD, groundfish, snowcrab, USSurvey_NEFSC
-  temperature.db( DS="profiles.annual.redo", p=p, yr=p$yrs  )
+  # temperature.db( DS="profiles.annual.redo", p=p, yr=p$yrs  )  # no longer used
 
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
   temperature.db( DS="bottom.annual.redo", p=p, yr=2008:year.assessment  )
