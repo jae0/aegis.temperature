@@ -505,8 +505,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'")
     res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF'")
     res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
-    res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
-
+    # res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
     # str(res):
     #   data.frame':	2914559 obs. of  6 variables:
     # $ PROJECT: chr  "Vemco" "Vemco" "Vemco" "Vemco" ...
@@ -516,26 +515,25 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # $ T_UID  : chr  "AAA090-1" "AAA090-1" "AAA090-1" "AAA090-1" ...
     # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
 
-    names(res) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
-    res$yr = lubridate::year( res$date )
-    res$dyear = lubridate::decimal_date( res$date ) - res$yr
-    # res$id =  paste( round(res$longitude,4), round(res$latitude,4), as.character(res$data), sep="~" )
-    # res$depth = decibar2depth ( P=res$pressure, lat=res$latitude )
-#      res$oxyml = NA
-    # next should not be necessary .. but just in case the osd data types get altered
-    # res$temperature = as.numeric(res$temperature )
-#      res$salinity= as.numeric(res$salinity)
-#      res$sigmat = as.numeric(res$sigmat)
-    bad = which( res$temperature < -5 | res$temperature > 30 )
-    if (length(bad)>0) res=res[-bad,]
-
-    # add approximate depth for crude filtering
-    pn = spatial_parameters( spatial_domain=p$spatial_domain )
-    pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
-    res$z = lookup_bathymetry_from_surveys( p=pn, locs=res[, c("lon", "lat")] )
 
     for (yt in p$yrs) {
-      Z = res[ res$yr==yt , ]
+
+      Z = ROracle::dbGetQuery( con,  paste(
+        " select * " ,
+        " from SC_TEMP_MERGE " ,
+        " where EXTRACT(YEAR from SC_TEMP_MERGE.T_DATE) =", yt
+      ) )
+      names(Z) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
+      Z$yr = yt
+      Z$dyear = lubridate::decimal_date( Z$date ) - Z$yr
+      bad = which( Z$temperature < -5 | Z$temperature > 30 )
+      if (length(bad) > 0) Z=Z[-bad,]
+
+      # add approximate depth for filtering.. high resolution space
+      pn = spatial_parameters( spatial_domain=p$spatial_domain )
+      pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
+      pn$variabletomodel = "z"
+      Z$z = lookup_bathymetry_from_surveys( p=pn, locs=Z[, c("lon", "lat")] )
       if ( is.null( nrow(Z) ) ) next()
       if ( nrow(Z) < 5 ) next()
       if ( is.null(Z) ) next()
