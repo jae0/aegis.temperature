@@ -351,10 +351,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # ----------------
 
-  if (DS %in% c( "_retired_profiles.annual.redo", "_retired_profiles.annual" ) ) {
+  if (DS %in% c( "osd.profiles.annual.redo", "osd.profiles.annual" ) ) {
     # read in annual depth profiles then extract bottom temperatures
 
-    if (DS=="profiles.annual") {
+    if (DS=="osd.profiles.annual") {
       fn = file.path(  loc.profile, paste("depthprofiles", yr, "rdata", sep="."))
       Y = NULL
       if (file.exists( fn) ) load (fn )
@@ -364,29 +364,28 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (is.null(yr)) yr = p$yrs
 
 
-    # bring in snow crab, groundfish and OSD data ...
-    set = bio.snowcrab::snowcrab.db( DS="setInitial" )
-    mlu = bio.snowcrab::minilog.db( DS="set.minilog.lookuptable" )
-    slu = bio.snowcrab::seabird.db( DS="set.seabird.lookuptable" )
-    set = merge( set, mlu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
-    set = merge( set, slu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
-    slu = mlu = NULL
+    # # bring in snow crab, groundfish and OSD data ...
+    # set = bio.snowcrab::snowcrab.db( DS="setInitial" )
+    # mlu = bio.snowcrab::minilog.db( DS="set.minilog.lookuptable" )
+    # slu = bio.snowcrab::seabird.db( DS="set.seabird.lookuptable" )
+    # set = merge( set, mlu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
+    # set = merge( set, slu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
+    # slu = mlu = NULL
 
-    set$longitude =set$lon
-    set$latitude = set$lat
-    set$oxyml = NA
-    set$salinity = NA
-    set$sigmat = NA
+    # set$longitude =set$lon
+    # set$latitude = set$lat
+    # set$oxyml = NA
+    # set$salinity = NA
+    # set$sigmat = NA
 
-    set = set[ ,c("minilog_uid", "seabird_uid", "longitude", "latitude", "oxyml", "salinity", "sigmat" ) ]
+    # set = set[ ,c("minilog_uid", "seabird_uid", "longitude", "latitude", "oxyml", "salinity", "sigmat" ) ]
 
     message ("Starting extraction of profiles: ")
     parallel_run(
       p=p,
       runindex=list( yrs=yr ),
-      set=set,
       loc.profile=loc.profile,
-      FUNC= function( ip=NULL, p, set, loc.profile ) {
+      FUNC= function( ip=NULL, p, loc.profile ) {
         if (exists( "libs", p)) RLibrary( p$libs )
         if (is.null(ip)) ip = 1:p$nruns
 
@@ -417,46 +416,6 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             }
 
           Y$pressure = NULL
-
-          if ("groundfish" %in% p$additional.data ) {
-            grdfish = aegis.survey::groundfish.db( DS="gshyd.georef" )
-            gfkeep = c( "id", "sdepth", "temp", "sal", "oxyml", "lon", "lat", "yr", "timestamp")
-            gf = grdfish[ which( grdfish$yr == yt ) , gfkeep ]
-            if (nrow(gf) > 0) {
-              gf$sigmat = NA
-              gf$date = gf$timestamp
-              # gf$date = as.POSIXct(gf$date, origin=lubridate::origin)
-              gf$dyear = lubridate::decimal_date( gf$date ) - gf$yr
-              names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "date", "dyear", "sigmat"  )
-              Y = rbind( Y, gf[, names(Y)] )
-            }
-          }
-
-          if ("snowcrab" %in% p$additional.data ) {
-            minilog = bio.snowcrab::minilog.db( DS="basedata", Y=yt )
-            if (! is.null( nrow( minilog ) ) ) {
-              minilog = merge( minilog, set, by="minilog_uid", all.x=TRUE, all.y=FALSE )
-              minilog$id = minilog$minilog_uid
-              minilog$date = minilog$timestamp
-              # minilog$date = as.POSIXct(minilog$chron, origin=lubridate::origin)
-              minilog$yr = yt
-              minilog$dyear = lubridate::decimal_date( minilog$date ) - minilog$yr
-              Y = rbind( Y, minilog[, names(Y) ] )
-            }
-
-            seabird = bio.snowcrab::seabird.db( DS="basedata", Y=yt )
-            if ( !is.null( nrow( seabird ) ) ) {
-              seabird = merge( seabird, set, by="seabird_uid", all.x=TRUE, all.y=FALSE )
-              seabird$id = seabird$seabird_uid
-              seabird$yr = yt
-              seabird$date = seabird$timestamp
-              # seabird$date = as.POSIXct(seabird$chron, origin=lubridate::origin)
-              seabird$dyear = lubridate::decimal_date( seabird$date ) - seabird$yr
-              seabird$oxyml = NA
-              Y = rbind( Y, seabird[, names(Y) ] )
-            }
-
-          }
 
           oo = which( Y$id == "dummy" )
           if (length(oo) > 0 ) Y = Y[ -oo, ]
@@ -516,150 +475,150 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
 
 
-    for (yt in p$yrs) {
+    output_vars = c( "project", "date", "lon", "lat", "t", "z", "dyear", "yr", "t_uid" )
 
-      Z = ROracle::dbGetQuery( con,  paste(
+
+    for ( yt in yr ) {
+
+      Z = NULL
+
+      # misc survey data
+      TDB = NULL
+      TDB = ROracle::dbGetQuery( con,  paste(
         " select * " ,
         " from SC_TEMP_MERGE " ,
         " where EXTRACT(YEAR from SC_TEMP_MERGE.T_DATE) =", yt
       ) )
-      names(Z) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
-      Z$yr = yt
-      Z$dyear = lubridate::decimal_date( Z$date ) - Z$yr
-      bad = which( Z$temperature < -5 | Z$temperature > 30 )
-      if (length(bad) > 0) Z=Z[-bad,]
 
-      # add approximate depth for filtering.. high resolution space
-      pn = spatial_parameters( spatial_domain=p$spatial_domain )
-      pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
-      pn$variabletomodel = "z"
-      Z$z = lookup_bathymetry_from_surveys( p=pn, locs=Z[, c("lon", "lat")] )
+      if (nrow(TDB) > 0 ) {
+        names(TDB) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
+        igood = which( TDB$lon >= p$corners$lon[1] & TDB$lon <= p$corners$lon[2]
+                    &  TDB$lat >= p$corners$lat[1] & TDB$lat <= p$corners$lat[2] )
+        if (length( igood) > 0 ) {
+          TDB = TDB[igood, ]
+
+          TDB$yr = yt
+          TDB$dyear = lubridate::decimal_date( TDB$date ) - TDB$yr
+          bad = which( TDB$temperature < -5 | TDB$temperature > 30 )
+          if (length(bad) > 0) TDB=TDB[-bad,]
+
+          # add approximate depth for filtering.. high resolution space
+          pn = spatial_parameters( spatial_domain=p$spatial_domain )
+          pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
+          pn$variabletomodel = "z"
+          TDB$z = lookup_bathymetry_from_surveys( p=pn, locs=TDB[, c("lon", "lat")] )
+          TDB = TDB[ is.finite(TDB$z), ]
+          names(TDB)[which(names(TDB) == "temperature" ) ]  = "t"
+        }
+      }
+
+      # OSD data
+      bottom = NULL
+      profile = NULL
+      profile = temperature.db( DS="osd.profiles.annual", yr=yt, p=p )
+
+      if (!is.null(profile)) {
+        igood = which( profile$lon >= p$corners$lon[1] & profile$lon <= p$corners$lon[2]
+                    &  profile$lat >= p$corners$lat[1] & profile$lat <= p$corners$lat[2] )
+        if (length( igood) > 0 ) {
+          profile = profile[igood, ]
+          names(profile)[which(names(profile) == "longitude" ) ] = "lon"
+          names(profile)[which(names(profile) == "latitude" ) ]  = "lat"
+          names(profile)[which(names(profile) == "temperature" ) ]  = "t"
+          names(profile)[which(names(profile) == "depth" ) ]  = "z"
+
+          # Discretize here in time and space to manageable blocks
+
+          profile = lonlat2planar( profile, proj.type=p$aegis_proj4string_planar_km )
+          profile = profile[ which( is.finite( profile$plon + profile$plat + profile$t + profile$z ) ) , ]
+
+          # don't need year as this is a yearly breakdown but just to be clear ..
+          profile$id =  paste(
+            round(profile$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
+            round(profile$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
+            paste(profile$yr, cut( profile$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
+            sep="~"
+          )
+          ids =  sort( unique( profile$id ) )
+          nids = length(ids)
+          bottom = profile[1:nids,]
+          bottom$id = NA
+
+          for (i in 1:nids ) {
+            W = profile[which( profile$id == ids[i] ), ]
+            jj = which( is.finite( W$z ) )
+            if (length(jj) ==0 ) next()
+            Wmax = max( W$z, na.rm=T ) - 5  # accept any depth within 5 m of the maximum depth
+            kk =  which( W$z >= Wmax )
+            bottom[i,] = W[ which.max( W$z ) , ]
+            bottom[i,"t"] = median( W[kk,"t"] , na.rm=T )
+            # bottom[i,"salinity"] = median( W[kk,"salinity"] , na.rm=T )
+            # bottom[i,"sigmat"] = median( W[kk,"sigmat"] , na.rm=T )
+            # bottom[i,"oxyml"] = median( W[kk,"oxyml"] , na.rm=T )
+          }
+          withdata = which(!is.na(bottom$id))
+          if (length(withdata) > 0) {
+            bottom = bottom[ withdata, ]
+            bottom$date = as.Date( bottom$date ) # strip out time of day information
+            bottom$dyear = lubridate::decimal_date( bottom$date ) - bottom$yr
+          }
+          bottom$project = "OSD"
+          names(bottom)[which(names(bottom) == "id" ) ]  = "t_uid"
+
+        }
+      }
+
+      if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
+      if ( !is.null(bottom) ) Z = rbind( Z, bottom[ , output_vars ] )
+
       if ( is.null( nrow(Z) ) ) next()
-      if ( nrow(Z) < 5 ) next()
+      if ( nrow(Z) < 1 ) next()
       if ( is.null(Z) ) next()
+
+      igood = which( Z$t >= -3 & Z$t <= 30 )  ## 30 is a bit high but in case some shallow data
+      if (length( igood) == 0 ) next()
+
+      Z = Z[igood, ]
+
+      ## ensure that inside each grid/time point
+      ## that there is only one point estimate .. taking medians
+      # vars = c("z", "t", "salinity", "sigmat", "oxyml")
+      vars = c("z", "t")
+
+      locs = Z[, c("lon", "lat")]
+      locs = lonlat2planar( locs, proj.type=p$aegis_proj4string_planar_km )
+      locs$plon = round(locs$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      locs$plat = round(locs$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+      nw = 1 / p$inputdata_temporal_discretization_yr
+      dyears_cuts = (c(1:nw)-1) / nw # intervals of decimal years... fractional year breaks
+      dyears_cuts = c(dyears_cuts, dyears_cuts[length(dyears_cuts)]+ diff(dyears_cuts)[1] )
+
+      Z_st_id = paste(
+        locs$plon,
+        locs$plat,
+        as.numeric( cut( (lubridate::decimal_date( Z$date ) - yt), breaks=dyears_cuts, include.lowest=T, ordered_result=TRUE ) ),
+        sep ="."
+      )
+
+      o = which( ( duplicated( Z_st_id )) )
+      if (length(o)>0) {
+        dupids = unique( Z_st_id[o] )
+        for ( dd in dupids ) {
+          e = which( Z_st_id == dd )
+          keep = e[1]
+          drop = e[-1]
+          for (v in vars) Z[keep, v] = median( Z[e,v], na.rm=TRUE )
+          Z_st_id[drop] = NA  # flag for deletion
+        }
+        Z = Z[ -which( is.na( Z_st_id)) ,]
+      }
+      Z_st_id = NULL
       fn = file.path( loc.bottom, paste("bottom", yt, "rdata", sep="."))
       print (fn)
       save( Z, file=fn, compress=T)
     }
 
-    return ("Completed")
-  }
-
-
-  # ----------------
-
-  if (DS %in% c( "_retired_bottom.annual", "_retired_bottom.annual.redo" ) ) {
-    # extract bottom temperatures and save annual time slice
-
-    if (DS=="bottom.annual") {
-      fn = file.path( loc.bottom, paste("bottom", yr, "rdata", sep="."))
-      Z = NULL
-      if (file.exists(fn) ) load (fn )
-      return(Z)
-    }
-
-    if (is.null(yr)) yr = p$yrs
-
-    parallel_run(
-      p=p,
-      runindex=list( yrs=yr ),
-      loc.bottom=loc.bottom,
-      FUNC= function( ip=NULL, p, set, loc.bottom ) {
-        if (exists( "libs", p)) RLibrary( p$libs )
-        if (is.null(ip)) ip = 1:p$nruns
-        Ynames = names( temperature.db( DS="profiles.annual", yr=1950, p=p ) ) # 1950 because it is small (fast to load)
-        Ynames[which(Ynames=="longitude") ] = "lon"
-        Ynames[which(Ynames=="latitude") ] = "lat"
-        Ynames[which(Ynames=="temperature") ] = "t"
-        Ynames[which(Ynames=="depth") ] = "z"
-        for (iy in ip) {
-          yt = p$runs[iy, "yrs"]
-          Y = NULL
-          prof = temperature.db( DS="profiles.annual", yr=yt, p=p )
-          if ( !is.null(prof)) {
-            Y = prof
-            names(Y) = Ynames
-            prof = NULL
-          }
-          tne = temperature.db( p=p, DS="USSurvey_NEFSC", yr=yt )
-          if ( !is.null(tne) ) Y = rbind( Y, tne[,Ynames] )
-          tne=NULL
-          lob = temperature.db( p=p, DS="lobster", yr=yt )
-          if ( !is.null(lob) ) Y = rbind( Y, lob[, Ynames] )
-          lob= NULL
-          misc = temperature.db( p=p, DS="misc", yr=yt )
-          if ( !is.null(misc) ) Y = rbind( Y, misc[,Ynames] )
-          misc = NULL
-          if (is.null(Y)) next()
-          igood = which( Y$lon >= p$corners$lon[1] & Y$lon <= p$corners$lon[2]
-              &  Y$lat >= p$corners$lat[1] & Y$lat <= p$corners$lat[2] )
-          if (length( igood) == 0 ) next()
-          Y = Y[igood, ]
-
-          igood = which( Y$t >= -3 & Y$t <= 30 )  ## 30 is a bit high but in case some shallow data
-          if (length( igood) == 0 ) next()
-          Y = Y[igood, ]
-
-          # Discretize here in time and space to manageable blocks
-          Y = lonlat2planar( Y, proj.type=p$aegis_proj4string_planar_km )
-          Y = Y[ which( is.finite( Y$lon + Y$lat + Y$plon + Y$plat ) ) , ]
-
-          # don't need year as this is a yearly breakdown but just to be clear ..
-          Y$id =  paste(
-            round(Y$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
-            round(Y$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
-            paste(Y$yr, cut( Y$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
-            sep="~"
-          )
-          ids =  sort( unique( Y$id ) )
-          nids = length(ids)
-          Z = Y[1:nids,]
-          Z$id = NA
-
-          for (i in 1:nids ) {
-            W = Y[which( Y$id == ids[i] ), ]
-            jj = which( is.finite( W$z ) )
-            if (length(jj) ==0 ) next()
-            Wmax = max( W$z, na.rm=T ) - 5  # accept any depth within 5 m of the maximum depth
-            kk =  which( W$z >= Wmax )
-            Z[i,] = W[ which.max( W$z ) , ]
-            Z[i,"t"] = median( W[kk,"t"] , na.rm=T )
-            Z[i,"salinity"] = median( W[kk,"salinity"] , na.rm=T )
-            Z[i,"sigmat"] = median( W[kk,"sigmat"] , na.rm=T )
-            Z[i,"oxyml"] = median( W[kk,"oxyml"] , na.rm=T )
-          }
-          withdata = which(!is.na(Z$id))
-          if (length(withdata) == 0) next()
-
-          Z = Z[ withdata, ]
-          Z$date = as.Date( Z$date ) # strip out time of day information
-          Z$ddate = lubridate::decimal_date( Z$date )
-          Z$dyear = Z$ddate - Z$yr
-
-          ## ensure that inside each grid/time point
-          ## that there is only one point estimate .. taking medians
-          vars = c("z", "t", "salinity", "sigmat", "oxyml")
-          Z$st = paste( Z$ddate, Z$plon, Z$plat )
-
-          o = which( ( duplicated( Z$st )) )
-          if (length(o)>0) {
-            dupids = unique( Z$st[o] )
-            for ( dd in dupids ) {
-              e = which( Z$st == dd )
-              keep = e[1]
-              drop = e[-1]
-              for (v in vars) Z[keep, v] = median( Z[e,v], na.rm=TRUE )
-              Z$st[drop] = NA  # flag for deletion
-            }
-            Z = Z[ -which( is.na( Z$st)) ,]
-          }
-          Z$st = NULL
-          fn = file.path( loc.bottom, paste("bottom", yt, "rdata", sep="."))
-          print (fn)
-          save( Z, file=fn, compress=T)
-        }
-      }
-    )
     return ("Completed")
   }
 

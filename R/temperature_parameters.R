@@ -41,11 +41,11 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
 
   if ( !exists("additional.data", p) )  p$additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster")
 
+  p$inputdata_spatial_discretization_planar_km = p$pres / 4 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+  p$inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
 
 
   if (project_class=="default") {
-    if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres/3  # =3x3=9 units possible per location .. km controls resolution of data prior to modelling to reduce data set and speed up modelling
-    if ( !exists("inputdata_temporal_discretization_yr", p) )  p$inputdata_temporal_discretization_yr = 1/12  # ie., monthly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
     return(p)
   }
 
