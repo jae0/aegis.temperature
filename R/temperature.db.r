@@ -503,10 +503,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           if (length(bad) > 0) TDB=TDB[-bad,]
 
           # add approximate depth for filtering.. high resolution space
-          pn = spatial_parameters( spatial_domain=p$spatial_domain )
-          pn$inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km
-          pn$variabletomodel = "z"
-          TDB$z = lookup_bathymetry_from_surveys( p=pn, locs=TDB[, c("lon", "lat")] )
+          TDB$z = lookup_bathymetry_from_surveys( p=p, locs=TDB[, c("lon", "lat")] )
           TDB = TDB[ is.finite(TDB$z), ]
           names(TDB)[which(names(TDB) == "temperature" ) ]  = "t"
         }
