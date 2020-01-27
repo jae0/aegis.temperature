@@ -506,7 +506,10 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           TDB$z = lookup_bathymetry_from_surveys( p=p, locs=TDB[, c("lon", "lat")] )
           TDB = TDB[ is.finite(TDB$z), ]
           names(TDB)[which(names(TDB) == "temperature" ) ]  = "t"
+        } else {
+          TDB = NULL
         }
+
       }
 
       # OSD data
@@ -565,7 +568,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-      if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
+
+      if (!is.null(TDB)) if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
       if ( !is.null(bottom) ) Z = rbind( Z, bottom[ , output_vars ] )
 
       if ( is.null( nrow(Z) ) ) next()
