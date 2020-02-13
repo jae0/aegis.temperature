@@ -25,9 +25,9 @@ lookup_temperature_from_surveys = function( p, locs, timestamp, vnames="t.mean" 
     dyears_cuts = c(dyears_cuts, dyears_cuts[length(dyears_cuts)]+ diff(dyears_cuts)[1] )
 
     domain = temperature.db(p=pST, DS="aggregated_data" )
-    domain = lonlat2planar( domain, proj.type=pS$aegis_proj4string_planar_km )
-    domain$plon = round(domain$plon / pS$inputdata_spatial_discretization_planar_km + 1 ) * pS$inputdata_spatial_discretization_planar_km
-    domain$plat = round(domain$plat / pS$inputdata_spatial_discretization_planar_km + 1 ) * pS$inputdata_spatial_discretization_planar_km
+    domain = lonlat2planar( domain, proj.type=pST$aegis_proj4string_planar_km )
+    domain$plon = round(domain$plon / pST$inputdata_spatial_discretization_planar_km + 1 ) * pST$inputdata_spatial_discretization_planar_km
+    domain$plat = round(domain$plat / pST$inputdata_spatial_discretization_planar_km + 1 ) * pST$inputdata_spatial_discretization_planar_km
 
     locs = lonlat2planar( locs, proj.type=pST$aegis_proj4string_planar_km )
     locs$plon = round(locs$plon / pST$inputdata_spatial_discretization_planar_km + 1 ) * pST$inputdata_spatial_discretization_planar_km
