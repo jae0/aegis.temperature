@@ -665,6 +665,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     warning( "Generating aggregated data ... ")
 
     M = temperature.db( p=p, DS="bottom.all"  )
+    M[, p$variabletomodel] = M$t
+
     M = M[ which(M$yr %in% p$yrs), ]
     M$tiyr = lubridate::decimal_date ( M$date )
 
