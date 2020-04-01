@@ -26,12 +26,13 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   if ( !exists("spatial_domain", p) ) p$spatial_domain = "canada.east" # canada.east.highres and canada.east.superhighres result in memory overflow
   if ( !exists("spatial_domain_subareas", p) )  p$spatial_domain_subareas = c( "SSE.mpa", "SSE", "snowcrab" ) # target domains and resolution for additional data subsets .. add here your are of interest
 
+  p$aegis_dimensionality = "space-year-season"
+
   p = spatial_parameters( p=p )  # default grid and resolution
 
   # define focal years
   if (!exists( "yrs", p)) p$yrs = 1950:lubridate::year(lubridate::now())  # default
-
-  p = temporal_parameters(p=p, aegis_dimensionality="space-year-season")
+  p = temporal_parameters(p=p)
 
   if ( !exists("additional.data", p) )  p$additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster")
 
