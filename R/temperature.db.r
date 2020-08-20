@@ -447,7 +447,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # extract bottom temperatures and save annual time slice
     loc.bottom.database = file.path( basedir, "archive", "bottomdatabase"  )
 
-    if (DS=="bottom.annual") {
+    if (DS=="bottom.annual.rawdata") {
       file.path(  "profiles")
       fn = file.path( loc.bottom.database, paste("bottom", yr, "rdata", sep="."))
       TDB = NULL

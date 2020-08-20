@@ -36,7 +36,7 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
     temperature.db( DS="osd.profiles.annual.redo", p=p, yr=2008:year.assessment    )  # no longer used
 
     temperature.db( DS="bottom.annual.rawdata", yr=1999:year.assessment )  # brent and amy's new db view
-    temperature.db( DS="bottom.annual.redo", p=p, yr=1910:year.assessment )
+    temperature.db( DS="bottom.annual.redo", p=p, yr=1999:year.assessment )
   }
 
   # Or add incrementally
