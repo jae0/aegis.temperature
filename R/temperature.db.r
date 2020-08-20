@@ -443,6 +443,67 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   # ----------------
 
+  if (DS %in% c( "bottom.annual.rawdata", "bottom.annual.rawdata.redo" ) ) {
+    # extract bottom temperatures and save annual time slice
+    loc.bottom.database = file.path( basedir, "archive", "bottomdatabase"  )
+
+    if (DS=="bottom.annual") {
+      file.path(  "profiles")
+      fn = file.path( loc.bottom.database, paste("bottom", yr, "rdata", sep="."))
+      TDB = NULL
+      if (file.exists(fn) ) load (fn )
+      return(TDB)
+    }
+
+    if (is.null(yr)) yr = p$yrs
+
+      con = ROracle::dbConnect( DBI::dbDriver("Oracle"),
+        username = oracle.snowcrab.user,
+        password = oracle.snowcrab.password,
+        dbname = oracle.snowcrab.server
+      )
+
+      res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'")
+      res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF'")
+      res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
+      # res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
+      # str(res):
+      #   data.frame':	2914559 obs. of  6 variables:
+      # $ PROJECT: chr  "Vemco" "Vemco" "Vemco" "Vemco" ...
+      # $ T_DATE : POSIXct, format: "2010-06-24 21:27:36" "2010-06-24 21:42:36" "2010-06-24 21:57:36" "2010-06-24 22:12:36" ...
+      # $ LAT_DD : num  43.7 43.7 43.7 43.7 43.7 ...
+      # $ LON_DD : num  -65.8 -65.8 -65.8 -65.8 -65.8 ...
+      # $ T_UID  : chr  "AAA090-1" "AAA090-1" "AAA090-1" "AAA090-1" ...
+      # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
+
+      for ( yt in yr ) {
+        TDB = NULL
+        TDB = ROracle::dbGetQuery( con,  paste(
+          " select * " ,
+          " from SC_TEMP_MERGE " ,
+          " where EXTRACT(YEAR from SC_TEMP_MERGE.T_DATE) =", yt
+        ) )
+
+        if (nrow(TDB) > 0 ) {
+          names(TDB) = c("project", "date", "lat", "lon", "t_uid", "t" )
+          TDB$yr = yt
+          TDB$dyear = lubridate::decimal_date( TDB$date ) - TDB$yr
+        } else {
+          TDB = NULL
+        }
+        if (!is.null(TDB)) {
+          if ( nrow(TDB) > 0  ) {
+            fn = file.path(  loc.bottom.database, paste("bottom", yt, "rdata", sep="."))
+            print (fn)
+            save( TDB, file=fn, compress=T)
+          }
+        }
+      }
+
+
+  }
+
+
   if (DS %in% c( "bottom.annual", "bottom.annual.redo" ) ) {
     # extract bottom temperatures and save annual time slice
 
@@ -453,63 +514,27 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       return(Z)
     }
 
-    if (is.null(yr)) yr = p$yrs
-
-     con = ROracle::dbConnect( DBI::dbDriver("Oracle"),
-      username = oracle.snowcrab.user,
-      password = oracle.snowcrab.password,
-      dbname = oracle.snowcrab.server
-    )
-
-    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'")
-    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF'")
-    res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
-    # res = ROracle::dbReadTable( con, "SC_TEMP_MERGE")
-    # str(res):
-    #   data.frame':	2914559 obs. of  6 variables:
-    # $ PROJECT: chr  "Vemco" "Vemco" "Vemco" "Vemco" ...
-    # $ T_DATE : POSIXct, format: "2010-06-24 21:27:36" "2010-06-24 21:42:36" "2010-06-24 21:57:36" "2010-06-24 22:12:36" ...
-    # $ LAT_DD : num  43.7 43.7 43.7 43.7 43.7 ...
-    # $ LON_DD : num  -65.8 -65.8 -65.8 -65.8 -65.8 ...
-    # $ T_UID  : chr  "AAA090-1" "AAA090-1" "AAA090-1" "AAA090-1" ...
-    # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
-
-
     output_vars = c( "project", "date", "lon", "lat", "t", "z", "dyear", "yr", "t_uid" )
 
-
     for ( yt in yr ) {
-
       Z = NULL
+      TDB = temperature.db( DS="bottom.annual.rawdata", yr=yt )
 
-      # misc survey data
-      TDB = NULL
-      TDB = ROracle::dbGetQuery( con,  paste(
-        " select * " ,
-        " from SC_TEMP_MERGE " ,
-        " where EXTRACT(YEAR from SC_TEMP_MERGE.T_DATE) =", yt
-      ) )
-
-      if (nrow(TDB) > 0 ) {
-        names(TDB) = c("project", "date", "lat", "lon", "t_uid", "temperature" )
-        igood = which( TDB$lon >= p$corners$lon[1] & TDB$lon <= p$corners$lon[2]
-                    &  TDB$lat >= p$corners$lat[1] & TDB$lat <= p$corners$lat[2] )
-        if (length( igood) > 0 ) {
-          TDB = TDB[igood, ]
-
-          TDB$yr = yt
-          TDB$dyear = lubridate::decimal_date( TDB$date ) - TDB$yr
-          bad = which( TDB$temperature < -5 | TDB$temperature > 30 )
-          if (length(bad) > 0) TDB=TDB[-bad,]
-
-          # add approximate depth for filtering.. high resolution space
-          TDB$z = lookup_bathymetry_from_surveys( p=p, locs=TDB[, c("lon", "lat")] )
-          TDB = TDB[ is.finite(TDB$z), ]
-          names(TDB)[which(names(TDB) == "temperature" ) ]  = "t"
-        } else {
-          TDB = NULL
+      if (!is.null(TDB)) {
+        if (nrow(TDB) > 0 ) {
+          igood = which( TDB$lon >= p$corners$lon[1] & TDB$lon <= p$corners$lon[2]
+                      &  TDB$lat >= p$corners$lat[1] & TDB$lat <= p$corners$lat[2] )
+          if (length( igood) > 0 ) {
+            TDB = TDB[igood, ]
+            bad = which( TDB$t < -5 | TDB$t > 30 )
+            if (length(bad) > 0) TDB=TDB[-bad,]
+            # add approximate depth for filtering.. high resolution space
+            TDB$z = lookup_bathymetry_from_surveys( p=p, locs=TDB[, c("lon", "lat")] )
+            TDB = TDB[ is.finite(TDB$z), ]
+          } else {
+            TDB = NULL
+          }
         }
-
       }
 
       # OSD data
@@ -568,8 +593,8 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-
       if (!is.null(TDB)) if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
+
       if ( !is.null(bottom) ) Z = rbind( Z, bottom[ , output_vars ] )
 
       if ( is.null( nrow(Z) ) ) next()

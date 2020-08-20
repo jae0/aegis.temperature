@@ -34,6 +34,8 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
     temperature.db( DS="osd.rawdata.2008_2016", p=p ) # 2008:2016, 2008 is overlapping ... overwrite the older series
     temperature.db( DS="osd.rawdata.annual", p=p, yr=2018:year.assessment ) # specify range or specific year
     temperature.db( DS="osd.profiles.annual.redo", p=p, yr=2008:year.assessment    )  # no longer used
+
+    temperature.db( DS="bottom.annual.rawdata", yr=1999:year.assessment )  # brent and amy's new db view
     temperature.db( DS="bottom.annual.redo", p=p, yr=1910:year.assessment )
   }
 
