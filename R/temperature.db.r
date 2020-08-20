@@ -450,9 +450,9 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (DS=="bottom.annual.rawdata") {
       file.path(  "profiles")
       fn = file.path( loc.bottom.database, paste("bottom", yr, "rdata", sep="."))
-      TDB = NULL
+      Z = NULL
       if (file.exists(fn) ) load (fn )
-      return(TDB)
+      return(Z)
     }
 
     if (is.null(yr)) yr = p$yrs
@@ -477,25 +477,25 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
 
       for ( yt in yr ) {
-        TDB = NULL
-        TDB = ROracle::dbGetQuery( con,  paste(
+        Z = NULL
+        Z = ROracle::dbGetQuery( con,  paste(
           " select * " ,
           " from SC_TEMP_MERGE " ,
           " where EXTRACT(YEAR from SC_TEMP_MERGE.T_DATE) =", yt
         ) )
 
-        if (nrow(TDB) > 0 ) {
-          names(TDB) = c("project", "date", "lat", "lon", "t_uid", "t" )
-          TDB$yr = yt
-          TDB$dyear = lubridate::decimal_date( TDB$date ) - TDB$yr
+        if (nrow(Z) > 0 ) {
+          names(Z) = c("project", "date", "lat", "lon", "t_uid", "t" )
+          Z$yr = yt
+          Z$dyear = lubridate::decimal_date( Z$date ) - Z$yr
         } else {
-          TDB = NULL
+          Z = NULL
         }
-        if (!is.null(TDB)) {
-          if ( nrow(TDB) > 0  ) {
+        if (!is.null(Z)) {
+          if ( nrow(Z) > 0  ) {
             fn = file.path(  loc.bottom.database, paste("bottom", yt, "rdata", sep="."))
             print (fn)
-            save( TDB, file=fn, compress=T)
+            save( Z, file=fn, compress=T)
           }
         }
       }

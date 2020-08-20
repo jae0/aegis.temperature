@@ -3,10 +3,8 @@
 # Prep OSD, snow crab and groundfish temperature profiles
 # this one has to be done manually .. no longer mainted by anyone ..
 
-if (!exists("year.assessment")) {
-  year.assessment=lubridate::year(Sys.Date())
-  year.assessment=lubridate::year(Sys.Date()) - 1
-}
+  year.assessment=2020
+
 
 p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years
 
