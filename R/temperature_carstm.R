@@ -20,14 +20,6 @@ temperature_carstm = function ( p=NULL, DS="parameters", redo=FALSE, ... ) {
     p$libs = unique( c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline","aegis.polygons", "aegis.temperature",  "aegis.survey", "carstm"  ) ) )
 
 
-  "aegis.bathymetry",
-      "aegis.polygons",
-      "aegis.coastline",
-      "aegis.survey",
-      "aegis.temperature",
-      "aegis.substrate",
-      "aegis.speciescomposition",
-
 
     if ( !exists("areal_units_source", p)) p$areal_units_source = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
 
