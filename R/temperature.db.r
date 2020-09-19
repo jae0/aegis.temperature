@@ -290,7 +290,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     misc$t =misc$temperature
     misc$z = NA  # no data
-  #  misc$z = lookup_bathymetry_from_stmv( p=p, locs=misc[, c("plon","plat")], vnames="z" )
+  #  misc$z = bathymetry_lookup( p=p, locs=misc[, c("plon","plat")],  source_data_class="modelled_stmv" )
 
     keep = c("z", "lon", "lat", "timestamp", "id", "salinity", "oxyml", "t", "sigmat", "date", "yr", "dyear" )
     misc = misc[, keep]
@@ -529,7 +529,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             bad = which( TDB$t < -5 | TDB$t > 30 )
             if (length(bad) > 0) TDB=TDB[-bad,]
             # add approximate depth for filtering.. high resolution space
-            TDB$z = lookup_bathymetry_from_surveys( p=p, locs=TDB[, c("lon", "lat")] )
+            TDB$z = bathymetry_lookup( p=p, locs=TDB[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
             TDB = TDB[ is.finite(TDB$z), ]
           } else {
             TDB = NULL
