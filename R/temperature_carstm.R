@@ -158,10 +158,7 @@ temperature_carstm = function ( p=NULL, DS="parameters", redo=FALSE, ... ) {
       M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
 
       M$dyear = M$tiyr - M$year
-
     }
-
-
 
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
@@ -169,7 +166,7 @@ temperature_carstm = function ( p=NULL, DS="parameters", redo=FALSE, ... ) {
 
     M$AUID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
 
-    # M[, pS$variabletomodel] = lookup_substrate_from_surveys(  p=p, locs=M[, c("lon", "lat")] )
+    # M[, pS$variabletomodel] = substrate_lookup( p=p, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
 
     M = M[ which(!is.na(M$AUID)),]
 
