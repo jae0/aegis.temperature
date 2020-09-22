@@ -36,8 +36,8 @@ p = aegis.temperature::temperature_parameters(
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
     't',
-    '~ s( yr, k=', round(nyrs*0.3), ', bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
-    '+ s( yr, cos.w, sin.w, k=', round(nyrs*0.3), ', bs="ts") ',
+    '~ s( yr, k=', floor(nyrs*0.3), ', bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts")  ',
+    '+ s( yr, cos.w, sin.w, k=', floor(nyrs*0.3), ', bs="ts") ',
     '+ s( log(z), k=3, bs="ts") + s( plon, k=3, bs="ts") + s( plat, k=3, bs="ts")  ',
     '+ s( log(z), plon, plat, k=6, bs="ts")  '
     ) ),
@@ -62,7 +62,7 @@ p = aegis.temperature::temperature_parameters(
   stmv_distance_prediction_limits =c( 2.5, 5 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 80,  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   stmv_nmax = 80*(nyrs/2), # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
-  stmv_tmin = round( nyrs * 1.25 ),
+  stmv_tmin = floor( nyrs * 1.25 ),
   stmv_force_complete_method = "fft",
   stmv_runmode = list(
     globalmodel = FALSE,
