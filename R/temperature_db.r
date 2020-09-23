@@ -1,5 +1,5 @@
 
-temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, redo=FALSE, ... ) {
+temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, redo=FALSE, ... ) {
 
   # over-ride default dependent variable name if it exists
 
@@ -392,14 +392,14 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         for (iy in ip) {
           yt = p$runs[iy, "yrs"]
 
-          Ydummy = temperature.db( DS="osd.rawdata", yr=2000, p=p ) [1,]  # dummy entry using year=2000
+          Ydummy = temperature_db( DS="osd.rawdata", yr=2000, p=p ) [1,]  # dummy entry using year=2000
           Ydummy$yr = NA
           Ydummy$dyear = 0.5
           Ydummy$id =  "dummy"
           Ydummy$depth = -1
           Ydummy$oxyml = NA
 
-          Y =  temperature.db( DS="osd.rawdata", yr=yt, p=p )
+          Y =  temperature_db( DS="osd.rawdata", yr=yt, p=p )
             if ( is.null(Y) ) {
               Y = Ydummy
               Y$yr = yt
@@ -518,7 +518,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     for ( yt in yr ) {
       Z = NULL
-      TDB = temperature.db( DS="bottom.annual.rawdata", yr=yt )
+      TDB = temperature_db( DS="bottom.annual.rawdata", yr=yt )
 
       if (!is.null(TDB)) {
         if (nrow(TDB) > 0 ) {
@@ -540,7 +540,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # OSD data
       bottom = NULL
       profile = NULL
-      profile = temperature.db( DS="osd.profiles.annual", yr=yt, p=p )
+      profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
 
       if (!is.null(profile)) {
         igood = which( profile$lon >= p$corners$lon[1] & profile$lon <= p$corners$lon[2]
@@ -664,7 +664,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     O = NULL
     if (!exists("yrs",p)) stop( "p$yrs needs to be defined" )
     for ( yr in p$yrs ) {
-      o = temperature.db( p=p, DS="bottom.annual", yr=yr )
+      o = temperature_db( p=p, DS="bottom.annual", yr=yr )
       if (!is.null(o)) O = rbind(O, o)
     }
     save(O, file=fbAll, compress=TRUE)
@@ -689,7 +689,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     warning( "Generating aggregated data ... ")
 
-    M = temperature.db( p=p, DS="bottom.all"  )
+    M = temperature_db( p=p, DS="bottom.all"  )
     M[, p$variabletomodel] = M$t
 
     M = M[ which(M$yr %in% p$yrs), ]
@@ -784,7 +784,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
 
-    B = temperature.db( p=p, DS="aggregated_data"  )
+    B = temperature_db( p=p, DS="aggregated_data"  )
      B$lon = NULL
       B$lat = NULL
       names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
@@ -949,11 +949,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           for ( iy in 1:p$ny ) {
             y = p$yrs[iy]
       			print ( paste("Year:", y)  )
-            P = temperature.db( p=p1, DS="predictions", yr=y, ret="mean"  )
+            P = temperature_db( p=p1, DS="predictions", yr=y, ret="mean"  )
             O[,iy,1] = c(apply( P, 1, mean, na.rm=T))
             O[,iy,2]  = c(apply( P, 1, sd, na.rm=T )) # annual, seasonal mean sums of squares
-      			O[,iy,3] = c(apply( temperature.db( p=p1, DS="predictions", yr=y, ret="lb"  ), 1, mean, na.rm=TRUE ) )
-            O[,iy,4] = c(apply( temperature.db( p=p1, DS="predictions", yr=y, ret="ub"  ), 1, mean, na.rm=TRUE ))
+      			O[,iy,3] = c(apply( temperature_db( p=p1, DS="predictions", yr=y, ret="lb"  ), 1, mean, na.rm=TRUE ) )
+            O[,iy,4] = c(apply( temperature_db( p=p1, DS="predictions", yr=y, ret="ub"  ), 1, mean, na.rm=TRUE ))
             O[,iy,5] = O[,iy,4] - O[,iy,3]
             O[,iy,6] = rowSums( P[] ) / p$nw * 365 # total degree days
             bdd[,iy,] = t(apply( P[], 1, cumsum )) / p$nw * 365 # normalized degree days (X 365 for degree days)
@@ -1019,7 +1019,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       for (ret in c("mean", "lb", "ub") ) {
         O = array( NA, dim=c(nlocs, p$ny, p$nw ), dimnames=list(NULL, p$yrs, p$dyears) )
         for ( y in 1:p$ny ) {
-          O[,y,] = temperature.db( p=p1, DS="predictions", yr=p$yrs[y], ret=ret )
+          O[,y,] = temperature_db( p=p1, DS="predictions", yr=p$yrs[y], ret=ret )
         }
         outdir = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
         dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
@@ -1072,7 +1072,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       colnames(O) = p$yrs
 
       for ( r in 1:p$ny ) {
-        P = temperature.db( p=p1, DS="predictions", yr=p$yrs[r], ret="mean"  )
+        P = temperature_db( p=p1, DS="predictions", yr=p$yrs[r], ret="mean"  )
         if (!is.null(P))  O[,r] = P[,dyear_index]
         P = NULL
       }
@@ -1082,7 +1082,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       O = O * NA
       for ( r in 1:p$ny ) {
-        Pl = temperature.db( p=p1, DS="predictions", yr=p$yrs[r], ret="lb"  )
+        Pl = temperature_db( p=p1, DS="predictions", yr=p$yrs[r], ret="lb"  )
         if (!is.null(Pl)) O[,r] = Pl[,dyear_index]
         Pl = NULL
       }
@@ -1091,7 +1091,7 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       O = O * NA
       for ( r in 1:p$ny ) {
-        Pu = temperature.db( p=p1, DS="predictions", yr=p$yrs[r], ret="ub"  )
+        Pu = temperature_db( p=p1, DS="predictions", yr=p$yrs[r], ret="ub"  )
         if (!is.null(Pu)) O[,r] = Pu[,dyear_index]
         Pu = NULL
       }
@@ -1182,11 +1182,11 @@ temperature.db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       p1 = spatial_parameters( spatial_domain=gr ) #target projection
       L1 = bathymetry.db(p=p1, DS="baseline")
 
-      BS = temperature.db( p=p1, DS="stmv.stats" )
+      BS = temperature_db( p=p1, DS="stmv.stats" )
       colnames(BS) = paste("t", colnames(BS), sep=".")
       TM = cbind( L1, BS )
 
-      CL = temperature.db( p=p1, DS="bottom.statistics.climatology" )
+      CL = temperature_db( p=p1, DS="bottom.statistics.climatology" )
       colnames(CL) = paste(p$bstats, "climatology", sep=".")
       TM = cbind( TM, CL )
 

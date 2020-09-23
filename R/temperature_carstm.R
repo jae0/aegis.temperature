@@ -146,11 +146,11 @@ temperature_carstm = function ( p=NULL, DS="parameters", redo=FALSE, year.assess
 
     if (p$carstm_inputs_aggregated) {
 
-      M = temperature.db( p=p, DS="aggregated_data"  )
+      M = temperature_db( p=p, DS="aggregated_data"  )
       names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
 
     } else {
-      M = temperature.db( p=p, DS="bottom.all"  )
+      M = temperature_db( p=p, DS="bottom.all"  )
       names(M)[which(names(M)=="t")] = p$variabletomodel
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
@@ -251,7 +251,6 @@ temperature_carstm = function ( p=NULL, DS="parameters", redo=FALSE, year.assess
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
     M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
     # M$tiyri  = floor( M$tiyr / p$tres )*p$tres    # discretize for inla
-
 
     M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
 

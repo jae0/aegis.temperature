@@ -1,5 +1,5 @@
 
-temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
+temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
   if (is.null(yr)) yr = p$yrs
 
@@ -10,10 +10,10 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     for ( gr in allgrids ) {
       print (gr)
       p1 = spatial_parameters(  p=p, spatial_domain=gr )
-      temperature.map( p=p1, DS="stmv.stats" ) # no parallel option .. just a few
-      temperature.map( p=p1, DS="climatology" ) # no parallel option .. just a few
-      if (do.seasonal) temperature.map( p=p1, DS="seasonal" ) # all seasonal predicted means
-      temperature.map( p=p1, DS="annual" ) # bottom.statistics.annual
+      temperature_map( p=p1, DS="stmv.stats" ) # no parallel option .. just a few
+      temperature_map( p=p1, DS="climatology" ) # no parallel option .. just a few
+      if (do.seasonal) temperature_map( p=p1, DS="seasonal" ) # all seasonal predicted means
+      temperature_map( p=p1, DS="annual" ) # bottom.statistics.annual
     }
   }
 
@@ -31,7 +31,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     annot.cex=2
 
     for ( y in yr ) {
-      H = temperature.db( p=p, DS="predictions", yr=y, ret="mean"  )
+      H = temperature_db( p=p, DS="predictions", yr=y, ret="mean"  )
       if (is.null(H)) next ()
       for (w in 1:p$nw ) {
         wchar = paste( "0", w, sep="" )
@@ -62,7 +62,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     annot.cex=3
 
     for ( vname in p$bstats ) {
-      H = temperature.db( p=p, DS="bottom.statistics.annual", ret=vname )
+      H = temperature_db( p=p, DS="bottom.statistics.annual", ret=vname )
       if (is.null(H)) next ()
 
       for ( iy in 1:length(yr) ) {
@@ -132,7 +132,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
     bottomdir.maps = file.path( project.datadirectory("aegis", "temperature"), "maps", p$spatial_domain, "bottom.predictions", "climatology" )
     dir.create( bottomdir.maps, recursive=T, showWarnings=F )
-    H = temperature.db( p=p, DS="bottom.statistics.climatology" )
+    H = temperature_db( p=p, DS="bottom.statistics.climatology" )
 
     loc = bathymetry.db(p=p, DS="baseline" )
     annot.cex=0.9
@@ -196,7 +196,7 @@ temperature.map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
     if (exists( "libs", p)) RLibrary( p$libs )
 
-    H = temperature.db( p=p, DS="stmv.stats" )
+    H = temperature_db( p=p, DS="stmv.stats" )
     namesH = colnames(H)
 
     bottomdir.maps = file.path( project.datadirectory("aegis", "temperature"), "maps", p$spatial_domain, "bottom.predictions", "stmv.stats" )

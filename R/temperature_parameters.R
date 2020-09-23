@@ -54,7 +54,7 @@ temperature_parameters = function( p=NULL, project_name=NULL, project_class="def
   if (project_class=="stmv") {
     p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )
 
-    if (!exists("DATA", p) ) p$DATA = 'temperature.db( p=p, DS="stmv_inputs" )'
+    if (!exists("DATA", p) ) p$DATA = 'temperature_db( p=p, DS="stmv_inputs" )'
 
     if (!exists("stmv_variables", p)) p$stmv_variables = list()
     if (!exists("LOCS", p$stmv_variables)) p$stmv_variables$LOCS=c("plon", "plat")

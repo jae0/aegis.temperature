@@ -21,19 +21,19 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
   # load input data or reformat it
    if (source_data_class=="rawdata") {
 
-      B = temperature.db ( p=p_source, DS="lonlat.highres" )  # 16 GB in RAM just to store!
+      B = temperature_db ( p=p_source, DS="lonlat.highres" )  # 16 GB in RAM just to store!
 #      Bnames = c("lon", "lat", "grainsize", "plon", "plat"),
 
    } else if (source_data_class=="aggregated_rawdata") {
 
-      B = temperature.db ( p=p_source, DS="aggregated_data" )+
+      B = temperature_db ( p=p_source, DS="aggregated_data" )+
 #       Bnames = c("t.mean", "t.sd",  "t.n", "id",  "plon", "plat", "yr", "dyear", "lon", "lat")
       B$t = B$t.mean
       B$t.mean  = NULL
 
    } else if (source_data_class=="modelled_stmv") {
 
-      B = temperature.db(p=p_source, DS="spatial.annual.seasonal"  )
+      B = temperature_db(p=p_source, DS="spatial.annual.seasonal"  )
     # Bnames = c( "plon", "plat", "t", "t.lb", "t.ub",
     #   "t.sdTotal", "t.rsquared", "t.ndata", "t.sdSpatial", "t.sdObs", "t.phi", "t.nu", ts.localrange" )
       zname = "t"
@@ -149,9 +149,9 @@ stop("not finished ... must addd time lookup")
       Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
       st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
       Bsf = sf::st_transform( Bsf, crs=CRS(proj4string(locs)) )
+      Boo = as(Bsf, "Spatial")
       for (vn in Bnames) {
         vn2 = paste(vn, "sd", sep="." )
-        Boo = as(Bsf, "Spatial")
         slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
         slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
       }
@@ -169,10 +169,10 @@ stop("not finished ... must addd time lookup")
       res(raster_template) = p_source$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
       crs(raster_template) = projection(locs) # transfer the coordinate system to the raster
       Bsf = sf::st_transform( as(B, "sf"), crs=CRS(proj4string(locs)) )  # B is a carstm sppoly
+      Boo = as(B, "SpatialPolygonsDataFrame")
       for (vn in Bnames) {
-        Bf = fasterize::fasterize( Bsf, raster_template, field=vn )
+        # Bf = fasterize::fasterize( Bsf, raster_template, field=vn )
         vn2 = paste(vn, "sd", sep="." )
-        Boo = as(B, "SpatialPolygonsDataFrame")
         slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
         slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
       }

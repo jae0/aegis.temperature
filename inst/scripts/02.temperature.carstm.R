@@ -14,7 +14,7 @@
   spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
 
 
-  M = temperature.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = temperature_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   # to extract fits and predictions
 

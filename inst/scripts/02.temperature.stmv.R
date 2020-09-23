@@ -24,7 +24,7 @@ interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpola
 p = aegis.temperature::temperature_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "temperature" ),
-  DATA = 'temperature.db( p=p, DS="stmv_inputs" )',
+  DATA = 'temperature_db( p=p, DS="stmv_inputs" )',
   spatial_domain = "canada.east", # default
   inputdata_spatial_discretization_planar_km = 1/4, # 1==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   inputdata_temporal_discretization_yr = 1/52,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
@@ -128,20 +128,20 @@ AIC(o)  # [1]  3263839.33
 
   # 2.  collect predictions from stmv and warp/break into sub-areas defined by
   #     p$spatial_domain_subareas = c( "SSE", "SSE.mpa", "snowcrab" )
-  temperature.db( p=p, DS="predictions.redo" ) # ~1hr
-  temperature.db( p=p, DS="stmv.stats.redo" ) # warp to sub grids
+  temperature_db( p=p, DS="predictions.redo" ) # ~1hr
+  temperature_db( p=p, DS="stmv.stats.redo" ) # warp to sub grids
 
   # 3. extract relevant statistics .. including climatologies all defined by p$yrs
-  temperature.db( p=p, DS="bottom.statistics.annual.redo" )
+  temperature_db( p=p, DS="bottom.statistics.annual.redo" )
 
   # 4. all time slices in array format
-  temperature.db( p=p,  DS="spatial.annual.seasonal.redo" )
+  temperature_db( p=p,  DS="spatial.annual.seasonal.redo" )
 
   # 5. time slice at prediction time of year
-  temperature.db( p=p,  DS="timeslice.redo" )
+  temperature_db( p=p,  DS="timeslice.redo" )
 
   # 6. complete statistics and warp/regrid database ... ~ 2 min :: only for  default grid . TODO might as well do for each subregion/subgrid
-  temperature.db( p=p, DS="complete.redo")
+  temperature_db( p=p, DS="complete.redo")
 
 
 # 7. maps
@@ -149,16 +149,16 @@ AIC(o)  # [1]  3263839.33
   # p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )
 
 
-  temperature.map( p=p, DS="all", yr=p$yrs ) # default is to do all
+  temperature_map( p=p, DS="all", yr=p$yrs ) # default is to do all
 
   # just redo a couple maps for ResDoc in the  SSE domain
   #p$bstats = "tmean"
   p = spatial_parameters( p=p, spatial_domain = "SSE.mpa" )  # default grid and resolution
   p$corners = data.frame(plon=c(150, 1022), plat=c(4600, 5320) )  # alter corners ..
-  temperature.map( p=p, DS='climatology' )
-  temperature.map( p=p, DS='stmv.stats' )
-  temperature.map( p=p, DS='annual' )
-  temperature.map( p=p, DS='seasonal' )
+  temperature_map( p=p, DS='climatology' )
+  temperature_map( p=p, DS='stmv.stats' )
+  temperature_map( p=p, DS='annual' )
+  temperature_map( p=p, DS='seasonal' )
 
 
 # finished
