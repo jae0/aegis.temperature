@@ -760,12 +760,12 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # default output grid
     vars_required = c(p$stmv_variables$LOCS, p$stmv_variables$COV )
 
-    Bout = bathymetry.db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
+    Bout = bathymetry_db( p=p, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
     tokeep = which( names(Bout) %in% vars_required )
     toadd = setdiff( 1:length(vars_required),  which( vars_required %in% names(Bout)) )
     Bout = Bout[,tokeep]
     if (length(toadd) > 0 ) {
-      Sout = substrate.db ( p=p, DS="complete" )
+      Sout = substrate_db ( p=p, DS="complete" )
       Sind = which(names(Sout) %in% vars_required[toadd])
       if ( length(Sind) > 0) {
         if (nrow(Sout) != nrow(Bout)) stop( "Row numbers between bathymetry and substrate databases differ")
@@ -791,7 +791,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     locsmap = match(
       stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
-      stmv::array_map( "xy->1", bathymetry.db(p=p, DS="baseline"), gridparams=p$gridparams ) )
+      stmv::array_map( "xy->1", bathymetry_db(p=p, DS="baseline"), gridparams=p$gridparams ) )
 
     newvars = setdiff(p$stmv_variables$COV, names(B) )
     if (length(newvars) > 0) {
@@ -847,12 +847,12 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           VV0 = stmv_db( p=p, DS="stmv.prediction", yr=yy, ret="lb")
           WW0 = stmv_db( p=p, DS="stmv.prediction", yr=yy, ret="ub")
           p0 = spatial_parameters( p=p ) # from
-          L0 = bathymetry.db( p=p0, DS="baseline" )
+          L0 = bathymetry_db( p=p0, DS="baseline" )
           L0i = stmv::array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
           sreg = setdiff( p$spatial_domain_subareas, p$spatial_domain )
           for ( gr in sreg ) {
             p1 = spatial_parameters( spatial_domain=gr ) # 'warping' from p -> p1
-            L1 = bathymetry.db( p=p1, DS="baseline" )
+            L1 = bathymetry_db( p=p1, DS="baseline" )
             L1i = stmv::array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
             L1 = planar2lonlat( L1, proj.type=p1$aegis_proj4string_planar_km )
             L1$plon_1 = L1$plon # store original coords
@@ -940,7 +940,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         for ( gr in grids ) {
           # print(gr)
           p1 = spatial_parameters( spatial_domain=gr ) #target projection
-          L1 = bathymetry.db(p=p1, DS="baseline")
+          L1 = bathymetry_db(p=p1, DS="baseline")
           tstatdir_p1 = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
           dir.create( tstatdir_p1, showWarnings=F, recursive = TRUE )
 
@@ -1015,7 +1015,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     for (gr in grids ) {
       #  print(gr)
       p1 = spatial_parameters( spatial_domain=gr ) #target projection
-      nlocs = nrow( bathymetry.db(p=p1, DS="baseline"))
+      nlocs = nrow( bathymetry_db(p=p1, DS="baseline"))
       for (ret in c("mean", "lb", "ub") ) {
         O = array( NA, dim=c(nlocs, p$ny, p$nw ), dimnames=list(NULL, p$yrs, p$dyears) )
         for ( y in 1:p$ny ) {
@@ -1065,7 +1065,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # print(gr)
       p1 = spatial_parameters( spatial_domain=gr ) #target projection
       tslicedir = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
-      nlocs = nrow( bathymetry.db(p=p1, DS="baseline"))
+      nlocs = nrow( bathymetry_db(p=p1, DS="baseline"))
       dir.create(tslicedir, recursive=TRUE, showWarnings=FALSE)
 
       O = matrix(NA, ncol=p$ny, nrow=nlocs)
@@ -1122,13 +1122,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     S0 = stmv_db( p=p, DS="stmv.stats" )
     Snames = colnames(S0)
     p0 = spatial_parameters( p=p ) # from
-    L0 = bathymetry.db( p=p0, DS="baseline" )
+    L0 = bathymetry_db( p=p0, DS="baseline" )
     L0i = stmv::array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
     sreg = setdiff( p$spatial_domain_subareas, p$spatial_domain )
 
     for ( gr in sreg ) {
       p1 = spatial_parameters( p=p, spatial_domain=gr ) # 'warping' from p -> p1
-      L1 = bathymetry.db( p=p1, DS="baseline" )
+      L1 = bathymetry_db( p=p1, DS="baseline" )
       L1i = stmv::array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
       L1 = planar2lonlat( L1, proj.type=p1$aegis_proj4string_planar_km )
       L1$plon_1 = L1$plon # store original coords
@@ -1180,7 +1180,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # print(gr)
 
       p1 = spatial_parameters( spatial_domain=gr ) #target projection
-      L1 = bathymetry.db(p=p1, DS="baseline")
+      L1 = bathymetry_db(p=p1, DS="baseline")
 
       BS = temperature_db( p=p1, DS="stmv.stats" )
       colnames(BS) = paste("t", colnames(BS), sep=".")

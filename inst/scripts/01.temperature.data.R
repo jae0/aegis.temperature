@@ -22,7 +22,7 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
     #   temperature_db( DS="osd.rawdata.2008_2016", p=p ) # 2008:2016, 2008 is overlapping ... overwrite the older series
     #   # temperature_db( DS="ODF_ARCHIVE", p=p, yr=1969:2015 ) # specify range or specific year .. not used .. here in case the data series gets reactivated .. will need to be brought into profiles.annual.redo
     #   # NOTE:: if groundfish data profiles are maintained by groundfish databases again then an easy way wold be
-    #   # to update aegis.survey::groundfish.db( DS="gshyd.georef" ) to assimilate the data ..  this would also mean that 00.surveys.r would need to be run first. ..
+    #   # to update aegis.survey::groundfish_survey_db( DS="gshyd.georef" ) to assimilate the data ..  this would also mean that 00.surveys.r would need to be run first. ..
 
 
   # Roger Petipas has been maintaining a database, the following loads this data
