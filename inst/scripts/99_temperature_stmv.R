@@ -94,7 +94,7 @@ p = aegis.temperature::temperature_parameters(
 
 
 # to summarize just the global model
-o = stmv_db( p=p, DS="global_model" )
+o = stmv_global_model( p=p, DS="global_model" )
 summary(o)
 plot(o)
 AIC(o)  # [1]  3263839.33

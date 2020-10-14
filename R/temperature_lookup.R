@@ -6,15 +6,15 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
   require(aegis.temperature)
 
   # set up parameters for input data
-  if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) ) {
-    if (source_data_class=="modelled_stmv") {
+  if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
+    if (source_data_class=="stmv") {
       p_source = temperature_parameters(p=p, project_class="stmv")
     } else {
-      p_source = temperature_parameters(p=p, project_class="default")
+      p_source = temperature_parameters(p=p, project_class="model")
   }
-  } else if (source_data_class %in% "modelled_carstm" ) {
+  } else if (source_data_class %in% "carstm" ) {
       # copy of param list for global analysis in aegis.temperature/inst/scripts/02.temperature.carstm.R
-      p_source = temperature_carstm( DS = "parameters_production", year.assessment=max(p$yrs) )
+      p_source = temperature_parameters(p=p, project_class= "carstm", year.assessment=max(p$yrs) )
   }
 
 
@@ -31,14 +31,14 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       B$t = B$t.mean
       B$t.mean  = NULL
 
-   } else if (source_data_class=="modelled_stmv") {
+   } else if (source_data_class=="stmv") {
 
       B = temperature_db(p=p_source, DS="spatial.annual.seasonal"  )
     # Bnames = c( "plon", "plat", "t", "t.lb", "t.ub",
     #   "t.sdTotal", "t.rsquared", "t.ndata", "t.sdSpatial", "t.sdObs", "t.phi", "t.nu", ts.localrange" )
       zname = "t"
 
-   } else if (source_data_class=="modelled_carstm") {
+   } else if (source_data_class=="carstm") {
 
       Bcarstm = carstm_summary( p=p_source ) # to load currently saved sppoly
       B = areal_units( p=p_source )
@@ -55,7 +55,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
 
   if (output_data_class == "points ") {
 
-    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) )  {
+    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) )  {
 
       if ( is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
       if ( is.null( locs_proj4string ) ) {
@@ -74,7 +74,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
         locs_proj4string = p_source$aegis_proj4string_planar_km
       }
 
-      if (source_data_class=="modelled_stmv") {
+      if (source_data_class=="stmv") {
         B_map = stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
         locs_map = stmv::array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
 
@@ -116,7 +116,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       return( B[locs_index, vnames] )
     }
 
-    if ( source_data_class=="modelled_carstm") {
+    if ( source_data_class=="carstm") {
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs))
@@ -144,7 +144,7 @@ stop("not finished ... must addd time lookup")
 
     # expects loc to be a spatial polygon data frame
 
-    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) ) {
+    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
 stop("not finished ... must addd time lookup")
       Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
       st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
@@ -161,7 +161,7 @@ stop("not finished ... must addd time lookup")
     }
 
 
-    if ( source_data_class=="modelled_carstm") {
+    if ( source_data_class=="carstm") {
 stop("not finished ... must addd time lookup")
       # convert to raster then match
       require(raster)

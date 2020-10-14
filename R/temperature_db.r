@@ -290,7 +290,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     misc$t =misc$temperature
     misc$z = NA  # no data
-  #  misc$z = bathymetry_lookup( p=p, locs=misc[, c("plon","plat")],  source_data_class="modelled_stmv" )
+  #  misc$z = bathymetry_lookup( p=p, locs=misc[, c("plon","plat")],  source_data_class="stmv" )
 
     keep = c("z", "lon", "lat", "timestamp", "id", "salinity", "oxyml", "t", "sigmat", "date", "yr", "dyear" )
     misc = misc[, keep]
@@ -750,6 +750,155 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     return( M )
   }
 
+
+  # -----------------------
+
+
+
+  if ( DS=="carstm_inputs") {
+
+    # prediction surface
+    crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
+    sppoly = areal_units( p=p )  # will redo if not found
+    areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
+
+
+    if (p$carstm_inputs_aggregated) {
+      fn = carstm_filenames( p=p, projectname="temperature", projecttype="carstm_inputs", areal_units_fn=areal_units_fn )
+
+    } else {
+      fn = paste( "temperature", "carstm_inputs", areal_units_fn, "rawdata", "rdata", sep=".")
+    }
+
+    fn = file.path( p$modeldir, fn)
+
+    if (!redo)  {
+      if (file.exists(fn)) {
+        load( fn)
+        return( M )
+      }
+    }
+
+
+    # do this immediately to reduce storage for sppoly (before adding other variables)
+
+    if (p$carstm_inputs_aggregated) {
+
+      M = temperature_db( p=p, DS="aggregated_data"  )
+      names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
+
+    } else {
+      M = temperature_db( p=p, DS="bottom.all"  )
+      names(M)[which(names(M)=="t")] = p$variabletomodel
+      attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+      attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+
+      names(M)[which(names(M)=="yr") ] = "year"
+      M = M[ which(M$year %in% p$yrs), ]
+      M$tiyr = lubridate::decimal_date ( M$date )
+
+      # globally remove all unrealistic data
+      keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits
+      if (length(keep) > 0 ) M = M[ keep, ]
+
+      # p$quantile_bounds_data = c(0.0005, 0.9995)
+      if (exists("quantile_bounds_data", p)) {
+        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        if (length(keep) > 0 ) M = M[ keep, ]
+        # this was -1.7, 21.8 in 2015
+      }
+
+      keep = which( M$z >=  2 ) # ignore very shallow areas ..
+      if (length(keep) > 0 ) M = M[ keep, ]
+
+      M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
+
+      M$dyear = M$tiyr - M$year
+    }
+
+    # reduce size
+    M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+    # levelplot(z.mean~plon+plat, data=M, aspect="iso")
+
+    M$AUID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
+
+    # M[, pS$variabletomodel] = substrate_lookup( p=p, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
+
+    M = M[ which(!is.na(M$AUID)),]
+
+    M$tiyr = M$year + M$dyear
+    M$tag = "observations"
+
+    # already has depth .. but in case some are missing data
+    pB = bathymetry_parameters( p=p, project_class="carstm", reset_data_locations=TRUE )
+
+
+    if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
+
+    kk = which(!is.finite( M[, pB$variabletomodel] ))
+    if (length(kk > 0)) {
+      M[kk, pB$variabletomodel] = bathymetry_lookup( p=p, locs=M[kk, c("lon", "lat")], source_data_class="aggregated_rawdata" )
+    }
+
+    # if any still missing then use a mean depth by AUID
+    kk =  which( !is.finite(M[, pB$variabletomodel]))
+    if (length(kk) > 0) {
+      AD = bathymetry_db ( p=pB, DS="aggregated_data"   )  # 16 GB in RAM just to store!
+      AD = AD[ which( AD$lon > p$corners$lon[1] & AD$lon < p$corners$lon[2]  & AD$lat > p$corners$lat[1] & AD$lat < p$corners$lat[2] ), ]
+      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+      AD$AUID = over( SpatialPoints( AD[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
+      oo = tapply( AD[, paste(pB$variabletomodel, "mean", sep="." )], AD$AUID, FUN=median, na.rm=TRUE )
+      jj = match( as.character( M$AUID[kk]), as.character( names(oo )) )
+      M[kk, pB$variabletomodel] = oo[jj ]
+    }
+
+    if( exists("spatial_domain", p)) M = geo_subset( spatial_domain=p$spatial_domain, Z=M ) # need to be careful with extrapolation ...  filter depths
+
+    M$lon = NULL
+    M$lat = NULL
+    M$plon = NULL
+    M$plat = NULL
+
+    APS = as.data.frame(sppoly)
+    APS$AUID = as.character( APS$AUID )
+    APS$tag ="predictions"
+    APS[, p$variabletomodel] = NA
+
+    BM = carstm_summary( p=pB ) # to load currently saved sppoly
+
+    jj = match( as.character( APS$AUID), as.character( BM$AUID) )
+    APS[, pB$variabletomodel] = BM[[ paste(pB$variabletomodel, "predicted", sep=".") ]] [jj]
+    jj =NULL
+    BM = NULL
+
+    vn = c( p$variabletomodel, pB$variabletomodel, "tag", "AUID"  )
+    APS = APS[, vn]
+
+    # expand APS to all time slices
+    n_aps = nrow(APS)
+    APS = cbind( APS[ rep.int(1:n_aps, p$nt), ], rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
+    names(APS) = c(vn, "tiyr")
+
+    M = rbind( M[, names(APS)], APS )
+    APS = NULL
+
+    M$auid  = as.numeric( factor( M$AUID) )
+
+    M$year = aegis_floor( M$tiyr)
+    M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
+    M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
+    # M$tiyri  = aegis_floor( M$tiyr / p$tres )*p$tres    # discretize for inla
+
+    M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
+
+    # M$seasonal = (as.numeric(M$year_factor) - 1) * length(p$dyears)  + as.numeric(M$dyear)
+
+    M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
+
+    save( M, file=fn, compress=TRUE )
+    return( M )
+  }
 
 
 
