@@ -831,8 +831,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$tag = "observations"
 
     # already has depth .. but in case some are missing data
-    pB = bathymetry_parameters( p=p, project_class="carstm", reset_data_locations=TRUE )
-
+    pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
 
     if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
 
