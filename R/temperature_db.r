@@ -758,10 +758,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if ( DS=="carstm_inputs") {
 
     # prediction surface
-    crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
+    crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
     sppoly = areal_units( p=p )  # will redo if not found
+    sppoly = st_transform(sppoly, crs=crs_lonlat )
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
-
 
     if (p$carstm_inputs_aggregated) {
       fn = carstm_filenames( p=p, projectname="temperature", projecttype="carstm_inputs", areal_units_fn=areal_units_fn )
@@ -820,8 +820,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
-
-    M$AUID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
+    M$AUID = st_points_in_polygons(
+      pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
+      polys = sppoly[, "AUID"],
+      varname="AUID"
+    )
 
     # M[, pS$variabletomodel] = substrate_lookup( p=p, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
 
@@ -846,7 +849,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       AD = bathymetry_db ( p=pB, DS="aggregated_data"   )  # 16 GB in RAM just to store!
       AD = AD[ which( AD$lon > p$corners$lon[1] & AD$lon < p$corners$lon[2]  & AD$lat > p$corners$lat[1] & AD$lat < p$corners$lat[2] ), ]
       # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
-      AD$AUID = over( SpatialPoints( AD[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
+      AD$AUID = st_points_in_polygons(
+        pts = st_as_sf( AD, coords=c("lon","lat"), crs=crs_lonlat ),
+        polys = sppoly[, "AUID"],
+        varname="AUID"
+      )
       oo = tapply( AD[, paste(pB$variabletomodel, "mean", sep="." )], AD$AUID, FUN=median, na.rm=TRUE )
       jj = match( as.character( M$AUID[kk]), as.character( names(oo )) )
       M[kk, pB$variabletomodel] = oo[jj ]
@@ -859,7 +866,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$plon = NULL
     M$plat = NULL
 
-    APS = as.data.frame(sppoly)
+    region.id = slot( slot(sppoly, "nb"), "region.id" )
+    APS = st_drop_geometry(sppoly)
+    sppoly = NULL
+    gc()
+
     APS$AUID = as.character( APS$AUID )
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
@@ -882,7 +893,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = rbind( M[, names(APS)], APS )
     APS = NULL
 
-    M$auid  = as.numeric( factor( M$AUID) )
+    M$auid = match( M$AUID, region.id )
 
     M$year = aegis_floor( M$tiyr)
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
