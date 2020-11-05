@@ -75,8 +75,8 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       }
 
       if (source_data_class=="stmv") {
-        B_map = stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
-        locs_map = stmv::array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
+        B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
+        locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
 
         locs_index = match( locs_map, B_map )
 
@@ -90,7 +90,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
         if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
-        timestamp_map = stmv::array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
 
         dindex = cbind(locs_index, timestamp_map ) # check this
         p$stmv_variables = NULL  # this can exist and cause confusion
@@ -98,13 +98,13 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       }
 
       if (source_data_class=="aggregated_rawdata") {
-        T_map = stmv::array_map( "ts->1", B[,c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
-        B_map = stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=gridparams )
+        T_map = array_map( "ts->1", B[,c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=gridparams )
         if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
-        timestamp_map = stmv::array_map( "ts->1", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
-        locs_map = stmv::array_map( "xy->1", locs[,c("plon","plat")], gridparams=gridparams )
+        timestamp_map = array_map( "ts->1", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=gridparams )
         locs_index = match( paste(locs_map, timestamp_map, sep="_"), paste(B_map, T_map, sep="_") )
         out = B[locs_index, vnames]
       return(out)
@@ -149,11 +149,11 @@ stop("not finished ... must addd time lookup")
       Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
       st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
       Bsf = sf::st_transform( Bsf, crs=CRS(proj4string(locs)) )
-      Boo = as(Bsf, "Spatial")
       for (vn in Bnames) {
         vn2 = paste(vn, "sd", sep="." )
-        slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
-        slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
+        #Bf= ...
+        locs[,vn] = st_polygons_in_polygons( locs, Bf[,vn], fn=mean, na.rm=TRUE )
+        locs[,vn2] = st_polygons_in_polygons( locs, Bf[,vn], fn=sd, na.rm=TRUE )
       }
       vnames = intersect( names(B), vnames )
       if ( length(vnames) ==0 ) vnames=names(B) # no match returns all
@@ -173,8 +173,8 @@ stop("not finished ... must addd time lookup")
       for (vn in Bnames) {
         # Bf = fasterize::fasterize( Bsf, raster_template, field=vn )
         vn2 = paste(vn, "sd", sep="." )
-        slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
-        slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
+        locs[,vn] = st_polygons_in_polygons( locs, Bf[,vn], fn=mean, na.rm=TRUE )
+        locs[,vn2] = st_polygons_in_polygons( locs, Bf[,vn], fn=sd, na.rm=TRUE )
       }
       vnames = intersect( names(B), vnames )
       if ( length(vnames) ==0 ) vnames=names(B) # no match returns all

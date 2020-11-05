@@ -949,8 +949,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
 
     locsmap = match(
-      stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
-      stmv::array_map( "xy->1", bathymetry_db(p=p, DS="baseline"), gridparams=p$gridparams ) )
+      array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
+      array_map( "xy->1", bathymetry_db(p=p, DS="baseline"), gridparams=p$gridparams ) )
 
     newvars = setdiff(p$stmv_variables$COV, names(B) )
     if (length(newvars) > 0) {
@@ -1007,12 +1007,12 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           WW0 = stmv_db( p=p, DS="stmv.prediction", yr=yy, ret="ub")
           p0 = spatial_parameters( p=p ) # from
           L0 = bathymetry_db( p=p0, DS="baseline" )
-          L0i = stmv::array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
+          L0i = array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
           sreg = setdiff( p$spatial_domain_subareas, p$spatial_domain )
           for ( gr in sreg ) {
             p1 = spatial_parameters( spatial_domain=gr ) # 'warping' from p -> p1
             L1 = bathymetry_db( p=p1, DS="baseline" )
-            L1i = stmv::array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
+            L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
             L1 = planar2lonlat( L1, proj.type=p1$aegis_proj4string_planar_km )
             L1$plon_1 = L1$plon # store original coords
             L1$plat_1 = L1$plat
@@ -1282,13 +1282,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     Snames = colnames(S0)
     p0 = spatial_parameters( p=p ) # from
     L0 = bathymetry_db( p=p0, DS="baseline" )
-    L0i = stmv::array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
+    L0i = array_map( "xy->2", L0[, c("plon", "plat")], gridparams=p0$gridparams )
     sreg = setdiff( p$spatial_domain_subareas, p$spatial_domain )
 
     for ( gr in sreg ) {
       p1 = spatial_parameters( p=p, spatial_domain=gr ) # 'warping' from p -> p1
       L1 = bathymetry_db( p=p1, DS="baseline" )
-      L1i = stmv::array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
+      L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
       L1 = planar2lonlat( L1, proj.type=p1$aegis_proj4string_planar_km )
       L1$plon_1 = L1$plon # store original coords
       L1$plat_1 = L1$plat
