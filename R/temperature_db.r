@@ -859,7 +859,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M[kk, pB$variabletomodel] = oo[jj ]
     }
 
-    if( exists("spatial_domain", p)) M = geo_subset( spatial_domain=p$spatial_domain, Z=M ) # need to be careful with extrapolation ...  filter depths
+    if( exists("spatial_domain", p)) M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
 
     M$lon = NULL
     M$lat = NULL
@@ -952,18 +952,16 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
       array_map( "xy->1", bathymetry_db(p=p, DS="baseline"), gridparams=p$gridparams ) )
 
-    newvars = setdiff(p$stmv_variables$COV, names(B) )
+    Bnames = names(B)
+    newvars = setdiff(p$stmv_variables$COV, Bnames )
     if (length(newvars) > 0) {
-      sn = Bout[locsmap,newvars]
-      if (ncol(sn) > 0) {
-        B = cbind( B,  sn )
-      }
+        B = cbind( B,  Bout[locsmap, newvars] )
+        names(B) = c( Bnames, newvars )
     }
 
     varstokeep = unique( c( p$stmv_variables$Y, p$stmv_variables$LOCS, p$stmv_variables$TIME, p$stmv_variables$COV ) )
     B$tiyr = B$yr + B$dyear
     B = B[,varstokeep]
-
 
     return (list(input=B, output=OUT))
   }
