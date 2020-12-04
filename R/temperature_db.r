@@ -975,7 +975,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # This routine points to this data and also creates
     # subsets of the data where required, determined by "spatial_domain_subareas"
 
-    outdir = project.datadirectory( "aegis", "temperature", "modelled", voi, p$spatial_domain )
+    outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
 
     if (DS %in% c("predictions")) {
       P = Pl = Pu = NULL
@@ -1024,7 +1024,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
               Pl[,iw] = spatial_warp( VV0[,iw], L0, L1, p0, p1, "fast", L0i, L1i )
               Pu[,iw] = spatial_warp( WW0[,iw], L0, L1, p0, p1, "fast", L0i, L1i )
             }
-            outdir_p1 = project.datadirectory("aegis", "temperature", "modelled", voi, p1$spatial_domain)
+            outdir_p1 = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
             dir.create( outdir_p1, recursive=T, showWarnings=F )
             fn1_sg = file.path( outdir_p1, paste("stmv.prediction.mean",  yy, "rdata", sep=".") )
             fn2_sg = file.path( outdir_p1, paste("stmv.prediction.lb",  yy, "rdata", sep=".") )
@@ -1056,7 +1056,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo", "bottom.statistics.climatology", "bottom.degree.days", "bottom.degree.days.climatology" )){
 
-		tstatdir = project.datadirectory("aegis", "temperature", "modelled", voi, p$spatial_domain )
+    tstatdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
     dir.create( tstatdir, showWarnings=F, recursive = TRUE )
 
     if (DS == "bottom.statistics.climatology" ) {
@@ -1098,7 +1098,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           # print(gr)
           p1 = spatial_parameters( spatial_domain=gr ) #target projection
           L1 = bathymetry_db(p=p1, DS="baseline")
-          tstatdir_p1 = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
+          tstatdir_p1 = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
+
           dir.create( tstatdir_p1, showWarnings=F, recursive = TRUE )
 
           O = array( NA, dim=c( nrow(L1), p$ny, length(p$bstats)) )
@@ -1160,8 +1161,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if (DS %in% c("spatial.annual.seasonal", "spatial.annual.seasonal.redo") ) {
     #\\ spatial, temporal (annual and seasonal) .. means only
     #\\ copy in array format for domain/resolution of interest for faster lookups
+
+
     if ( DS=="spatial.annual.seasonal" ) {
-      outdir = project.datadirectory("aegis", "temperature", "modelled", voi, p$spatial_domain )
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
+
       outfile =  file.path( outdir, paste( "temperature.spatial.annual.seasonal", ret, ".rdata", sep="") )
       O = NULL
       if (file.exists(outfile)) load( outfile )
@@ -1178,7 +1182,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         for ( y in 1:p$ny ) {
           O[,y,] = temperature_db( p=p1, DS="predictions", yr=p$yrs[y], ret=ret )
         }
-        outdir = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
+        outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
         dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
         outfile =  file.path( outdir, paste("temperature.spatial.annual.seasonal", ret, ".rdata", sep="") )
         save (O, file=outfile, compress=T )
@@ -1195,7 +1199,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS %in% c(  "timeslice", "timeslice.redo" )){
 
-    tslicedir = project.datadirectory("aegis", "temperature", "modelled", voi, p$spatial_domain )
+    tslicedir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
     dir.create( tslicedir, showWarnings=F, recursive = TRUE )
 
     # priority to dyear_index if provided
@@ -1221,7 +1225,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     for (gr in grids ) {
       # print(gr)
       p1 = spatial_parameters( spatial_domain=gr ) #target projection
-      tslicedir = file.path( project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain )
+      tslicedir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
       nlocs = nrow( bathymetry_db(p=p1, DS="baseline"))
       dir.create(tslicedir, recursive=TRUE, showWarnings=FALSE)
 
@@ -1265,7 +1269,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS %in% c(  "stmv.stats", "stmv.stats.redo" )){
 
-    outdir = project.datadirectory("aegis", "temperature", "modelled", voi, p$spatial_domain )
+
+    outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
+
 
     if (DS %in% c("stmv.stats")) {
       stats = NULL
@@ -1300,7 +1306,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         stats[,i] = spatial_warp( S0[,i], L0, L1, p0, p1, "fast", L0i, L1i )
       }
       colnames(stats) = Snames
-      outdir_p1 = file.path(project.datadirectory("aegis"), "temperature", "modelled", voi, p1$spatial_domain)
+      outdir_p1 = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
       dir.create( outdir_p1, recursive=T, showWarnings=F )
       fn1_sg = file.path( outdir_p1, paste("stmv.statistics", "rdata", sep=".") )
       save( stats, file=fn1_sg, compress=T )
@@ -1320,7 +1326,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS=="complete") {
       TM = NULL
-      outdir =  project.datadirectory("aegis", "temperature", "modelled", voi, p$spatial_domain )
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
       outfile =  file.path( outdir, paste( "temperature", "complete", p$spatial_domain, "rdata", sep= ".") )
       if ( file.exists( outfile ) ) load( outfile )
       Tnames = names(TM)
@@ -1348,7 +1354,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       TM = cbind( TM, CL )
 
       # bring in last stats
-      outdir = project.datadirectory("aegis", "temperature", "modelled", voi, p1$spatial_domain)
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
       dir.create( outdir, recursive=T, showWarnings=F )
       outfile =  file.path( outdir, paste( "temperature", "complete", p1$spatial_domain, "rdata", sep= ".") )
       save( TM, file=outfile, compress=T )

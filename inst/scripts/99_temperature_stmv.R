@@ -1,5 +1,5 @@
 # 1. stmv interpolations assuming some seasonal pattern
-# twostep:  ~ 1000+ hrs
+# twostep:  ~ 1000+ hrs (40 days+)
 
 year.assessment = 2019
 year.start = year.assessment - 30
@@ -60,8 +60,8 @@ p = aegis.temperature::temperature_parameters(
   stmv_force_complete_method = "fft",
   stmv_runmode = list(
     globalmodel = FALSE,
-    # scale = rep("localhost", scale_ncpus),
-    scale = FALSE,
+    scale = rep("localhost", scale_ncpus),  # 14 hrs
+    # scale = FALSE,
     interpolate = list(
       cor_0.3 = rep("localhost", interpolate_ncpus),
       cor_0.1 = rep("localhost", interpolate_ncpus-2),

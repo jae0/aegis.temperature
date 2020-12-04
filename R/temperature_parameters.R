@@ -1,6 +1,6 @@
 
 
-temperature_parameters = function( p=list(), project_name="temperature", project_class="default", ...) {
+temperature_parameters = function( p=list(), project_name="temperature", project_class="core", workflow_decentralized=FALSE, ...) {
 
 
   p = parameters_add(p, list(...)) # add passed args to parameter list, priority to args
@@ -18,6 +18,12 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   p = parameters_add_without_overwriting( p, data_root = project.datadirectory( "aegis", p$project_name ) )
   p = parameters_add_without_overwriting( p, datadir  = file.path( p$data_root, "data" ) )
   p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )
+
+
+  # for projects that require access to default data and local data, a switch is needed to force use of default data
+  if ( p$workflow_decentralized )  {
+    if (exists( "modeldir_override", p)) p$modeldir = p$modeldir_override  # must also specify p$workflow_decentralized =TRUE  for override to work
+  }
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
@@ -45,11 +51,11 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
   # ---------------------
 
-  if (project_class=="default") return(p)
+  if (project_class=="core") return(p)
 
   # ---------------------
 
-  if (project_class=="carstm")  {
+  if (project_class %in% c("carstm") )  {
   # simple run of carstm. There are two types:
     #   one global, run directly from  polygons defined in aegis.bathymetry/inst/scripts/99.bathymetry.carstm.R
     #   and one that is called secondarily specific to a local project's polygons (eg. snow crab)
@@ -94,36 +100,50 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
   # ---------------------
 
-  if (project_class=="stmv") {
-    p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )
+  if (project_class %in% c("stmv") ) {
 
-    if (!exists("DATA", p) ) p$DATA = 'temperature_db( p=p, DS="stmv_inputs" )'
+    p = parameters_add_without_overwriting( p,
+      project_class="stmv",
+      DATA = 'temperature_db( p=p, DS="stmv_inputs" )',
+      stmv_model_label="default",
+      stmv_variables = list(
+        Y="t",
+        LOCS=c("plon", "plat"),
+        TIME="tiyr",
+        COV="z"
+      ),  # required as fft has no formulae
+      inputdata_spatial_discretization_planar_km = p$pres / 4, # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+      inputdata_temporal_discretization_yr = 1/52,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+      stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
+      stmv_local_modelengine="fft",
+      stmv_local_model_distanceweighted = TRUE,
+      stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
+      stmv_lowpass_nu = 0.5, # exp
+      stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
+      stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
+      stmv_autocorrelation_localrange = 0.1,  # for output to stats
+      stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
+      stmv_variogram_method = "fft",
+      stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
+      stmv_Y_transform =list(
+        transf = function(x) {log10(x + 2500)} ,
+        invers = function(x) {10^(x) - 2500}
+      ), # data range is from -1667 to 5467 m: make all positive valued
+      stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
+      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
+      stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80, 150, 200 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
+      stmv_nmax = 1000, # no real upper bound.. just speed /RAM
+      stmv_force_complete_method = "linear_interp"
+    )
 
-    if (!exists("stmv_variables", p)) p$stmv_variables = list()
-    if (!exists("LOCS", p$stmv_variables)) p$stmv_variables$LOCS=c("plon", "plat")
-    if (!exists("TIME", p$stmv_variables)) p$stmv_variables$TIME="tiyr"
-    if (!exists("Y", p$stmv_variables)) p$stmv_variables$Y="t"
-    if (!exists("COV", p$stmv_variables)) p$stmv_variables$COV="z"
-
-    # increase resolution from defaults as we can with stmv
-    if ( !exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = p$pres / 4 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
-    if ( !exists("inputdata_temporal_discretization_yr", p) )  p$inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+    p$libs = c( p$libs, project.library ( "stmv" ) )
 
     if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
 
-    # global model options
-    # using covariates as a first pass essentially makes it ~ kriging with external drift
-    # marginally useful .. consider removing it.
-    if (!exists("stmv_global_modelengine", p)) p$stmv_global_modelengine = "none"
-    # if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = formula( t ~ s(z, bs="ts" + s(s.localrange, bs="ts") + s(dZ, bs="ts") + s(ddZ, bs="ts") + s(log(substrate.grainsize), bs="ts")  ) )
-    if (!exists("stmv_global_family", p))  p$stmv_global_family = gaussian()
-
-    # local model options
-    if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine = "gam" # gam is the most flexible
-    if (!exists("stmv_local_model_distanceweighted", p)) p$stmv_local_model_distanceweighted = TRUE
-
     if (exists("stmv_local_modelengine", p)) {
-
       if (p$stmv_local_modelengine =="gam") {
         if (!exists("stmv_gam_optimizer", p)) p$stmv_gam_optimizer=c("outer", "bfgs")
         if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula( paste(
@@ -212,6 +232,71 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
 
   # ---------------------
+
+
+  if (project_class %in% c("hybrid", "default" ) ) {
+    p = parameters_add_without_overwriting( p,
+      project_class="stmv",
+      DATA = 'temperature_db( p=p, DS="stmv_inputs" )',
+      stmv_model_label="default",
+      stmv_variables = list(
+        Y="t",
+        LOCS=c("plon", "plat"),
+        TIME="tiyr",
+        COV="z"
+      ),  # required as fft has no formulae
+      inputdata_spatial_discretization_planar_km = p$pres / 4, # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+      inputdata_temporal_discretization_yr = 1/52,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling
+      stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
+      stmv_local_modelengine="carstm",
+      stmv_local_covariates_carstm = "",  # only model covariates
+      stmv_local_all_carstm = "",  # ignoring au
+      stmv_local_modelcall = paste(
+        'inla(
+          formula = z ~ 1
+            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+          family = "normal",
+          data= dat,
+          control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations
+          control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+          control.predictor=list(compute=FALSE, link=1 ),
+          control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+          verbose=FALSE
+        ) '
+      ),   # NOTE:: this is a local model call
+      stmv_filter_depth_m = TRUE,
+      stmv_local_model_distanceweighted = TRUE,
+      stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
+      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80, 150, 200 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
+      stmv_nmax = 1000, # no real upper bound.. just speed /RAM
+      stmv_runmode = list(
+        carstm = rep("localhost", 1),
+        globalmodel = FALSE,
+        save_intermediate_results = TRUE,
+        save_completed_data = TRUE
+      )  # ncpus for each runmode
+    )
+
+    p$libs = c( p$libs, project.library ( "stmv" ) )
+    p = aegis_parameters( p=p, DS="stmv" )  # get defaults
+
+    if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
+
+    # intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..)
+    #.. need to close right side for "cut" .. controls resolution of data prior to modelling
+    if (!exists("dyear_discretization_rawdata", p)) p$dyear_discretization_rawdata = c( {c(1:365)-1}/365, 1)
+    if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
+      warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
+    }
+    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
+
+    return(p)
+
+  }
+
 
 
 
