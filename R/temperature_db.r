@@ -826,7 +826,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       varname="AUID"
     )
 
-    # M[, pS$variabletomodel] = substrate_lookup( p=p, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
+    # M[, pS$variabletomodel] = substrate_lookup( p=pS, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
 
     M = M[ which(!is.na(M$AUID)),]
 
@@ -835,12 +835,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     # already has depth .. but in case some are missing data
     pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
-
     if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
-
     kk = which(!is.finite( M[, pB$variabletomodel] ))
     if (length(kk > 0)) {
-      M[kk, pB$variabletomodel] = bathymetry_lookup( p=p, locs=M[kk, c("lon", "lat")], source_data_class="aggregated_rawdata" )
+      M[kk, pB$variabletomodel] = bathymetry_lookup( p=pB, locs=M[kk, c("lon", "lat")], source_data_class="aggregated_rawdata" )
     }
 
     # if any still missing then use a mean depth by AUID

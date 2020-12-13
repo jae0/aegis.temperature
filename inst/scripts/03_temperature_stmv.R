@@ -7,14 +7,6 @@ year.start = year.assessment - 30
 nyrs = year.assessment - year.start
 
 
-scale_ram_required_main_process = 27 # GB twostep / fft
-scale_ram_required_per_process  = 1.5 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB) -- 20 hrs
-scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
-
-interpolate_ram_required_main_process = 24 # GB twostep / fft
-interpolate_ram_required_per_process  = 3  # 1 GB seems enough for twostep / fft /fields vario .. but make 2 in case
-interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
-
 p = aegis.temperature::temperature_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "temperature" ),
@@ -46,45 +38,56 @@ p = aegis.temperature::temperature_parameters(
   stmv_variogram_method = "fft",
   stmv_autocorrelation_fft_taper = 0.75,  # benchmark from which to taper .. user level control of smoothness
   stmv_autocorrelation_localrange = 0.1,  # for reporting in stats
-  stmv_autocorrelation_basis_interpolation = c(  0.3, 0.2, 0.1, 0.01 ),  # range finding
+  stmv_autocorrelation_interpolation = c(  0.3, 0.2, 0.1, 0.01 ),  # range finding
   stmv_local_model_distanceweighted = TRUE,
   stmv_filter_depth_m = 10, # the depth covariate is input as  depth (m)
   stmv_rsquared_threshold = 0.01, # lower threshold .. not used if twostep method
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(  5, 10, 15, 20, 40, 80, 150  ), # km ... approx guess of 95% AC range, the range also determine limits of localrange
-  stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80, 150  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+  stmv_distance_interpolation = c( 5, 10, 15, 20, 40, 80, 150  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_distance_prediction_limits =c( 2.5, 7.5 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 80,  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   stmv_nmax = 80*(nyrs/2), # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   stmv_tmin = floor( nyrs * 1.25 ),
-  stmv_force_complete_method = "fft",
-  stmv_runmode = list(
-    globalmodel = FALSE,
-    scale = rep("localhost", scale_ncpus),  # 14 hrs
-    # scale = FALSE,
-    interpolate = list(
-      cor_0.3 = rep("localhost", interpolate_ncpus),
-      cor_0.1 = rep("localhost", interpolate_ncpus-2),
-      cor_0.05 = rep("localhost", max(1, interpolate_ncpus-3)),
-      cor_0.01 = rep("localhost", max(1, interpolate_ncpus-3))
-    ),
-    interpolate_predictions = list(
-      c1 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c2 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c3 = rep("localhost", max(1, interpolate_ncpus-2)),
-      c4 = rep("localhost", max(1, interpolate_ncpus-3)),
-      c5 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c6 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c7 = rep("localhost", max(1, interpolate_ncpus-5))
-    ),
-    # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
-    save_intermediate_results = TRUE,
-    save_completed_data = TRUE # just a dummy variable with the correct name
-  )  # ncpus for each runmode
+  stmv_force_complete_method = "fft"
+  
 )
 
 
-    stmv( p=p)  #700 MB (main); 500 MB child .. 2 days for scaling and 2 days for interpolation
+
+if (0) {
+    # default is serial mode .. to enable multicore:
+    scale_ncpus = ram_local( "ncores", ram_main=27, ram_process=1.5 ) # in GB; about 24 hr
+    interpolate_ncpus = ram_local( "ncores", ram_main=24, ram_process=3 ) # nn hrs
+
+    p = parameters_add_without_overwriting( p,
+      stmv_runmode = list(
+        globalmodel = TRUE,
+        scale = rep("localhost", scale_ncpus),
+        interpolate_correlation_basis = list(
+          cor_0.25 = rep("localhost", interpolate_ncpus),
+          cor_0.1  = rep("localhost", interpolate_ncpus),
+          cor_0.05 = rep("localhost", interpolate_ncpus),
+          cor_0.01 = rep("localhost", interpolate_ncpus)
+        ),
+        interpolate_predictions = list(
+          c1 = rep("localhost", interpolate_ncpus),  
+          c2 = rep("localhost", interpolate_ncpus),  
+          c3 = rep("localhost", interpolate_ncpus),
+          c4 = rep("localhost", interpolate_ncpus),
+          c5 = rep("localhost", interpolate_ncpus),
+          c6 = rep("localhost", interpolate_ncpus),
+          c7 = rep("localhost", interpolate_ncpus)
+        ),
+        save_intermediate_results = TRUE,
+        save_completed_data = TRUE # just a dummy variable with the correct name
+      )
+    )
+
+}
+
+
+stmv( p=p)  #700 MB (main); 500 MB child .. 2 days for scaling and 2 days for interpolation
 
 
 # to summarize just the global model
@@ -95,7 +98,7 @@ AIC(o)  # [1]  3263839.33
 
 
     if (debugging) {
-      stmv( p=p, runmode=c("debug", "scale", "interpolate"), force_complete_solution=TRUE )
+      stmv( p=p, runmode=c("debug", "scale", "interpolate_correlation_basis"), force_complete_solution=TRUE )
       stmv_db( p=p, DS="stmv.results" ) # save to disk for use outside stmv*, returning to user scale
       if (really.finished) {
         stmv_db( p=p, DS="cleanup.all" )

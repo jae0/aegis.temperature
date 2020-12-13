@@ -3,45 +3,39 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
 
   # if locs is points, then need to send info on projection as an attribute proj4string"
 
+  ## TODO:: a generic one where sp/sf info is embedded in locs and appropriate spatial.domain is chosen for lookup
+
   require(aegis.temperature)
 
-  # set up parameters for input data
-  if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
-    if (source_data_class=="stmv") {
-      p_source = temperature_parameters(p=p, project_class="stmv")
-    } else {
-      p_source = temperature_parameters(p=p, project_class="model")
+  if (p$project_name != "temperature")  {
+    p = temperature_parameters(p=parameters_reset(p), project_name="temperature", year.assessment=max(p$yrs) )
+    warning( "Parameter list may be inconsistent")
   }
-  } else if (source_data_class %in% "carstm" ) {
-      # copy of param list for global analysis in aegis.temperature/inst/scripts/02.temperature.carstm.R
-      p_source = temperature_parameters(p=p, project_class= "carstm", year.assessment=max(p$yrs) )
-  }
-
 
   # load input data or reformat it
    if (source_data_class=="rawdata") {
 
-      B = temperature_db ( p=p_source, DS="lonlat.highres" )  # 16 GB in RAM just to store!
+      B = temperature_db ( p=p, DS="lonlat.highres" )  # 16 GB in RAM just to store!
 #      Bnames = c("lon", "lat", "grainsize", "plon", "plat"),
 
    } else if (source_data_class=="aggregated_rawdata") {
 
-      B = temperature_db ( p=p_source, DS="aggregated_data" )+
+      B = temperature_db ( p=p, DS="aggregated_data" )+
 #       Bnames = c("t.mean", "t.sd",  "t.n", "id",  "plon", "plat", "yr", "dyear", "lon", "lat")
       B$t = B$t.mean
       B$t.mean  = NULL
 
    } else if (source_data_class=="stmv") {
 
-      B = temperature_db(p=p_source, DS="spatial.annual.seasonal"  )
+      B = temperature_db(p=p, DS="spatial.annual.seasonal"  )
     # Bnames = c( "plon", "plat", "t", "t.lb", "t.ub",
     #   "t.sdTotal", "t.rsquared", "t.ndata", "t.sdSpatial", "t.sdObs", "t.phi", "t.nu", ts.localrange" )
       zname = "t"
 
    } else if (source_data_class=="carstm") {
 
-      Bcarstm = carstm_summary( p=p_source ) # to load currently saved sppoly
-      B = areal_units( p=p_source )
+      Bcarstm = carstm_summary( p=p ) # to load currently saved sppoly
+      B = areal_units( p=p )
       bm = match( B$AUID, Bcarstm$AUID )
       B$t  = Bcarstm$t.predicted[ bm,, ]
       B$t.se = Bcarstm$t.predicted_se[ bm,,  ]
@@ -60,23 +54,23 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       if ( is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
       if ( is.null( locs_proj4string ) ) {
         # assume projection is the same as that specified by "aegis_proj4string_planar_km"
-        locs_proj4string = p_source$aegis_proj4string_planar_km
+        locs_proj4string = p$aegis_proj4string_planar_km
         names( locs) = c("plon", "plat")
       }
       if ( locs_proj4string =="lonlat" ) {
         names( locs) = c("lon", "lat")
-        locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p_source$aegis_proj4string_planar_km )
-        locs_proj4string = p_source$aegis_proj4string_planar_km
+        locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p$aegis_proj4string_planar_km )
+        locs_proj4string = p$aegis_proj4string_planar_km
       }
-      if ( locs_proj4string != p_source$aegis_proj4string_planar_km ) {
+      if ( locs_proj4string != p$aegis_proj4string_planar_km ) {
         locs = planar2lonlat( locs[, c("plon", "plat")], proj.type=locs_proj4string )
-        locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p_source$aegis_proj4string_planar_km )
-        locs_proj4string = p_source$aegis_proj4string_planar_km
+        locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p$aegis_proj4string_planar_km )
+        locs_proj4string = p$aegis_proj4string_planar_km
       }
 
       if (source_data_class=="stmv") {
-        B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
-        locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
+        B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams )
+        locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=p$gridparams )
 
         locs_index = match( locs_map, B_map )
 
@@ -90,7 +84,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
         if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
-        timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
 
         dindex = cbind(locs_index, timestamp_map ) # check this
         p$stmv_variables = NULL  # this can exist and cause confusion
@@ -98,12 +92,12 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       }
 
       if (source_data_class=="aggregated_rawdata") {
-        T_map = array_map( "ts->1", B[,c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        T_map = array_map( "ts->1", B[,c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
         B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=gridparams )
         if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
-        timestamp_map = array_map( "ts->1", tstamp[, c("yr", "dyear")], dims=c(p_source$ny, p_source$nw), res=c( 1, 1/p_source$nw ), origin=c( min(p_source$yrs), 0) )
+        timestamp_map = array_map( "ts->1", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
         locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=gridparams )
         locs_index = match( paste(locs_map, timestamp_map, sep="_"), paste(B_map, T_map, sep="_") )
         out = B[locs_index, vnames]
@@ -120,10 +114,18 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs))
-      res(raster_template) = p_source$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
+      res(raster_template) = p$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
       crs(raster_template) = projection(locs) # transfer the coordinate system to the raster
 
-stop("not finished ... must addd time lookup")
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      tstamp = data.frame( yr = lubridate::year(timestamp) )
+      tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
+      timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+# TODO
+stop("not finished ... must addd time lookup")  # TODO
+# TODO
+
+      dindex = cbind(locs_index, timestamp_map ) # check this
 
       locs = sf::st_as_sf( as.data.frame(locs), coords=c(1, 2) )
       st_crs(locs) = crs(B)
@@ -145,7 +147,17 @@ stop("not finished ... must addd time lookup")
     # expects loc to be a spatial polygon data frame
 
     if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
-stop("not finished ... must addd time lookup")
+
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      tstamp = data.frame( yr = lubridate::year(timestamp) )
+      tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
+      timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+# TODO
+stop("not finished ... must addd time lookup")  # TODO
+# TODO
+
+      dindex = cbind(locs_index, timestamp_map ) # check this
+
       Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
       st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
       Bsf = sf::st_transform( Bsf, crs=CRS(proj4string(locs)) )
@@ -162,11 +174,21 @@ stop("not finished ... must addd time lookup")
 
 
     if ( source_data_class=="carstm") {
-stop("not finished ... must addd time lookup")
+
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      tstamp = data.frame( yr = lubridate::year(timestamp) )
+      tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
+      timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+# TODO
+stop("not finished ... must addd time lookup")  # TODO
+# TODO
+
+      dindex = cbind(locs_index, timestamp_map ) # check this
+
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs)) # +1 to increase the area
-      res(raster_template) = p_source$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
+      res(raster_template) = p$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
       crs(raster_template) = projection(locs) # transfer the coordinate system to the raster
       Bsf = sf::st_transform( as(B, "sf"), crs=CRS(proj4string(locs)) )  # B is a carstm sppoly
       Boo = as(B, "SpatialPolygonsDataFrame")

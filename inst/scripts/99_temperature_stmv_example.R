@@ -35,8 +35,12 @@ DATA = list(
     )
   )
 )
-DATA$input = lonlat2planar( DATA$input, p0$aegis_proj4string_planar_km )
-DATA$input = DATA$input[, c("plon", "plat", "tiyr", "z", "t")]   ## yr, cos.w and sin.w are note required as they are computed internally
+DATA$input = sf::st_as_sf( DATA$input, coords=c("lon","lat"), crs=st_crs(projection_proj4string("lonlat_wgs84")) )
+DATA$input = sf::st_transform( DATA$input, crs=st_crs(p0$aegis_proj4string_planar_km) )
+DATA$input = as.data.frame( cbind( DATA$input[, c("t", "z", "tiyr")], st_coordinates(DATA$input) ) )
+names(DATA$input) = c("t", "z", "tiyr", "plon", "plat")
+DATA$input = DATA$input[ which(is.finite(DATA$input$t)), ]
+
 
 
 # quick look of data
@@ -47,7 +51,7 @@ p = aegis.temperature::temperature_parameters(
   p=p0,  # start with spatial settings of input data
   project_class="stmv",
   stmv_model_label="gam_fft_twostep_statsgrid10km",
-  data_root = file.path(getwd(), "temperature_test"),
+  data_root = file.path(tempdir(), "temperature_test"),
   DATA = DATA,
   spatial_domain = p0$spatial_domain,
   spatial_domain_subareas =NULL,  # prevent subgrid estimation
@@ -73,14 +77,13 @@ p = aegis.temperature::temperature_parameters(
   stmv_variogram_method = "fft",
   stmv_autocorrelation_fft_taper = 0.75,  # benchmark from which to taper .. user level control of smoothness
   stmv_autocorrelation_localrange = 0.1,  # for reporting in stats
-  stmv_autocorrelation_basis_interpolation = c(  0.3, 0.2, 0.1, 0.01 ),  # range finding
+  stmv_autocorrelation_interpolation = c(  0.3, 0.2, 0.1, 0.01 ),  # range finding
   stmv_local_model_distanceweighted = TRUE,
   stmv_filter_depth_m = 10, # the depth covariate is input as units of depth (m) so, choose stats locations with elevation > 10m as being on land
   stmv_rsquared_threshold = 0.001, # lower thindreshold for timeseries model
   stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c( 2, 5, 10, 15, 20, 40, 80  ), # km ... approx guess of 95% AC range, the range also determine limits of localrange
-  stmv_interpolation_basis_distance_choices = c( 5, 10, 15, 20, 40, 80 ),
-  stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+  stmv_distance_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_distance_prediction_limits =c( 2.5, 5 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 120,  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   stmv_nmax = 120*(nyrs/2), # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
@@ -88,7 +91,7 @@ p = aegis.temperature::temperature_parameters(
   stmv_force_complete_method = "fft",
   stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),  # 7 min
-    interpolate = list(
+    interpolate_correlation_basis = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", max(1, interpolate_ncpus)),
       c3 = rep("localhost", max(1, interpolate_ncpus-1)),
