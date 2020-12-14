@@ -8,8 +8,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   # create/update library list
   p$libs = unique( c( p$libs, RLibrary ( "colorspace", "lubridate",  "lattice",
     "parallel", "sf", "GADMTools", "INLA" ) ) )
-  
-  p$libs = unique( c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline", 
+
+  p$libs = unique( c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline",
     "aegis.polygons", "aegis.substrate", "aegis.temperature", "aegis.survey" ) ) )
 
 
@@ -32,7 +32,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   p = spatial_parameters( p=p )  # default grid and resolution
 
   # define focal years
-  yrs_default = 1950:lubridate::year(lubridate::now()) 
+  yrs_default = 1950:lubridate::year(lubridate::now())
   p = parameters_add_without_overwriting( p, yrs = yrs_default )  # default unless already provided
   p = temporal_parameters(p=p)
 
@@ -44,7 +44,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   )
   # dyear_discretization_rawdata :: intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..) .. need to close right side for "cut" .. controls resolution of data prior to modelling
 
- 
+
   # ---------------------
 
   if (project_class=="core") {
@@ -78,15 +78,15 @@ temperature_parameters = function( p=list(), project_name="temperature", project
         p$carstm_model_call = paste(
          'inla(
             formula = ', p$variabletomodel, ' ~ 1',
-              '+ f( dyri, model="ar1", hyper=H$ar1 )', 
-              '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)', 
-              '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)),', 
-            'family = "normal",', 
-            'data= M,', 
-            'control.compute=list(dic=TRUE, waic=TRUE, config=TRUE),', 
-            'control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),', 
-            'control.predictor=list(compute=FALSE, link=1 ),', 
-            'control.fixed=H$fixed,',   
+              '+ f( dyri, model="ar1", hyper=H$ar1 )',
+              '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+              '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)),',
+            'family = "normal",',
+            'data= M,',
+            'control.compute=list(dic=TRUE, waic=TRUE, config=TRUE),',
+            'control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),',
+            'control.predictor=list(compute=FALSE, link=1 ),',
+            'control.fixed=H$fixed,',
             'verbose=TRUE
           ) ' )
       }
@@ -136,13 +136,13 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       stmv_nmin = 120, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 120*(nyrs/2), # no real upper bound.. just speed /RAM
-      stmv_tmin = floor( nyrs * 1.25 ),
-      stmv_force_complete_method = "fft"      
+      stmv_tmin = floor( nyrs * 1.5 ),
+      stmv_force_complete_method = "fft"
       # stmv_force_complete_method = "linear_interp"
     )
 
 
-    
+
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 2 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
       stmv_distance_scale = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 5, 10, 15), # km ... approx guesses of 95% AC range
@@ -163,7 +163,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
         #   p$variabletomodel, ' ~ s(yr, k=5, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
         #     '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
         #     '+ s(log(z), plon, plat, cos.w, sin.w, yr, k=100, bs="ts")') )
-    
+
         p = parameters_add_without_overwriting( p,
           stmv_twostep_time = "gam",
           stmv_twostep_space = "fft" #  matern, krige (very slow), lowpass, lowpass_matern
@@ -184,7 +184,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           p = parameters_add_without_overwriting( p,
             stmv_local_modelformula_space = formula( paste(
               p$variabletomodel, ' ~ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") + s( log(z), plon, plat, k=27, bs="ts")  ') )
-          )  
+          )
         }
 
         if (p$stmv_twostep_space == "fft" ) {
@@ -193,7 +193,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           p = parameters_add_without_overwriting( p,
             stmv_fft_filter = "matern tapered lowpass modelled exhaustive_predictions",  # exhaustive_predictions required as data density is variable and low
             # options for fft method: also matern, krige (very slow), lowpass, lowpass_matern, stmv_variogram_resolve_time,
-            #stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper  
+            #stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper
             stmv_autocorrelation_fft_taper = 0.75,  # benchmark from which to taper
             stmv_autocorrelation_localrange = ac_local,  # for output to stats
             stmv_autocorrelation_interpolation = c(0.3, 0.2, 0.1, 0.01),
@@ -205,7 +205,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
       if (p$stmv_local_modelengine =="gam") {
         p = parameters_add_without_overwriting( p,
-          stmv_gam_optimizer=c("outer", "bfgs"), 
+          stmv_gam_optimizer=c("outer", "bfgs"),
           stmv_local_modelformula = formula( paste(
             p$variabletomodel, ' ~ s(yr, k=25, bs="ts") + s(cos.w, k=3, bs="ts") + s(sin.w, k=3, bs="ts") ',
               '+ s(log(z), k=3, bs="ts") + s(plon, k=3, bs="ts") + s(plat, k=3, bs="ts") ',
@@ -225,7 +225,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
         p = parameters_add_without_overwriting( p,
           stmv_fft_filter = "matern tapered lowpass modelled exhaustive_predictions",  # exhaustive_predictions required as data density is variable and low
           # options for fft method: also matern, krige (very slow), lowpass, lowpass_matern, stmv_variogram_resolve_time,
-          #stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper  
+          #stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper
           stmv_autocorrelation_fft_taper = 0.75,  # benchmark from which to taper
           stmv_autocorrelation_localrange = ac_local,  # for output to stats
           stmv_autocorrelation_interpolation = c(0.3, 0.2, 0.1, 0.01),
@@ -233,7 +233,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           stmv_lowpass_phi = stmv::matern_distance2phi( distance=p$pres/2, nu=nu, cor=ac_local )
         )
       }
-      
+
 
       if (p$stmv_local_modelengine == "gaussianprocess2Dt") {
         message( "NOTE:: The gaussianprocess2Dt method is really slow .. " )
@@ -267,8 +267,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           cor_0.01 = rep("localhost", 1)
         ),
         interpolate_predictions = list(
-          c1 = rep("localhost", 1),  
-          c2 = rep("localhost", 1),  
+          c1 = rep("localhost", 1),
+          c2 = rep("localhost", 1),
           c3 = rep("localhost", 1),
           c4 = rep("localhost", 1),
           c5 = rep("localhost", 1),
@@ -344,14 +344,14 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2) # finalizing preds using linear interpolation
     )
 
- 
+
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         carstm = rep("localhost", 1),
         globalmodel = FALSE,
         save_intermediate_results = TRUE,
         save_completed_data = TRUE
-      )  
+      )
     )
 
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults

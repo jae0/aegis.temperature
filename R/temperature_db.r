@@ -917,23 +917,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     vars_required = c(p$stmv_variables$LOCS, p$stmv_variables$COV )
 
     pB = bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="default"  )  # default is the "best" performing method
-    pS = substrate_parameters( spatial_domain=p$spatial_domain, project_class="default"  )  # default is the "best" performing method
 
     Bout = bathymetry_db( p=pB, DS="baseline", varnames=vars_required )  # this is a subset of "complete" with depths filtered
     tokeep = which( names(Bout) %in% vars_required )
     toadd = setdiff( 1:length(vars_required),  which( vars_required %in% names(Bout)) )
     Bout = Bout[,tokeep]
-    if (length(toadd) > 0 ) {
-      Sout = substrate_db ( p=pS, DS="complete" )
-      Sind = which(names(Sout) %in% vars_required[toadd])
-      if ( length(Sind) > 0) {
-        if (nrow(Sout) != nrow(Bout)) stop( "Row numbers between bathymetry and substrate databases differ")
-        Sout = as.data.frame( Sout[,Sind])
-        names(Sout) = vars_required[toadd]
-        Bout = cbind( Bout, Sout)
-      }
-      Sout = NULL; gc()
-    }
     if (length(p$stmv_variables$COV)==1) {
       covs = list( Bout[,p$stmv_variables$COV] )
       names(covs) = p$stmv_variables$COV
@@ -942,15 +930,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       OUT  = list( LOCS = Bout[,p$stmv_variables$LOCS], COV=as.list( Bout[,p$stmv_variables$COV] ) )
     }
 
-
     B = temperature_db( p=p, DS="aggregated_data"  )
-     B$lon = NULL
-      B$lat = NULL
-      names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
+    B$lon = NULL
+    B$lat = NULL
+    names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
 
     locsmap = match(
       array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
-      array_map( "xy->1", bathymetry_db(p=p, DS="baseline", project_class="default"), gridparams=p$gridparams ) )
+      array_map( "xy->1", bathymetry_db(p=pB, DS="baseline", project_class="default"), gridparams=p$gridparams ) )
 
     Bnames = names(B)
     newvars = setdiff(p$stmv_variables$COV, Bnames )
@@ -962,7 +949,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     varstokeep = unique( c( p$stmv_variables$Y, p$stmv_variables$LOCS, p$stmv_variables$TIME, p$stmv_variables$COV ) )
     B$tiyr = B$yr + B$dyear
     B = B[,varstokeep]
-
+    B = B[ which(is.finite(rowSums(B))), ]
     return (list(input=B, output=OUT))
   }
 
