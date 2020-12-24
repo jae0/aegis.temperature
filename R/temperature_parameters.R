@@ -145,8 +145,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 2 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_distance_scale = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 5, 10, 15), # km ... approx guesses of 95% AC range
-      stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1, 2, 3, 4, 5, 10, 15 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_scale = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8, 16), # km ... approx guesses of 95% AC range
+      stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1, 2, 3, 4, 8 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
       stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8) # finalizing preds using linear interpolation
     )
 
