@@ -32,17 +32,15 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
     temperature_db( DS="osd.rawdata.2008_2016", p=p ) # 2008:2016, 2008 is overlapping ... overwrite the older series
     temperature_db( DS="osd.rawdata.annual", p=p, yr=2018:year.assessment ) # specify range or specific year
     temperature_db( DS="osd.profiles.annual.redo", p=p, yr=2008:year.assessment    )  # no longer used
-
-    temperature_db( DS="bottom.annual.rawdata", yr=1999:year.assessment )  # brent and amy's new db view
-    temperature_db( DS="bottom.annual.redo", p=p, yr=1999:year.assessment )
+     
   }
 
-  # Or add incrementally
-  temperature_db( DS="osd.profiles.annual.redo", p=p, yr=year.assessment    )  # no longer used
 
+  temperature_db( DS="bottom.annual.rawdata", p=p, yr=1950:year.assessment )  # brent and amy's new db view
+ 
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
   # temperature_db( DS="bottom.annual.redo", p=p, yr=1900:year.assessment )
-  temperature_db( DS="bottom.annual.redo", p=p, yr=year.assessment )
+  temperature_db( DS="bottom.annual.redo", p=p, yr=1950:year.assessment )
 
   (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
   temperature_db ( DS="bottom.all.redo", p=p )

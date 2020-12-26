@@ -3,6 +3,8 @@ temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
   if (is.null(yr)) yr = p$yrs
 
+  loc =  bathymetry_db( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="stmv"  ), DS="baseline")
+
   if ( DS=="all" ) {
     # run everything below
     p$yrs = yr # in case yr was specified
@@ -25,7 +27,9 @@ temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
 
     bottomdir.maps = project.datadirectory("aegis", "temperature", "maps", p$spatial_domain, "bottom.predictions", "seasonal" )
     dir.create( bottomdir.maps, recursive=T, showWarnings=F )
-    loc = bathymetry_db(p=p, DS="baseline" )
+    
+    
+
     datarange = seq(-1, 12, length.out=100)
     cols = color.code( "blue.black", datarange )
     annot.cex=2
@@ -58,7 +62,7 @@ temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     if (exists( "libs", p)) RLibrary( p$libs )
     bottomdir.maps = project.datadirectory( "aegis", "temperature", "maps", p$spatial_domain, "bottom.predictions", "annual" )
     dir.create( bottomdir.maps, recursive=T, showWarnings=F )
-    loc = bathymetry_db(p=p, DS="baseline" )
+    
     annot.cex=3
 
     for ( vname in p$bstats ) {
@@ -134,7 +138,7 @@ temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     dir.create( bottomdir.maps, recursive=T, showWarnings=F )
     H = temperature_db( p=p, DS="bottom.statistics.climatology" )
 
-    loc = bathymetry_db(p=p, DS="baseline" )
+    
     annot.cex=0.9
 
     for (vname in p$bstats) {
@@ -202,7 +206,7 @@ temperature_map = function( p=NULL, DS="all", yr=NULL, do.seasonal=FALSE ) {
     bottomdir.maps = file.path( project.datadirectory("aegis", "temperature"), "maps", p$spatial_domain, "bottom.predictions", "stmv.stats" )
     dir.create( bottomdir.maps, recursive=T, showWarnings=F )
 
-    loc = bathymetry_db(p=p, DS="baseline" )
+    
     annot.cex=0.9
 
     for (vname in namesH) {
