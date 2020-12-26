@@ -3,6 +3,7 @@
 
 year.assessment = 2019
 year.start = year.assessment - 30
+year.start = 1950
 
 nyrs = year.assessment - year.start
 
@@ -25,7 +26,15 @@ if (0) {
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         globalmodel = TRUE,
-        scale = rep("localhost", scale_ncpus),
+        scale =list(
+          c1 = rep("localhost", scale_ncpus),
+          c2 = rep("localhost", scale_ncpus),
+          c3 = rep("localhost", scale_ncpus),
+          c4 = rep("localhost", scale_ncpus),
+          c5 = rep("localhost", scale_ncpus),
+          c6 = rep("localhost", scale_ncpus),
+          c7 = rep("localhost", scale_ncpus)
+        ),
         interpolate_correlation_basis = list(
           cor_0.25 = rep("localhost", interpolate_ncpus),
           cor_0.1  = rep("localhost", interpolate_ncpus),
@@ -52,13 +61,6 @@ if (0) {
 stmv( p=p)  #700 MB (main); 500 MB child .. 2 days for scaling and 2 days for interpolation
 
 
-# to summarize just the global model
-o = stmv_global_model( p=p, DS="global_model" )
-summary(o)
-plot(o)
-AIC(o)  # [1]  3263839.33
-
-
     if (debugging) {
       stmv( p=p, runmode=c("debug", "scale", "interpolate_correlation_basis"), force_complete_solution=TRUE )
       stmv_db( p=p, DS="stmv.results" ) # save to disk for use outside stmv*, returning to user scale
@@ -72,8 +74,9 @@ AIC(o)  # [1]  3263839.33
   predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean", yr=2000 )
   statistics  = stmv_db( p=p, DS="stmv.stats" )
 
-  locations = bathymetry_db( spatial_domain=p$spatial_domain, DS="baseline") # these are the prediction locations
 
+# quick map
+  locations =  bathymetry_db(p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="stmv"  ), DS="baseline")
   # comparisons
   dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
