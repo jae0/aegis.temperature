@@ -23,18 +23,6 @@ if (0) {
     scale_ncpus = ram_local( "ncores", ram_main=27, ram_process=1.5 ) # in GB; about 24 hr
     interpolate_ncpus = ram_local( "ncores", ram_main=24, ram_process=3 ) # nn hrs
 
-<<<<<<< HEAD
-
-      if (!exists("stmv_runmode", p)) p$stmv_runmode = list()
-
-      p$stmv_runmode$globalmodel = FALSE
-
-      p$stmv_runmode$scale = list(
-        cor_0.25 = rep("localhost", scale_ncpus),
-        cor_0.1  = rep("localhost", scale_ncpus),
-        cor_0.05 = rep("localhost", scale_ncpus),
-        cor_0.01 = rep("localhost", scale_ncpus)
-=======
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         globalmodel = TRUE,
@@ -64,42 +52,6 @@ if (0) {
         ),
         save_intermediate_results = TRUE,
         save_completed_data = TRUE # just a dummy variable with the correct name
->>>>>>> develop
-      )
-
-      p$stmv_runmode$interpolate_correlation_basis = list(
-        cor_0.25 = rep("localhost", interpolate_ncpus),
-        cor_0.1  = rep("localhost", interpolate_ncpus),
-        cor_0.05 = rep("localhost", interpolate_ncpus),
-        cor_0.01 = rep("localhost", interpolate_ncpus)
-      )
-
-      # p$stmv_runmode$restart_load = "interpolate_correlation_basis"   # only needed if this is restarting from some saved instance
-
-      # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
-      if (0) {
-        p$stmv_runmode$interpolate_distance_basis = list(
-          d1 = rep("localhost", interpolate_ncpus),
-          d2 = rep("localhost", interpolate_ncpus),
-          d3 = rep("localhost", interpolate_ncpus),
-          d4 = rep("localhost", interpolate_ncpus),
-          d5 = rep("localhost", interpolate_ncpus),
-          d6 = rep("localhost", interpolate_ncpus)
-        )
-      }
-
-      p$stmv_runmode$interpolate_predictions = list(
-        c1 = rep("localhost", interpolate_ncpus),
-        c2 = rep("localhost", interpolate_ncpus),
-        c3 = rep("localhost", interpolate_ncpus),
-        c4 = rep("localhost", interpolate_ncpus),
-        c5 = rep("localhost", interpolate_ncpus),
-        c6 = rep("localhost", interpolate_ncpus),
-        c7 = rep("localhost", interpolate_ncpus)
-      )
-
-      p$stmv_runmode$save_intermediate_results = TRUE
-      p$stmv_runmode$save_completed_data = TRUE
 
       # p$stmv_runmode$restart_load = TRUE
       # p$restart_load = "interpolate"
