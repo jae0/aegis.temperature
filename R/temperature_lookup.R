@@ -1,6 +1,7 @@
 
-temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class="points", source_data_class="aggregated_rawdata", locs_proj4string=NULL, tz="America/Halifax" ) {
+temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class="points", source_data_class="aggregated_rawdata", locs_proj4string="lonlat", tz="America/Halifax" ) {
 
+  # deprecated .. here as an example
   # if locs is points, then need to send info on projection as an attribute proj4string"
 
   ## TODO:: a generic one where sp/sf info is embedded in locs and appropriate spatial.domain is chosen for lookup
@@ -51,12 +52,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
 
     if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) )  {
 
-      if ( is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
-      if ( is.null( locs_proj4string ) ) {
-        # assume projection is the same as that specified by "aegis_proj4string_planar_km"
-        locs_proj4string = p$aegis_proj4string_planar_km
-        names( locs) = c("plon", "plat")
-      }
+      if ( !is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
       if ( locs_proj4string =="lonlat" ) {
         names( locs) = c("lon", "lat")
         locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p$aegis_proj4string_planar_km )
@@ -81,7 +77,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
         # dyear = lubridate::decimal_date( timestamp ) - yrs
         # dyear_index = as.numeric( cut( dyear, breaks=c(p$dyears, p$dyears[length(p$dyears)]+ diff(p$dyears)[1] ) , include.lowest=T, ordered_result=TRUE ) )
         # dindex = cbind(locs_index, yrs_index, dyear_index ) # check this
-        if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+        if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz=tz, origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
         timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
@@ -94,7 +90,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       if (source_data_class=="aggregated_rawdata") {
         T_map = array_map( "ts->1", B[,c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
         B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=gridparams )
-        if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+        if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz=tz, origin=lubridate::origin  )
         tstamp = data.frame( yr = lubridate::year(timestamp) )
         tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
         timestamp_map = array_map( "ts->1", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
@@ -117,7 +113,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
       res(raster_template) = p$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
       crs(raster_template) = projection(locs) # transfer the coordinate system to the raster
 
-      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz=tz, origin=lubridate::origin  )
       tstamp = data.frame( yr = lubridate::year(timestamp) )
       tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
       timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
@@ -148,7 +144,7 @@ stop("not finished ... must addd time lookup")  # TODO
 
     if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
 
-      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz=tz, origin=lubridate::origin  )
       tstamp = data.frame( yr = lubridate::year(timestamp) )
       tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
       timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
@@ -175,7 +171,7 @@ stop("not finished ... must addd time lookup")  # TODO
 
     if ( source_data_class=="carstm") {
 
-      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz="UTC", origin=lubridate::origin  )
+      if (! "POSIXct" %in% class(timestamp)  ) timestamp = as.POSIXct( timestamp, tz=tz, origin=lubridate::origin  )
       tstamp = data.frame( yr = lubridate::year(timestamp) )
       tstamp$dyear = lubridate::decimal_date( timestamp ) - tstamp$yr
       timestamp_map = array_map( "ts->2", tstamp[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )

@@ -2,7 +2,7 @@
 #   !!! WARNING, this uses a lot of RAM !!! 96 GB
 
 
-  year.assessment = 2019
+  year.assessment = 2020
 
   # construct basic parameter list defining the main characteristics of the study
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
@@ -11,7 +11,7 @@
 
   # to recreate the underlying data
   sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-  spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
+  spplot( as(sppoly, "sp"), "AUID", main="AUID", sp.layout=p$coastLayout )
 
 
   M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry

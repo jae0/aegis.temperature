@@ -21,12 +21,13 @@ if (0){
 if (0) {
     # default is serial mode .. to enable multicore:
     scale_ncpus = ram_local( "ncores", ram_main=27, ram_process=1.5 ) # in GB; about 24 hr
-    interpolate_ncpus = ram_local( "ncores", ram_main=24, ram_process=3 ) # nn hrs
+    interpolate_ncpus = ram_local( "ncores", ram_main=30, ram_process=2 ) # nn hrs
 
-    p = parameters_add_without_overwriting( p,
-      stmv_runmode = list(
-        globalmodel = TRUE,
-        scale =list(
+    if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
+
+    p$stmv_runmode$globalmodel = TRUE
+    
+    p$stmv_runmode$scale =list(
           c1 = rep("localhost", scale_ncpus),
           c2 = rep("localhost", scale_ncpus),
           c3 = rep("localhost", scale_ncpus),
@@ -34,14 +35,16 @@ if (0) {
           c5 = rep("localhost", scale_ncpus),
           c6 = rep("localhost", scale_ncpus),
           c7 = rep("localhost", scale_ncpus)
-        ),
-        interpolate_correlation_basis = list(
+        )
+
+    p$stmv_runmode$interpolate_correlation_basis = list(
           cor_0.25 = rep("localhost", interpolate_ncpus),
           cor_0.1  = rep("localhost", interpolate_ncpus),
           cor_0.05 = rep("localhost", interpolate_ncpus),
           cor_0.01 = rep("localhost", interpolate_ncpus)
-        ),
-        interpolate_predictions = list(
+        )
+
+    p$stmv_runmode$interpolate_predictions = list(
           c1 = rep("localhost", interpolate_ncpus),
           c2 = rep("localhost", interpolate_ncpus),
           c3 = rep("localhost", interpolate_ncpus),
@@ -49,9 +52,11 @@ if (0) {
           c5 = rep("localhost", interpolate_ncpus),
           c6 = rep("localhost", interpolate_ncpus),
           c7 = rep("localhost", interpolate_ncpus)
-        ),
-        save_intermediate_results = TRUE,
-        save_completed_data = TRUE # just a dummy variable with the correct name
+        )
+
+    p$stmv_runmode$save_intermediate_results = TRUE
+
+    p$stmv_runmode$save_completed_data = TRUE # just a dummy variable with the correct name
 
       # p$stmv_runmode$restart_load = TRUE
       # p$restart_load = "interpolate"

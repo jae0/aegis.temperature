@@ -70,6 +70,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
+      carstm_inputadata_model_source = "stmv",  # "stmv", "hybrid", "carstm"
       carstm_inputs_aggregated = TRUE
     )
 

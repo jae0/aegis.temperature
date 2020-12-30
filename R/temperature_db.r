@@ -290,7 +290,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     misc$t =misc$temperature
     misc$z = NA  # no data
-  #  misc$z = bathymetry_lookup( p=p, locs=misc[, c("plon","plat")],  source_data_class="stmv" )
 
     keep = c("z", "lon", "lat", "timestamp", "id", "salinity", "oxyml", "t", "sigmat", "date", "yr", "dyear" )
     misc = misc[, keep]
@@ -516,6 +515,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     output_vars = c( "project", "date", "lon", "lat", "t", "z", "dyear", "yr", "t_uid" )
 
+    BS = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
+    BS_map = array_map( "xy->1", BS[,c("plon","plat")], gridparams=p$gridparams )
+
     for ( yt in yr ) {
       Z = NULL
       TDB = temperature_db( DS="bottom.annual.rawdata", yr=yt )
@@ -529,7 +531,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             bad = which( TDB$t < -5 | TDB$t > 30 )
             if (length(bad) > 0) TDB=TDB[-bad,]
             # add approximate depth for filtering.. high resolution space
-            TDB$z = bathymetry_lookup( p=p, locs=TDB[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
+            TDB = lonlat2planar( TDB, p$aegis_proj4string_planar_km )
+            TDB_map = array_map( "xy->1", TDB[,c("plon","plat")], gridparams=p$gridparams )
+            TDB$z = BS[ match( TDB_map, BS_map ), "z.mean" ]
             TDB = TDB[ is.finite(TDB$z), ]
           } else {
             TDB = NULL
@@ -537,10 +541,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-      # OSD data
       bottom = NULL
       profile = NULL
       profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
+      BS = NULL
+      BS_map = NULL
+      TDB = NULL
+      TDB_map = NULL
 
       if (!is.null(profile)) {
         igood = which( profile$lon >= p$corners$lon[1] & profile$lon <= p$corners$lon[2]
@@ -786,16 +793,19 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       M = temperature_db( p=p, DS="aggregated_data"  )
       names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
+      # reduce size
+      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
+      M$tiyr = M$yr + M$dyear
 
     } else {
+
       M = temperature_db( p=p, DS="bottom.all"  )
       names(M)[which(names(M)=="t")] = p$variabletomodel
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
-
-      names(M)[which(names(M)=="yr") ] = "year"
-      M = M[ which(M$year %in% p$yrs), ]
-      M$tiyr = lubridate::decimal_date ( M$date )
+      M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
+      M = M[ which(M$yr %in% p$yrs), ]
 
       # globally remove all unrealistic data
       keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits
@@ -812,52 +822,50 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       keep = which( M$z >=  2 ) # ignore very shallow areas ..
       if (length(keep) > 0 ) M = M[ keep, ]
 
-      M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
+      M$tiyr = lubridate::decimal_date ( M$date )
+      M$dyear = M$tiyr - M$yr
 
-      M$dyear = M$tiyr - M$year
     }
 
-    # reduce size
-    M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-    # levelplot(z.mean~plon+plat, data=M, aspect="iso")
     M$AUID = st_points_in_polygons(
       pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
       polys = sppoly[, "AUID"],
       varname="AUID"
     )
-
-    # M[, pS$variabletomodel] = substrate_lookup( p=pS, locs=M[, c("lon", "lat")], source_data_class="aggregated_rawdata" )
-
     M = M[ which(!is.na(M$AUID)),]
-
-    M$tiyr = M$year + M$dyear
     M$tag = "observations"
 
-    # already has depth .. but in case some are missing data
+
+     # already has depth .. but in case some are missing data
     pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
     if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
     kk = which(!is.finite( M[, pB$variabletomodel] ))
     if (length(kk > 0)) {
-      M[kk, pB$variabletomodel] = bathymetry_lookup( p=pB, locs=M[kk, c("lon", "lat")], source_data_class="aggregated_rawdata" )
-    }
+      BS = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
+      BS_map = array_map( "xy->1", BS[,c("plon","plat")], gridparams=p$gridparams )
+      M_map = array_map( "xy->1", M[,c("plon","plat")], gridparams=p$gridparams )
+      M[kk, pB$variabletomodel] = BS[match( M_map, BS_map ), "z.mean"]
 
-    # if any still missing then use a mean depth by AUID
-    kk =  which( !is.finite(M[, pB$variabletomodel]))
-    if (length(kk) > 0) {
-      AD = bathymetry_db ( p=pB, DS="aggregated_data"   )  # 16 GB in RAM just to store!
-      AD = AD[ which( AD$lon > p$corners$lon[1] & AD$lon < p$corners$lon[2]  & AD$lat > p$corners$lat[1] & AD$lat < p$corners$lat[2] ), ]
-      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
-      AD$AUID = st_points_in_polygons(
-        pts = st_as_sf( AD, coords=c("lon","lat"), crs=crs_lonlat ),
-        polys = sppoly[, "AUID"],
-        varname="AUID"
-      )
-      oo = tapply( AD[, paste(pB$variabletomodel, "mean", sep="." )], AD$AUID, FUN=median, na.rm=TRUE )
-      jj = match( as.character( M$AUID[kk]), as.character( names(oo )) )
-      M[kk, pB$variabletomodel] = oo[jj ]
+      # if any still missing then use a mean depth by AUID
+      ll =  which( !is.finite(M[, pB$variabletomodel]))
+      if (length(ll) > 0) {
+        BS$AUID = st_points_in_polygons(
+          pts = st_as_sf( BS, coords=c("lon","lat"), crs=crs_lonlat ),
+          polys = sppoly[, "AUID"],
+          varname="AUID"
+        )
+        oo = tapply( BS[, paste(pB$variabletomodel, "mean", sep="." )], BS$AUID, FUN=median, na.rm=TRUE )
+        jj = match( as.character( M$AUID[ll]), as.character( names(oo )) )
+        M[ll, pB$variabletomodel] = oo[jj ]
+      }
     }
+    M = M[ is.finite(M[ , pB$variabletomodel]  ) , ]
 
-    if( exists("spatial_domain", p)) M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+    if (p$carstm_inputs_aggregated) {
+      if ( exists("spatial_domain", p)) {
+        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+      }
+    }
 
     M$lon = NULL
     M$lat = NULL
@@ -866,19 +874,52 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     region.id = slot( slot(sppoly, "nb"), "region.id" )
     APS = st_drop_geometry(sppoly)
-    sppoly = NULL
-    gc()
 
     APS$AUID = as.character( APS$AUID )
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
 
-    BM = carstm_summary( p=pB ) # to load currently saved sppoly
+    if (p$carstm_inputadata_model_source=="carstm") {
+      BM = carstm_summary( p=pB ) # to load exact sppoly, if present
+
+      if (is.null(BM)) {
+        message("Exactly modelled surface not found, estimating from default run... not fully tested")
+        pBS = bathymetry_parameters( project_class="carstm" ) # choose "default" full bathy carstm run and re-estimate:
+        Bcarstm = carstm_summary( p=pBS )
+        BS_sppoly = areal_units( p=pBS )  # default poly
+        bm = match( BS_sppoly$AUID, Bcarstm$AUID )
+        BS_sppoly$z.predicted = Bcarstm$z.predicted[ bm ]
+        # BS_sppoly$z.predicted_se = Bcarstm$z.predicted_se[ bm ]
+        Bcarstm = NULL
+        # now rasterize and restimate
+        BM = sppoly
+        raster_template = raster( BM, res=p$areal_units_resolution_km, crs=st_crs( BM ) ) # +1 to increase the area
+        # transfer the coordinate system to the raster
+        B = sf::st_transform( as(BS, "sf"), crs=st_crs(BM) )  # B is a carstm BM
+        Bsf = fasterize::fasterize( BS, raster_template, field="z.predicted" )
+        BM$z.predicted = sp::over( BM, Bsf[, "z.predicted" ], fn=mean, na.rm=TRUE )
+        # BM$z.predicted_se = sp::over( BM, Bsf[, "z.predicted" ], fn=sd, na.rm=TRUE )
+      }
+    }
+
+    if (p$carstm_inputadata_model_source %in% c("stmv", "hybrid")) {
+      pBS = bathymetry_parameters( project_class=p$carstm_inputadata_model_source )  # full default
+      BS = bathymetry_db( p=pBS, DS="baseline", varnames=c("z", "plon", "plat") )
+      BS = planar2lonlat(BS, pBS$aegis_proj4string_planar_km)
+      BS = sf::st_as_sf( BS[, c("z", "lon", "lat") ], coords=c("lon", "lat") )
+      st_crs(BS) = st_crs( projection_proj4string("lonlat_wgs84") )
+      BS = sf::st_transform( BS, crs=st_crs(sppoly) )
+      BM = sppoly
+      BM$z.predicted = aggregate( BS[,"z"], BM, mean, na.rm=TRUE )[["z"]]
+      # BM$z.predicted_se = aggregate( BS[,"z"], BM, sd, na.rm=TRUE )[["z"]]
+    }
 
     jj = match( as.character( APS$AUID), as.character( BM$AUID) )
     APS[, pB$variabletomodel] = BM[[ paste(pB$variabletomodel, "predicted", sep=".") ]] [jj]
     jj =NULL
     BM = NULL
+    sppoly = NULL
+    gc()
 
     vn = c( p$variabletomodel, pB$variabletomodel, "tag", "AUID"  )
     APS = APS[, vn]
