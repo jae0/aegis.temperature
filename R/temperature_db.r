@@ -833,44 +833,53 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       varname="AUID"
     )
     M = M[ which(!is.na(M$AUID)),]
-    M$tag = "observations"
-
+    M$AUID = as.character( M$AUID )  # match each datum to an area
+ 
 
      # already has depth .. but in case some are missing data
     pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
-    if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
-    kk = which(!is.finite( M[, pB$variabletomodel] ))
-    if (length(kk > 0)) {
-      BS = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
-      BS_map = array_map( "xy->1", BS[,c("plon","plat")], gridparams=p$gridparams )
+    vnmod = pB$variabletomodel
+    if (!(exists(vnmod, M ))) M[,vnmod] = NA
+    
+    iM = which(!is.finite( M[, vnmod] ))
+    if (length(iM > 0)) {
+      LU = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
+      LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
       M_map = array_map( "xy->1", M[,c("plon","plat")], gridparams=p$gridparams )
-      M[kk, pB$variabletomodel] = BS[match( M_map, BS_map ), "z.mean"]
+      M[iM, vnmod] = LU[match( M_map, LU_map ), paste(vnmod, "mean", sep=".")]
 
       # if any still missing then use a mean depth by AUID
-      ll =  which( !is.finite(M[, pB$variabletomodel]))
-      if (length(ll) > 0) {
-        BS$AUID = st_points_in_polygons(
-          pts = st_as_sf( BS, coords=c("lon","lat"), crs=crs_lonlat ),
+      iM = NULL
+      iM =  which( !is.finite(M[, vnmod]))
+      if (length(iM) > 0) {
+        LU$AUID = st_points_in_polygons(
+          pts = st_as_sf( LU, coords=c("lon","lat"), crs=crs_lonlat ),
           polys = sppoly[, "AUID"],
           varname="AUID"
         )
-        oo = tapply( BS[, paste(pB$variabletomodel, "mean", sep="." )], BS$AUID, FUN=median, na.rm=TRUE )
-        jj = match( as.character( M$AUID[ll]), as.character( names(oo )) )
-        M[ll, pB$variabletomodel] = oo[jj ]
+        LU = tapply( LU[, paste(vnmod, "mean", sep="." )], LU$AUID, FUN=median, na.rm=TRUE )
+        iML = match( as.character( M$AUID[iM]), as.character( names(LU )) )
+        M[iM, vnmod] = LU[iML ]
       }
     }
-    M = M[ is.finite(M[ , pB$variabletomodel]  ) , ]
+    M = M[ is.finite(M[ , vnmod]  ) , ]
 
-    if (p$carstm_inputs_aggregated) {
-      if ( exists("spatial_domain", p)) {
-        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-      }
-    }
+    # if (p$carstm_inputs_aggregated) {
+    #   if ( exists("spatial_domain", p)) {
+    #     M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+    #   }
+    # }
 
     M$lon = NULL
     M$lat = NULL
     M$plon = NULL
     M$plat = NULL
+    M$tag = "observations"
+
+    # end observations
+    # ----------
+
+    # predicted locations (APS)
 
     region.id = slot( slot(sppoly, "nb"), "region.id" )
     APS = st_drop_geometry(sppoly)
@@ -880,44 +889,48 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS[, p$variabletomodel] = NA
 
     if (p$carstm_inputadata_model_source=="carstm") {
-      BM = carstm_summary( p=pB ) # to load exact sppoly, if present
+      LU = carstm_summary( p=pB ) # to load exact sppoly, if present
+      LU_sppoly = areal_units( p=pB )  # default poly
 
-      if (is.null(BM)) {
-        message("Exactly modelled surface not found, estimating from default run... not fully tested")
-        pBS = bathymetry_parameters( project_class="carstm" ) # choose "default" full bathy carstm run and re-estimate:
-        Bcarstm = carstm_summary( p=pBS )
-        BS_sppoly = areal_units( p=pBS )  # default poly
-        bm = match( BS_sppoly$AUID, Bcarstm$AUID )
-        BS_sppoly$z.predicted = Bcarstm$z.predicted[ bm ]
-        # BS_sppoly$z.predicted_se = Bcarstm$z.predicted_se[ bm ]
-        Bcarstm = NULL
-        # now rasterize and restimate
-        BM = sppoly
-        raster_template = raster( BM, res=p$areal_units_resolution_km, crs=st_crs( BM ) ) # +1 to increase the area
-        # transfer the coordinate system to the raster
-        B = sf::st_transform( as(BS, "sf"), crs=st_crs(BM) )  # B is a carstm BM
-        Bsf = fasterize::fasterize( BS, raster_template, field="z.predicted" )
-        BM$z.predicted = sp::over( BM, Bsf[, "z.predicted" ], fn=mean, na.rm=TRUE )
-        # BM$z.predicted_se = sp::over( BM, Bsf[, "z.predicted" ], fn=sd, na.rm=TRUE )
+      if (is.null(LU)) {
+        message("Exactly modelled surface not found, estimating from default run...")
+        pBD = bathymetry_parameters( project_class="carstm" ) # choose "default" full bathy carstm run and re-estimate:
+        LU = carstm_summary( p=pBD )
+        LU_sppoly = areal_units( p=pBD )  # default poly
       }
+    
+      bm = match( LU_sppoly$AUID, LU$AUID )
+      LU_sppoly$z.predicted = LU$z.predicted[ bm ]
+      # LU_sppoly$z.predicted_se = LU$z.predicted_se[ bm ]
+      bm = NULL
+      LU = NULL
+    
+      # now rasterize and estimate
+      raster_template = raster( sppoly, res=p$areal_units_resolution_km, crs=st_crs( sppoly ) ) # +1 to increase the area
+      # transfer the coordinate system to the raster
+      LU_sppoly = sf::st_transform( as( LU_sppoly, "sf" ), crs=st_crs(LU_sppoly) )  # B is a carstm LU
+      LU_sppoly = fasterize::fasterize( LU_sppoly, raster_template, field="z.predicted" )
+      sppoly$z.predicted = sp::over( sppoly, LU_sppoly[, "z.predicted" ], fn=mean, na.rm=TRUE )
+      # sppoly$z.predicted_se = sp::over( sppoly, LU_sppoly[, "z.predicted" ], fn=sd, na.rm=TRUE )
+      LU_sppoly = NULL
+      raster_template = NULL
     }
+
 
     if (p$carstm_inputadata_model_source %in% c("stmv", "hybrid")) {
-      pBS = bathymetry_parameters( project_class=p$carstm_inputadata_model_source )  # full default
-      BS = bathymetry_db( p=pBS, DS="baseline", varnames=c("z", "plon", "plat") )
-      BS = planar2lonlat(BS, pBS$aegis_proj4string_planar_km)
-      BS = sf::st_as_sf( BS[, c("z", "lon", "lat") ], coords=c("lon", "lat") )
-      st_crs(BS) = st_crs( projection_proj4string("lonlat_wgs84") )
-      BS = sf::st_transform( BS, crs=st_crs(sppoly) )
-      BM = sppoly
-      BM$z.predicted = aggregate( BS[,"z"], BM, mean, na.rm=TRUE )[["z"]]
-      # BM$z.predicted_se = aggregate( BS[,"z"], BM, sd, na.rm=TRUE )[["z"]]
+      pBD = bathymetry_parameters( project_class=p$carstm_inputadata_model_source )  # full default
+      LU = bathymetry_db( p=pBD, DS="baseline", varnames=c("z", "plon", "plat") )
+      LU = planar2lonlat(LU, pBD$aegis_proj4string_planar_km)
+      LU = sf::st_as_sf( LU[, c( pB$variabletomodel, "lon", "lat")], coords=c("lon", "lat") )
+      st_crs(LU) = st_crs( projection_proj4string("lonlat_wgs84") )
+      LU = sf::st_transform( LU, crs=st_crs(sppoly) )
+      sppoly[[ paste(pB$variabletomodel, "predicted", sep=".") ]] = aggregate( LU[, pB$variabletomodel], sppoly, mean, na.rm=TRUE )[[pB$variabletomodel]]
+      # sppoly$[[ paste(pB$variabletomodel, "predicted_se", sep=".") ]] = aggregate( LU[, pB$variabletomodel], sppoly, sd, na.rm=TRUE )[[pB$variabletomodel]]
     }
 
-    jj = match( as.character( APS$AUID), as.character( BM$AUID) )
-    APS[, pB$variabletomodel] = BM[[ paste(pB$variabletomodel, "predicted", sep=".") ]] [jj]
-    jj =NULL
-    BM = NULL
+    iAS = match( as.character( APS$AUID), as.character( sppoly$AUID ) )
+    APS[, pB$variabletomodel] = sppoly[[ paste(pB$variabletomodel, "predicted", sep=".") ]] [iAS]
+    iAS =NULL
     sppoly = NULL
     gc()
 
@@ -1224,7 +1237,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   # -----------------
 
 
-  if (DS %in% c(  "timeslice", "timeslice.redo" )){
+  if (DS %in% c( "timeslice", "timeslice.redo" )){
 
     tslicedir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
     dir.create( tslicedir, showWarnings=F, recursive = TRUE )
