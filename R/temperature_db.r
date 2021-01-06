@@ -844,8 +844,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     iM = which(!is.finite( M[, vnmod] ))
     if (length(iM > 0)) {
       LU = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
+      LU = lonlat2planar(LU, proj.type=p$aegis_proj4string_planar_km)
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
-      M_map = array_map( "xy->1", M[,c("plon","plat")], gridparams=p$gridparams )
+      M_map = array_map( "xy->1", M[Mi,c("plon","plat")], gridparams=p$gridparams )
       M[iM, vnmod] = LU[match( M_map, LU_map ), paste(vnmod, "mean", sep=".")]
 
       # if any still missing then use a mean depth by AUID
