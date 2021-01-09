@@ -1,7 +1,7 @@
 # 1. stmv interpolations assuming some seasonal pattern
 # twostep:  ~ 1000+ hrs (40 days+)
 
-year.assessment = 2019
+year.assessment = 2020
 year.start = year.assessment - 30
 year.start = 1950
 
@@ -10,7 +10,7 @@ nyrs = year.assessment - year.start
 
 p = aegis.temperature::temperature_parameters( project_class="stmv")
 
-if (0){
+if (0) {
   p$stmv_nmin = 80  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   p$stmv_nmax = 80*(nyrs/2) # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   p$stmv_tmin = floor( nyrs * 1.25 )
@@ -21,11 +21,11 @@ if (0){
 if (0) {
     # default is serial mode .. to enable multicore:
     scale_ncpus = ram_local( "ncores", ram_main=27, ram_process=1.5 ) # in GB; about 24 hr
-    interpolate_ncpus = ram_local( "ncores", ram_main=30, ram_process=2 ) # nn hrs
+    interpolate_ncpus = ram_local( "ncores", ram_main=27, ram_process=2.5 ) # nn hrs
 
     if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
 
-    p$stmv_runmode$globalmodel = TRUE
+    p$stmv_runmode$globalmodel = FALSE
     
     p$stmv_runmode$scale =list(
           c1 = rep("localhost", scale_ncpus),
@@ -58,9 +58,12 @@ if (0) {
 
     p$stmv_runmode$save_completed_data = TRUE # just a dummy variable with the correct name
 
-      # p$stmv_runmode$restart_load = TRUE
-      # p$restart_load = "interpolate"
-      # p$stmv_runmode$scale = FALSE
+    if(0)  {
+      p$stmv_runmode$restart_load = TRUE
+      p$restart_load = "interpolate_correlation_basis"
+      p$stmv_runmode$scale = FALSE
+
+    } 
 
 }
 

@@ -1,12 +1,40 @@
 
 #   !!! WARNING, this uses a lot of RAM !!! 96 GB
 
+  require(aegis.temperature)
 
   year.assessment = 2020
 
   # construct basic parameter list defining the main characteristics of the study
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = aegis.temperature::temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
+  p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
+
+
+
+  areal_units_type = "tesselation"
+  areal_units_resolution_km = 1
+  areal_units_constraint_nmin 30 
+
+  p = temperature_parameters(
+    DS="parameters",
+    assessment.years=1950:year.assessment,
+    modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
+    carstm_model_label = paste( "testing", areal_units_type, areal_units_resolution_km, areal_units_constraint_nmin, sep="_" ),
+    aegis_internal_resolution_km = 1,
+    boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
+    areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
+    # areal_units_constraint = "snowcrab",
+    areal_units_constraint_nmin = areal_units_constraint_nmin,
+    areal_units_type= areal_units_type,
+    areal_units_resolution_km = areal_units_resolution_km,
+    sa_threshold_km2 = 5,
+    inla_num.threads = 4,
+    inla_blas.num.threads = 4
+  )
+   
+  sppoly = areal_units( p=p, redo=TRUE )  # to create
+  
+  
 
 
   # to recreate the underlying data
