@@ -20,7 +20,7 @@
     assessment.years=1950:year.assessment,
     modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
     carstm_model_label = paste( "testing", areal_units_type, areal_units_resolution_km, areal_units_constraint_nmin, sep="_" ),
-    aegis_internal_resolution_km = 1,
+    inputdata_spatial_discretization_planar_km = 1,
     boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
     areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
     # areal_units_constraint = "snowcrab",
