@@ -32,7 +32,7 @@
     inla_blas.num.threads = 4
   )
    
-  sppoly = areal_units( p=p, redo=TRUE )  # to create
+  sppoly = areal_units( p=p, redo=TRUE )  # to force create
   
   
 
