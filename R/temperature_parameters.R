@@ -74,7 +74,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     )
 
     if ( !exists("carstm_inputadata_model_source", p))  p$carstm_inputadata_model_source = list()
-    if ( !exists("bathymetry", p$carstm_inputadata_model_source ))  p$carstm_inputadata_model_source$bathymetry = "stmv",  # "stmv", "hybrid", "carstm"
+    if ( !exists("bathymetry", p$carstm_inputadata_model_source ))  p$carstm_inputadata_model_source$bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
 
     if ( !exists("carstm_model_call", p)  ) {
       if ( grepl("inla", p$carstm_modelengine) ) {
