@@ -10,35 +10,38 @@
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
 
+  if (0) {
 
-  areal_units_type = "tesselation"
-  areal_units_resolution_km = 1
-  areal_units_constraint_nmin 30 
+      areal_units_type = "tesselation"
+      areal_units_resolution_km = 1
+      areal_units_constraint_nmin 30 
 
-  p = temperature_parameters(
-    DS="parameters",
-    assessment.years=1950:year.assessment,
-    modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
-    carstm_model_label = paste( "testing", areal_units_type, areal_units_resolution_km, areal_units_constraint_nmin, sep="_" ),
-    inputdata_spatial_discretization_planar_km = 1,
-    boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
-    areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
-    # areal_units_constraint = "snowcrab",
-    areal_units_constraint_nmin = areal_units_constraint_nmin,
-    areal_units_type= areal_units_type,
-    areal_units_resolution_km = areal_units_resolution_km,
-    sa_threshold_km2 = 5,
-    inla_num.threads = 4,
-    inla_blas.num.threads = 4
-  )
-   
-  sppoly = areal_units( p=p, redo=TRUE )  # to force create
-  
+      p = temperature_parameters(
+        DS="parameters",
+        assessment.years=1950:year.assessment,
+        modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
+        carstm_model_label = "testing",
+        inputdata_spatial_discretization_planar_km = 1,
+        boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
+        areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
+        # areal_units_constraint = "snowcrab",
+        areal_units_constraint_nmin = areal_units_constraint_nmin,
+        areal_units_type= areal_units_type,
+        areal_units_resolution_km = areal_units_resolution_km,
+        sa_threshold_km2 = 5,
+        inla_num.threads = 4,
+        inla_blas.num.threads = 4
+      )
+      
+      sppoly = areal_units( p=p, redo=TRUE )  # to force create
+      
+  }
+
   
 
 
   # to recreate the underlying data
-  sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
+  sppoly = areal_units( p=p  )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
   spplot( as(sppoly, "sp"), "AUID", main="AUID", sp.layout=p$coastLayout )
 
 
@@ -83,7 +86,7 @@
     carstm_plot( p=p, res=res, vn=vn, time_match=time_match )
   }
 
-}
+
 
 
 # end
