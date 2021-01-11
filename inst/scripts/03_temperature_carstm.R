@@ -12,26 +12,23 @@
 
   if (0) {
 
-      areal_units_type = "tesselation"
-      areal_units_resolution_km = 1
-      areal_units_constraint_nmin 30 
 
       p = temperature_parameters(
         DS="parameters",
         assessment.years=1950:year.assessment,
-        modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
         carstm_model_label = "testing",
-        inputdata_spatial_discretization_planar_km = 1,
-        boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
-        areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
+        # inputdata_spatial_discretization_planar_km = 1,
+        # areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
         # areal_units_constraint = "snowcrab",
-        areal_units_constraint_nmin = areal_units_constraint_nmin,
-        areal_units_type= areal_units_type,
-        areal_units_resolution_km = areal_units_resolution_km,
+        areal_units_type= "tesselation",
+        areal_units_constraint_nmin = 50,  # n time slices req in each au
+        areal_units_resolution_km = 1,  # starting resolution
         sa_threshold_km2 = 5,
         inla_num.threads = 4,
         inla_blas.num.threads = 4
       )
+        # modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
+        # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
       
       sppoly = areal_units( p=p, redo=TRUE )  # to force create
       
