@@ -30,7 +30,7 @@
         # modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
         # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
       
-      sppoly = areal_units( p=p, redo=TRUE )  # to force create
+      sppoly = areal_units( p=p, xydata=temperature_db(p=p, DS="areal_units_input"), redo=TRUE )  # to force create
       
   }
 
