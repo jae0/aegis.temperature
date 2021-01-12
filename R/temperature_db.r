@@ -909,7 +909,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     LU = NULL
 
-    browser()
 
     if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid") ) {
       pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
@@ -1008,6 +1007,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     iAS =NULL
     sppoly = NULL
     gc()
+
+    APS = APS[ which(is.finite(rowSums(APS[,c("z", "dZ", "ddZ", "b.localrange")]))), ]
 
     avn = c( p$variabletomodel, vns, "tag", "AUID"  )
     APS = APS[, avn]
