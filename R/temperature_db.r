@@ -895,7 +895,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     iM = NULL
     iM =  which( !is.finite(M[, vnmod]))
     if (length(iM) > 0) {
-      pBBB = p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="stmv"  )
+      pBBB = bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="stmv"  )
       LU = bathymetry_db ( pBBB, DS="complete", varnames="all" )  # raw data
       LU = planar2lonlat(LU, proj.type=p$aegis_proj4string_planar_km)
       LU = LU[ which( LU$lon > p$corners$lon[1] & LU$lon < p$corners$lon[2]  & LU$lat > p$corners$lat[1] & LU$lat < p$corners$lat[2] ), ]
@@ -907,12 +907,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M_map = NULL
     }
 
-
-    M = M[ is.finite(M[ , vnmod]  ) , ]
     LU = NULL
 
+    browser()
 
-    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid")) {
+    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid") ) {
       pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
       LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
