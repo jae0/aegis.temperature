@@ -1009,7 +1009,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     gc()
 
     APS = APS[ which(is.finite(rowSums(APS[,c("z", "dZ", "ddZ", "b.localrange")]))), ]
-
+   
     avn = c( p$variabletomodel, vns, "tag", "AUID"  )
     APS = APS[, avn]
 
