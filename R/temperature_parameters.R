@@ -69,7 +69,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_constraint_nmin = 30,  # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tessilation/ otherwise grid size ()
       areal_units_overlay = "none",
-      areal_units_timeperiod = "none"  # only relevent for groundfish polys
+      areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr", 
       fraction_cv = 0.9, 
       fraction_good_bad = 0.9, 
