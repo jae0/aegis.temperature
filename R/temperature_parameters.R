@@ -63,6 +63,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
+      areal_units_xydata = "temperature_db(p=p, DS='areal_units_input')",
       areal_units_proj4string_planar_km =  p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_type= "tesselation",
