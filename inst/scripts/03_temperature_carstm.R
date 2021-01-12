@@ -9,38 +9,13 @@
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
-
-  if (0) {
-
-
-      p = temperature_parameters(
-        DS="parameters",
-        assessment.years=1950:year.assessment,
-        carstm_model_label = "testing",
-        # inputdata_spatial_discretization_planar_km = 1,
-        # areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
-        # areal_units_constraint = "snowcrab",
-        areal_units_type= "tesselation",
-        areal_units_constraint_nmin = 50,  # n time slices req in each au
-        areal_units_resolution_km = 1,  # starting resolution
-        sa_threshold_km2 = 5,
-        inla_num.threads = 4,
-        inla_blas.num.threads = 4
-      )
-        # modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
-        # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
-      
-      sppoly = areal_units( p=p, xydata=temperature_db(p=p, DS="areal_units_input"), redo=TRUE )  # to force create
-      
-  }
-
-  
-
+      p$inla_num.threads = 6
+      p$inla_blas.num.threads = 4
+ 
 
   # to recreate the underlying data
   sppoly = areal_units( p=p  )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
   spplot( as(sppoly, "sp"), "AUID", main="AUID", sp.layout=p$coastLayout )
-
 
   M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
@@ -87,3 +62,33 @@
 
 
 # end
+
+
+
+
+  if (0) {
+
+
+      p = temperature_parameters(
+        DS="parameters",
+        assessment.years=1950:year.assessment,
+        carstm_model_label = "testing",
+        # inputdata_spatial_discretization_planar_km = 1,
+        # areal_units_proj4string_planar_km = projection_proj4string("utm20"), # set up default map projection
+        # areal_units_constraint = "snowcrab",
+        areal_units_type= "tesselation",
+        areal_units_constraint_nmin = 25,  # n time slices req in each au
+        areal_units_resolution_km = 1,  # starting resolution
+        sa_threshold_km2 = 5,
+        inla_num.threads = 4,
+        inla_blas.num.threads = 4
+      )
+        # modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
+        # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
+      xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
+
+      sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+      
+  }
+
+  

@@ -66,21 +66,21 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_proj4string_planar_km =  p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_type= "tesselation",
-      areal_units_constraint_nmin = 30,  # n time slices req in each au
+      areal_units_constraint_nmin = 25,  # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tessilation/ otherwise grid size ()
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr", 
-      fraction_cv = 0.9, 
-      fraction_good_bad = 0.9, 
+      fraction_cv = 0.75, 
+      fraction_good_bad = 0.75, 
       nAU_min = 100,  
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
     )
 
-    if ( !exists("carstm_inputadata_model_source", p))  p$carstm_inputadata_model_source = list()
-    if ( !exists("bathymetry", p$carstm_inputadata_model_source ))  p$carstm_inputadata_model_source$bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
+    if ( !exists("carstm_inputdata_model_source", p))  p$carstm_inputdata_model_source = list()
+    if ( !exists("bathymetry", p$carstm_inputdata_model_source ))  p$carstm_inputdata_model_source$bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
 
     if ( !exists("carstm_model_call", p)  ) {
       if ( grepl("inla", p$carstm_modelengine) ) {

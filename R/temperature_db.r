@@ -774,7 +774,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     xydata = temperature_db( p=p, DS="bottom.all"  )  #
     xydata = xydata[ , c("lon", "lat", "yr" )]
-    xydata = lonlat2planar(xydata, p$areal_units_proj4string_planar_km)  # should not be required but to make sure
     xydata = st_as_sf ( xydata, coords= c('lon', 'lat'), crs = st_crs(projection_proj4string("lonlat_wgs84")) )
     xydata = st_transform( xydata, st_crs( p$areal_units_proj4string_planar_km ))
     save(xydata, file=fn, compress=TRUE )
@@ -913,8 +912,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     LU = NULL
 
 
-    if ( p$carstm_inputadata_model_source$bathymetry %in% c("stmv", "hybrid")) {
-      pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputadata_model_source$bathymetry )  # full default
+    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid")) {
+      pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
       LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
       M_map  = array_map( "xy->1", M[, c("plon","plat")], gridparams=p$gridparams )
@@ -954,7 +953,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     iAS = match( as.character( APS$AUID), as.character( sppoly$AUID ) )
 
-    if ( p$carstm_inputadata_model_source$bathymetry == "carstm") {
+    if ( p$carstm_inputdata_model_source$bathymetry == "carstm") {
       LU = carstm_summary( p=pB ) # to load exact sppoly, if present
       LU_sppoly = areal_units( p=pB )  # default poly
 
@@ -988,8 +987,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
 
-    if ( p$carstm_inputadata_model_source$bathymetry %in% c("stmv", "hybrid")) {
-      pBD = bathymetry_parameters( project_class=p$carstm_inputadata_model_source$bathymetry )  # full default
+    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid")) {
+      pBD = bathymetry_parameters( project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
       LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
       LU = planar2lonlat(LU, pBD$aegis_proj4string_planar_km)
       LU = sf::st_as_sf( LU, coords=c("lon", "lat") )
