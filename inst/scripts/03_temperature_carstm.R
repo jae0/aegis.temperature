@@ -10,7 +10,7 @@
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
       p$inla_num.threads = 6
-      p$inla_blas.num.threads = 4
+      p$inla_blas.num.threads = 2
  
 
   # to recreate the underlying data
@@ -21,7 +21,7 @@
   M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   # to extract fits and predictions
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) " )
 
   # extract results
   fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit

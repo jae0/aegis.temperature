@@ -82,26 +82,21 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     if ( !exists("carstm_inputdata_model_source", p))  p$carstm_inputdata_model_source = list()
     if ( !exists("bathymetry", p$carstm_inputdata_model_source ))  p$carstm_inputdata_model_source$bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
-
-    if ( !exists("carstm_model_call", p)  ) {
-      if ( grepl("inla", p$carstm_modelengine) ) {
-        p$carstm_model_call = paste(
-         'inla(
-            formula = ', p$variabletomodel, ' ~ 1',
-              '+ f( dyri, model="ar1", hyper=H$ar1 )',
-              '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-              '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)),',
-            'family = "normal",',
-            'data= M,',
-            'control.compute=list(dic=TRUE, waic=TRUE, config=TRUE),',
-            'control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),',
-            'control.predictor=list(compute=FALSE, link=1 ),',
-            'control.fixed=H$fixed,',
-            'verbose=TRUE
-          ) ' )
+ 
+    if ( grepl("inla", p$carstm_modelengine) ) {
+      if ( !exists("carstm_model_formula", p)  ) {
+        p$carstm_model_formula = as.formula( paste(
+         p$variabletomodel, ' ~ 1',
+          '+ f( dyri, model="ar1", hyper=H$ar1 )',
+          '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          '+ f( inla.group( dZ, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          '+ f( inla.group( ddZ, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) ' 
+          ) )
       }
+      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "normal"
     }
-
+    
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
