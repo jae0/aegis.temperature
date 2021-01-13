@@ -9,8 +9,9 @@
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
-      p$inla_num.threads = 6
-      p$inla_blas.num.threads = 3
+    # adjust based upon RAM requirements and ncores
+    inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
+    inla.setOption(blas.num.threads= 3 )
  
 
   # to recreate the underlying data
@@ -79,9 +80,7 @@
         areal_units_type= "tesselation",
         areal_units_constraint_nmin = 25,  # n time slices req in each au
         areal_units_resolution_km = 1,  # starting resolution
-        sa_threshold_km2 = 5,
-        inla_num.threads = 4,
-        inla_blas.num.threads = 4
+        sa_threshold_km2 = 5
       )
         # modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
         # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot

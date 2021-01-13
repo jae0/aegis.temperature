@@ -923,6 +923,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M = M[ is.finite( rowSums( M[ , vns])  ) , ]
     }
 
+    M = M[ which( M$z < 5000) , ]
 
 
     # if (p$carstm_inputs_aggregated) {
