@@ -10,7 +10,7 @@
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
       p$inla_num.threads = 6
-      p$inla_blas.num.threads = 2
+      p$inla_blas.num.threads = 3
  
 
   # to recreate the underlying data
