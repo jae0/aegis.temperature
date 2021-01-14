@@ -13,6 +13,9 @@
     inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
     inla.setOption(blas.num.threads= 3 )
  
+      p$fraction_cv = 0.9
+      p$fraction_good_bad = 0.9 
+      p$areal_units_constraint_nmin = 500
 
   # to recreate the underlying data
   sppoly = areal_units( p=p  )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo

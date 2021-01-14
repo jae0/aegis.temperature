@@ -685,7 +685,17 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       if (!is.null(o)) O = rbind(O, o)
     }
 
-    save(O, file=fbAll, compress=TRUE)
+    # depths are problematic: reject and use stmv solution:
+
+    pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
+      LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
+      LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
+      O = lonlat2planar(O, p$aegis_proj4string_planar_km)
+      M_map  = array_map( "xy->1", O[, c("plon","plat")], gridparams=p$gridparams )
+      iML = match( M_map, LU_map ) 
+      O[, "z"] = LU[ iML, "z" ]
+
+     save(O, file=fbAll, compress=TRUE)
     return(fbAll)
   }
 
@@ -799,7 +809,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
     }
     xydata = temperature_db( p=p, DS="bottom.all"  )  #
-    xydata = xydata[ which(xydata$z < 2000) , ]
+    xydata = xydata[ which(xydata$z < 5000) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
     xydata = st_as_sf ( xydata, coords= c('lon', 'lat'), crs = st_crs(projection_proj4string("lonlat_wgs84")) )
     xydata = st_transform( xydata, st_crs( p$areal_units_proj4string_planar_km ))
@@ -950,6 +960,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M = M[ is.finite( rowSums( M[ , vns])  ) , ]
     }
 
+
     M = M[ which( M$z < 2000) , ]
 
 
@@ -1092,7 +1103,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     B$lon = NULL
     B$lat = NULL
     names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
-    names(B)[which(names(B) == paste("z", "mean", sep="."))] = "z"
+    #names(B)[which(names(B) == paste("z", "mean", sep="."))] = "z"
 
     locsmap = match(
       array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
