@@ -72,6 +72,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr", 
+      fraction_todrop = 1/5,
       fraction_cv = 0.75, 
       fraction_good_bad = 0.75, 
       nAU_min = 100,  
@@ -81,7 +82,9 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     )
 
     if ( !exists("carstm_inputdata_model_source", p))  p$carstm_inputdata_model_source = list()
-    if ( !exists("bathymetry", p$carstm_inputdata_model_source ))  p$carstm_inputdata_model_source$bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
+    p$carstm_inputdata_model_source = parameters_add_without_overwriting( p$carstm_inputdata_model_source,
+      bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
+    )
  
     if ( grepl("inla", p$carstm_modelengine) ) {
       if ( !exists("carstm_model_formula", p)  ) {

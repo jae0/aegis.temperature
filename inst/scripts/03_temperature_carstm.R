@@ -13,13 +13,19 @@
     inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
     inla.setOption(blas.num.threads= 3 )
  
-      p$fraction_cv = 0.9
-      p$fraction_good_bad = 0.9 
-      p$areal_units_constraint_nmin = 500
+      p$fraction_todrop = 1/4 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
+      p$fraction_cv = 1.0
+      p$fraction_good_bad = 0.95
+      p$areal_units_constraint_nmin = 50  # length(p$yrs)
+      p$nAU_min = 200
 
   # to recreate the underlying data
+  xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
+
   sppoly = areal_units( p=p  )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-  spplot( as(sppoly, "sp"), "AUID", main="AUID", sp.layout=p$coastLayout )
+  plot( sppoly[ "AUID" ] ) 
+
+
 
   M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found

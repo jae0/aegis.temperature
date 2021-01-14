@@ -808,8 +808,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         return( xydata )
       }
     }
-    xydata = temperature_db( p=p, DS="bottom.all"  )  #
-    xydata = xydata[ which(xydata$z < 5000) , ]
+    xydata = temperature_db( p=p, DS="aggregated_data"  )  #
+
+    xydata = xydata[ which(xydata$z.mean < 5000) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
     xydata = st_as_sf ( xydata, coords= c('lon', 'lat'), crs = st_crs(projection_proj4string("lonlat_wgs84")) )
     xydata = st_transform( xydata, st_crs( p$areal_units_proj4string_planar_km ))
