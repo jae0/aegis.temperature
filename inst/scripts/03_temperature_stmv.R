@@ -14,6 +14,8 @@ if (0) {
   p$stmv_nmin = 80  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   p$stmv_nmax = 80*(nyrs/2) # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   p$stmv_tmin = floor( nyrs * 1.25 )
+  temperature_db(p=p, DS="" )
+
 )
 
 

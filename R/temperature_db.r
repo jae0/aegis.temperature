@@ -484,7 +484,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         ) )
 
         if (nrow(Z) > 0 ) {
-          names(Z) = c("project", "date", "lat", "lon", "t_uid", "t" )
+          if (ncol(Z) == 6) names(Z) = c("project", "date", "lat", "lon", "t_uid", "t" )
+          if (ncol(Z) == 7) names(Z) = c("project", "date", "lat", "lon", "t_uid", "t", "z" )
           Z$yr = yt
           Z$dyear = lubridate::decimal_date( Z$date ) - Z$yr
         } else {
@@ -532,8 +533,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             if (length(bad) > 0) TDB=TDB[-bad,]
             # add approximate depth for filtering.. high resolution space
             TDB = lonlat2planar( TDB, p$aegis_proj4string_planar_km )
-            TDB_map = array_map( "xy->1", TDB[,c("plon","plat")], gridparams=p$gridparams )
-            TDB$z = BS[ match( TDB_map, BS_map ), "z.mean" ]
+            if (exists("z", TDB)) {
+              im = which(!is.finite( TDB$z )) 
+              TDB_map = array_map( "xy->1", TDB[im, c("plon","plat")], gridparams=p$gridparams )
+              if (length( im) > 0) TDB$z[im] = BS[ match( TDB_map, BS_map ), "z.mean" ]
+            } else {
+              TDB_map = array_map( "xy->1", TDB[,c("plon","plat")], gridparams=p$gridparams )
+              TDB$z = BS[ match( TDB_map, BS_map ), "z.mean" ]
+            }
             TDB = TDB[ is.finite(TDB$z), ]
           } else {
             TDB = NULL
@@ -542,12 +549,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
 
       bottom = NULL
-      profile = NULL
-      profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
       BS = NULL
       BS_map = NULL
       TDB = NULL
       TDB_map = NULL
+
+      profile = NULL
+      profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
 
       if (!is.null(profile)) {
         igood = which( profile$lon >= p$corners$lon[1] & profile$lon <= p$corners$lon[2]
@@ -613,6 +621,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       Z = Z[igood, ]
 
+     
       ## ensure that inside each grid/time point
       ## that there is only one point estimate .. taking medians
       # vars = c("z", "t", "salinity", "sigmat", "oxyml")
@@ -672,8 +681,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (!exists("yrs",p)) stop( "p$yrs needs to be defined" )
     for ( yr in p$yrs ) {
       o = temperature_db( p=p, DS="bottom.annual", yr=yr )
+      message( "Year: ", yr, " --  depth ranges (m): ", paste0( range(o$z, na.rm=T), sep="  ") )
       if (!is.null(o)) O = rbind(O, o)
     }
+
     save(O, file=fbAll, compress=TRUE)
     return(fbAll)
   }
@@ -748,9 +759,24 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     out$dyear = labs[,4]
     labs = NULL
 
-    M = out[ which( is.finite( out[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
-    out =NULL
     gc()
+
+    bb = as.data.frame( t( simplify2array(
+      tapply( X=M[,"z"], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+        FUN = function(w) { c(
+          mean(w, na.rm=TRUE),
+          sd(w, na.rm=TRUE),
+          length( which(is.finite(w)) )
+        ) }, simplify=TRUE )
+    )))
+    colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
+    bb$id = rownames(bb)
+
+    M = merge( out, bb, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+    M = M[ which( is.finite( M[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
+    out =NULL
+
     M = planar2lonlat( M, p$aegis_proj4string_planar_km)
 
     save( M, file=fn, compress=TRUE )
@@ -773,6 +799,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
     }
     xydata = temperature_db( p=p, DS="bottom.all"  )  #
+    xydata = xydata[ which(xydata$z < 2000) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
     xydata = st_as_sf ( xydata, coords= c('lon', 'lat'), crs = st_crs(projection_proj4string("lonlat_wgs84")) )
     xydata = st_transform( xydata, st_crs( p$areal_units_proj4string_planar_km ))
@@ -923,7 +950,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M = M[ is.finite( rowSums( M[ , vns])  ) , ]
     }
 
-    M = M[ which( M$z < 5000) , ]
+    M = M[ which( M$z < 2000) , ]
 
 
     # if (p$carstm_inputs_aggregated) {
@@ -1065,6 +1092,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     B$lon = NULL
     B$lat = NULL
     names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
+    names(B)[which(names(B) == paste("z", "mean", sep="."))] = "z"
 
     locsmap = match(
       array_map( "xy->1", B[,c("plon","plat")], gridparams=p$gridparams ),
