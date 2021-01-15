@@ -10,7 +10,7 @@
   p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
 
     # adjust based upon RAM requirements and ncores
-    inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
+    inla.setOption(num.threads= 3 )
     inla.setOption(blas.num.threads= 3 )
 
   if(0) { 
