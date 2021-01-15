@@ -72,14 +72,15 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr", 
-      fraction_todrop = 1/5,
-      fraction_cv = 0.75, 
-      fraction_good_bad = 0.75, 
+      fraction_todrop = 1/4,
+      fraction_cv = 1.0, 
+      fraction_good_bad = 0.9, 
       nAU_min = 100,  
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
     )
+
 
     if ( !exists("carstm_inputdata_model_source", p))  p$carstm_inputdata_model_source = list()
     p$carstm_inputdata_model_source = parameters_add_without_overwriting( p$carstm_inputdata_model_source,
