@@ -13,13 +13,14 @@
     inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
     inla.setOption(blas.num.threads= 3 )
 
-if(0) { 
-      p$fraction_todrop = 1/4 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
-      p$fraction_cv = 1.0  #sd/mean no.
-      p$fraction_good_bad = 0.9
-      p$areal_units_constraint_nmin = 50  # length(p$yrs)
-      p$nAU_min = 100
-}
+  if(0) { 
+        p$fraction_todrop = 1/4 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
+        p$fraction_cv = 1.0  #sd/mean no.
+        p$fraction_good_bad = 0.9
+        p$areal_units_constraint_nmin = 50  # length(p$yrs)
+        p$nAU_min = 100
+  }
+  
   # to recreate the underlying data
   # xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
 
@@ -33,6 +34,9 @@ if(0) {
   # to extract fits and predictions
 
   fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) " )
+  # 337 function evaluations ~ 24 hrs + 
+  # 79 configs @ 110s / config = 2.4 hrs
+  # = ~ 30 hrs total
 
   # extract results
   fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit

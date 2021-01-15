@@ -71,11 +71,11 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_resolution_km = 1,  # starting resolution .. if using tessilation/ otherwise grid size ()
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
-      tus="yr", 
+      tus="yr",
       fraction_todrop = 1/4,
-      fraction_cv = 1.0, 
-      fraction_good_bad = 0.9, 
-      nAU_min = 100,  
+      fraction_cv = 1.0,
+      fraction_good_bad = 0.9,
+      nAU_min = 100,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
@@ -86,7 +86,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$carstm_inputdata_model_source = parameters_add_without_overwriting( p$carstm_inputdata_model_source,
       bathymetry = "stmv"  # "stmv", "hybrid", "carstm"
     )
- 
+
     if ( grepl("inla", p$carstm_modelengine) ) {
       if ( !exists("carstm_model_formula", p)  ) {
         p$carstm_model_formula = as.formula( paste(
@@ -94,12 +94,12 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           '+ f( dyri, model="ar1", hyper=H$ar1 )',
           '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
  #         '+ f( inla.group( b.localrange, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) ' 
+          '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "normal"
     }
-    
+
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
@@ -295,7 +295,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
       warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
     }
-    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
+  #    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
 
     return(p)
 
