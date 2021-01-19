@@ -153,7 +153,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 2 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_distance_scale = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8, 16), # km ... approx guesses of 95% AC range
+      stmv_distance_scale = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8, 16, 20), # km ... approx guesses of 95% AC range
       stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1, 2, 3, 4, 8 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
       stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8) # finalizing preds using linear interpolation
     )
@@ -264,15 +264,30 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
 
     # default to serial mode
-    p = parameters_add_without_overwriting( p,
+     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         globalmodel = FALSE,
-        scale = rep("localhost", 1),
+        scale = list(
+          c1 = rep("localhost", 1),
+          c2 = rep("localhost", 1),
+          c3 = rep("localhost", 1),
+          c4 = rep("localhost", 1),
+          c5 = rep("localhost", 1),
+          c6 = rep("localhost", 1),
+          c7 = rep("localhost", 1),
+          c8 = rep("localhost", 1)
+        ),
+
         interpolate_correlation_basis = list(
-          cor_0.25 = rep("localhost", 1),
-          cor_0.1  = rep("localhost", 1),
-          cor_0.05 = rep("localhost", 1),
-          cor_0.01 = rep("localhost", 1)
+          c1 = rep("localhost", 1),
+          c2 = rep("localhost", 1),
+          c3 = rep("localhost", 1),
+          c4 = rep("localhost", 1),
+          c5 = rep("localhost", 1),
+          c6 = rep("localhost", 1),
+          c7 = rep("localhost", 1),
+          c8 = rep("localhost", 1)
+
         ),
         interpolate_predictions = list(
           c1 = rep("localhost", 1),
@@ -281,7 +296,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           c4 = rep("localhost", 1),
           c5 = rep("localhost", 1),
           c6 = rep("localhost", 1),
-          c7 = rep("localhost", 1)
+          c7 = rep("localhost", 1),
+          c8 = rep("localhost", 1)
         ),
         save_intermediate_results = TRUE,
         save_completed_data = TRUE # just a dummy variable with the correct name

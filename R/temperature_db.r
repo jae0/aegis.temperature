@@ -534,7 +534,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             # add approximate depth for filtering.. high resolution space
             TDB = lonlat2planar( TDB, p$aegis_proj4string_planar_km )
             if (exists("z", TDB)) {
-              im = which(!is.finite( TDB$z )) 
+              im = which(!is.finite( TDB$z ))
               TDB_map = array_map( "xy->1", TDB[im, c("plon","plat")], gridparams=p$gridparams )
               if (length( im) > 0) TDB$z[im] = BS[ match( TDB_map, BS_map ), "z.mean" ]
             } else {
@@ -621,7 +621,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       Z = Z[igood, ]
 
-     
+
       ## ensure that inside each grid/time point
       ## that there is only one point estimate .. taking medians
       # vars = c("z", "t", "salinity", "sigmat", "oxyml")
@@ -692,7 +692,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
       O = lonlat2planar(O, p$aegis_proj4string_planar_km)
       M_map  = array_map( "xy->1", O[, c("plon","plat")], gridparams=p$gridparams )
-      iML = match( M_map, LU_map ) 
+      iML = match( M_map, LU_map )
       O[, "z"] = LU[ iML, "z" ]
 
      save(O, file=fbAll, compress=TRUE)
@@ -837,7 +837,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     #.. store at the modeldir level as default
     outputdir = dirname( fn )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-   
+
     M = NULL
     if (!redo)  {
       if (file.exists(fn)) {
@@ -893,17 +893,26 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     )
     M = M[ which(!is.na(M$AUID)),]
     M$AUID = as.character( M$AUID )  # match each datum to an area
- 
+
 
      # already has depth .. but in case some are missing data
     pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
-    if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
-    iM = which(!is.finite( M[, pB$variabletomodel] ))
+    vnB = pB$variabletomodel
+    if ( !(exists(vnB, M ))) {
+      vnB2 = paste(vnB, "mean", sep=".")
+      if ((exists(vnB2, M ))) {
+        names(M)[which(names(M) == vnB2 )] = vnB
+      } else {
+        M[,vnB] = NA
+      }
+    }
+    iM = which(!is.finite( M[, vnB] ))
     if (length(iM > 0)) {
-      M[iM, pB$variabletomodel] = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, lonlat=M[iM, c("lon", "lat")], sppoly=sppoly )
+      M[iM, vnB] = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, lonlat=M[iM, c("lon", "lat")], sppoly=sppoly )
     }
 
-    M = M[ which( M$z < 2000) , ]
+    M = M[ which( M$z < 5000) , ]
+    M = M[ which( M$z > 0 ) , ]
 
     # must go after depths have been finalized
     if (p$carstm_inputs_aggregated) {
@@ -918,11 +927,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
       M_map  = array_map( "xy->1", M[, c("plon","plat")], gridparams=p$gridparams )
-      iML = match( M_map, LU_map ) 
-      vns = intersect(  c( "z", "dZ", "ddZ", "b.sdSpatial", "b.sdObs", "b.phi", "b.nu", "b.localrange" ), names(LU) ) 
-      for (vn in setdiff( vns, "z") ) {
-        M[, vn] = LU[ iML, vn ]
-     }
+      iML = match( M_map, LU_map )
+      vns = intersect(  c( "z", "dZ", "ddZ", "b.sdSpatial", "b.sdObs", "b.phi", "b.nu", "b.localrange" ), names(LU) )
+      for (vn in setdiff( vns, "z") )  M[, vn] = LU[ iML, vn ]
       M = M[ is.finite( rowSums( M[ , vns])  ) , ]
     }
 
@@ -958,11 +965,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         LU = carstm_summary( p=pBD )
         LU_sppoly = areal_units( p=pBD )  # default poly
       }
-    
+
       # now rasterize and re-estimate
       raster_template = raster( sppoly, res=p$areal_units_resolution_km, crs=st_crs( sppoly ) ) # +1 to increase the area
 
-      vns = intersect( c( "z.predicted", "z.predicted_se" ), names(LU) ) 
+      vns = intersect( c( "z.predicted", "z.predicted_se" ), names(LU) )
 
       bm = match( LU_sppoly$AUID, LU$AUID )
       for (vn in vns) {
@@ -989,10 +996,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       LU = sf::st_as_sf( LU, coords=c("lon", "lat") )
       st_crs(LU) = st_crs( projection_proj4string("lonlat_wgs84") )
       LU = sf::st_transform( LU, crs=st_crs(sppoly) )
-      vns = intersect( 
+      vns = intersect(
         c( "z", "dZ", "ddZ", "b.sdSpatial", "b.sdObs", "b.phi", "b.nu", "b.localrange" ),
         names(LU)
-      ) 
+      )
       for (vn in vns) {
         # sppoly[[ vn ]] = aggregate( LU[, vn], sppoly, median, na.rm=TRUE )[[vn]]
         # APS[, vn] = sppoly[[ vn ]] [iAS]
@@ -1006,7 +1013,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     gc()
 
     APS = APS[ which(is.finite(rowSums(APS[,c("z", "dZ", "ddZ", "b.localrange")]))), ]
-   
+
     avn = c( p$variabletomodel, vns, "tag", "AUID"  )
     APS = APS[, avn]
 
@@ -1015,7 +1022,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS = cbind( APS[ rep.int(1:n_aps, p$nt), ], rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
     names(APS) = c(avn, "tiyr")
 
-    M = rbind( M[, names(APS)], APS )
+    vtokeep = intersect( names(M), names(APS) )
+    M = rbind( M[, vtokeep], APS[, vtokeep] )
     APS = NULL
 
     M$auid = match( M$AUID, region.id )

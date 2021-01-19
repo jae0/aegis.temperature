@@ -21,8 +21,8 @@ if (0) {
 
 if (0) {
     # default is serial mode .. to enable multicore:
-    scale_ncpus = ram_local( "ncores", ram_main=27, ram_process=1.5 ) # in GB; about 24 hr
-    interpolate_ncpus = ram_local( "ncores", ram_main=27, ram_process=2.5 ) # nn hrs
+    scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=1.5 ) # in GB; about 24 hr
+    interpolate_ncpus = ram_local( "ncores", ram_main=20, ram_process=2.5 ) # nn hrs
 
     if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
 
@@ -35,7 +35,8 @@ if (0) {
           c4 = rep("localhost", scale_ncpus),
           c5 = rep("localhost", scale_ncpus),
           c6 = rep("localhost", scale_ncpus),
-          c7 = rep("localhost", scale_ncpus)
+          c7 = rep("localhost", scale_ncpus),
+          c8 = rep("localhost", scale_ncpus)
         )
 
     p$stmv_runmode$interpolate_correlation_basis = list(
@@ -52,7 +53,8 @@ if (0) {
           c4 = rep("localhost", interpolate_ncpus),
           c5 = rep("localhost", interpolate_ncpus),
           c6 = rep("localhost", interpolate_ncpus),
-          c7 = rep("localhost", interpolate_ncpus)
+          c7 = rep("localhost", interpolate_ncpus),
+          c8 = rep("localhost", interpolate_ncpus)
         )
 
     p$stmv_runmode$save_intermediate_results = TRUE
