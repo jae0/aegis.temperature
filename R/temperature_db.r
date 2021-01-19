@@ -837,6 +837,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     #.. store at the modeldir level as default
     outputdir = dirname( fn )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+   
     M = NULL
     if (!redo)  {
       if (file.exists(fn)) {
@@ -896,55 +897,20 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
      # already has depth .. but in case some are missing data
     pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
-    vnmod = pB$variabletomodel
-    if (!(exists(vnmod, M ))) M[,vnmod] = NA
-    
-    iM = which(!is.finite( M[, vnmod] ))
+    if (!(exists(pB$variabletomodel, M ))) M[,pB$variabletomodel] = NA
+    iM = which(!is.finite( M[, pB$variabletomodel] ))
     if (length(iM > 0)) {
-      pBB = bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  )
-      LU = bathymetry_db ( p=pBB, DS="aggregated_data" )  # raw data
-      LU = LU[ which( LU$lon > p$corners$lon[1] & LU$lon < p$corners$lon[2]  & LU$lat > p$corners$lat[1] & LU$lat < p$corners$lat[2] ), ]
-      LU = lonlat2planar(LU, proj.type=p$aegis_proj4string_planar_km)
-      M[iM, vnmod] = LU[ match( 
-        array_map( "xy->1", M[iM,c("plon","plat")], gridparams=p$gridparams ), 
-        array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams ) 
-      ), paste(vnmod, "mean", sep=".")]
-      
-      # if any still missing then use a mean depth by AUID
-      iM = NULL
-      iM =  which( !is.finite(M[, vnmod]))
-      if (length(iM) > 0) {
-        LU = lonlat2planar(LU, proj.type=p$aegis_proj4string_planar_km)
-          LU$AUID = st_points_in_polygons(
-          pts = st_as_sf( LU, coords=c("lon","lat"), crs=crs_lonlat ),
-          polys = sppoly[, "AUID"],
-          varname="AUID"
-        )
-        LU = tapply( LU[, paste(vnmod, "mean", sep="." )], LU$AUID, FUN=median, na.rm=TRUE )
-        iML = match( as.character( M$AUID[iM]), as.character( names(LU )) )
-        M[iM, vnmod] = LU[iML ]
+      M[iM, pB$variabletomodel] = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, lonlat=M[iM, c("lon", "lat")], sppoly=sppoly )
+    }
+
+    M = M[ which( M$z < 2000) , ]
+
+    # must go after depths have been finalized
+    if (p$carstm_inputs_aggregated) {
+      if ( exists("spatial_domain", p)) {
+        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
       }
-      LU = NULL 
-      iML = NULL
     }
-
-    # if any still missing then use stmv depths
-    iM = NULL
-    iM =  which( !is.finite(M[, vnmod]))
-    if (length(iM) > 0) {
-      pBBB = bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="stmv"  )
-      LU = bathymetry_db ( pBBB, DS="complete", varnames="all" )  # raw data
-      LU = planar2lonlat(LU, proj.type=p$aegis_proj4string_planar_km)
-      LU = LU[ which( LU$lon > p$corners$lon[1] & LU$lon < p$corners$lon[2]  & LU$lat > p$corners$lat[1] & LU$lat < p$corners$lat[2] ), ]
-      # levelplot( eval(paste(vnmod, "mean", sep="."))~plon+plat, data=M, aspect="iso")
-      LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
-      M_map  = array_map( "xy->1", M[iM, c("plon","plat")], gridparams=p$gridparams )
-      M[iM, vnmod] = LU[ match( M_map, LU_map ), vnmod ]
-      BS_map = NULL
-      M_map = NULL
-    }
-
-    LU = NULL
 
 
     if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid") ) {
@@ -961,14 +927,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
 
 
-    M = M[ which( M$z < 2000) , ]
-
-
-    # if (p$carstm_inputs_aggregated) {
-    #   if ( exists("spatial_domain", p)) {
-    #     M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-    #   }
-    # }
 
     M$lon = NULL
     M$lat = NULL

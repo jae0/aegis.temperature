@@ -14,8 +14,7 @@ if (0) {
   p$stmv_nmin = 80  # min number of unit spatial locations req before attempting to model in a localized space .. control no error in local model
   p$stmv_nmax = 80*(nyrs/2) # no real upper bound.. just speed / RAM limits  .. can go up to 10 GB / core if too large
   p$stmv_tmin = floor( nyrs * 1.25 )
-  temperature_db(p=p, DS="" )
-
+  M = temperature_db( p=p, DS="stmv_inputs" )
 )
 
 
@@ -28,7 +27,7 @@ if (0) {
     if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
 
     p$stmv_runmode$globalmodel = FALSE
-    
+
     p$stmv_runmode$scale =list(
           c1 = rep("localhost", scale_ncpus),
           c2 = rep("localhost", scale_ncpus),
@@ -65,7 +64,7 @@ if (0) {
       p$restart_load = "interpolate_correlation_basis"
       p$stmv_runmode$scale = FALSE
 
-    } 
+    }
 
 }
 
