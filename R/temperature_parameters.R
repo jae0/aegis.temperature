@@ -118,6 +118,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$libs = c( p$libs, project.library ( "stmv" ) )
     p$project_class = "stmv"
 
+    nyrs = diff(range( p$yrs )) 
+
     p = parameters_add_without_overwriting( p,
       DATA = 'temperature_db( p=p, DS="stmv_inputs" )',
       stmv_model_label="default",
@@ -287,8 +289,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           c6 = rep("localhost", 1),
           c7 = rep("localhost", 1),
           c8 = rep("localhost", 1)
-
         ),
+
         interpolate_predictions = list(
           c1 = rep("localhost", 1),
           c2 = rep("localhost", 1),
