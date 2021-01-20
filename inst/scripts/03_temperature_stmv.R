@@ -21,8 +21,8 @@ if (0) {
 
 if (0) {
     # default is serial mode .. to enable multicore:
-    scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=1.5 ) # in GB; about 24 hr
-    interpolate_ncpus = ram_local( "ncores", ram_main=20, ram_process=2.5 ) # nn hrs
+    scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=1.25 ) # in GB; about 24 hr
+    interpolate_ncpus = ram_local( "ncores", ram_main=30, ram_process=2.5 ) # nn hrs
 
     if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
 
