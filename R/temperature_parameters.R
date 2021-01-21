@@ -72,7 +72,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
-      fraction_todrop = 1/4,
+      fraction_todrop = 1/5,
       fraction_cv = 1.0,
       fraction_good_bad = 0.9,
       nAU_min = 100,

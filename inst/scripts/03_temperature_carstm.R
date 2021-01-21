@@ -14,10 +14,10 @@
      inla.setOption(blas.num.threads= 1 )
 
   if (0) { 
-        p$fraction_todrop = 1/10 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
+        p$fraction_todrop = 1/5 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
         p$fraction_cv = 1.0  #sd/mean no.
-        p$fraction_good_bad = 0.9
-        p$areal_units_constraint_nmin = 50  # length(p$yrs)
+        p$fraction_good_bad = 0.9  # accept up to 90% of AUs near the target nmin
+        p$areal_units_constraint_nmin = 40  # length(p$yrs)
         p$nAU_min = 100
   }
   
