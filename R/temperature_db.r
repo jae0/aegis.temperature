@@ -809,7 +809,20 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
     }
     xydata = temperature_db( p=p, DS="aggregated_data"  )  #
-    xydata = xydata[ which(xydata$z.mean < 5000) , ]
+    names(xydata)[which(names(xydata)=="z.mean" )] = "z"
+    xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
+
+    # drop a corner far offshore
+    x0 = c(40, -60 )
+    x1 = c(43, -55 )
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    i = which( xydata$lon > m*xydata$lat + b )
+
+    xydata = xydata[ -i, ]
+
+    xydata = xydata[ which(xydata$z  < 2500) , ]
+    xydata = xydata[ which(xydata$z  > 0) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
 
     save(xydata, file=fn, compress=TRUE )

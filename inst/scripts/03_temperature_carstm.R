@@ -14,7 +14,7 @@
      inla.setOption(blas.num.threads= 1 )
 
   if (0) { 
-        p$fraction_todrop = 1/4 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
+        p$fraction_todrop = 1/10 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
         p$fraction_cv = 1.0  #sd/mean no.
         p$fraction_good_bad = 0.9
         p$areal_units_constraint_nmin = 50  # length(p$yrs)
@@ -24,7 +24,7 @@
   # to recreate the underlying data
   # xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
 
-  sppoly = areal_units( p=p , redo=T )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
+  sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
   plot( sppoly[ "AUID" ] ) 
 
 
