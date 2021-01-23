@@ -968,13 +968,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     iAS = match( as.character( APS$AUID), as.character( sppoly$AUID ) )
 
     if ( p$carstm_inputdata_model_source$bathymetry == "carstm") {
-      LU = carstm_summary( p=pB ) # to load exact sppoly, if present
+      LU = carstm_model( p=pB, DS="carstm_modelled_summary" ) # to load exact sppoly, if present
       LU_sppoly = areal_units( p=pB )  # default poly
 
       if (is.null(LU)) {
         message("Exactly modelled surface not found, estimating from default run...")
         pBD = bathymetry_parameters( project_class="carstm" ) # choose "default" full bathy carstm run and re-estimate:
-        LU = carstm_summary( p=pBD )
+        LU = carstm_model( p=pBD, DS="carstm_modelled_summary" )
         LU_sppoly = areal_units( p=pBD )  # default poly
       }
 

@@ -35,7 +35,7 @@ temperature_lookup = function( p, locs, timestamp, vnames="t", output_data_class
 
    } else if (source_data_class=="carstm") {
 
-      Bcarstm = carstm_summary( p=p ) # to load currently saved sppoly
+      Bcarstm = carstm_model( p=p, DS="carstm_modelled_summary" ) # to load currently saved sppoly
       B = areal_units( p=p )
       bm = match( B$AUID, Bcarstm$AUID )
       B$t  = Bcarstm$t.predicted[ bm,, ]
