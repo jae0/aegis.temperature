@@ -10,20 +10,13 @@
 
 
     if (0) { 
-        inla.setOption(num.threads=4  )  # note, you want 1 here unless you have a lot of RAM and swap 
+        inla.setOption(num.threads=3  )  # note, you want 1 here unless you have a lot of RAM and swap 
         inla.setOption(blas.num.threads= 1 )
-
-        # testing options
-        p$fraction_todrop = 1/5 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
-        p$fraction_cv = 1.0  #sd/mean no.
-        p$fraction_good_bad = 0.9  # accept up to 90% of AUs near the target nmin
-        p$areal_units_constraint_nmin = 40  # length(p$yrs)
-        p$nAU_min = 100
 
         # to recreate the underlying data
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
-
-        sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+        # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+        
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
 
@@ -36,7 +29,7 @@
   # !!! WARNING, this uses a lot of RAM !!! 400 + GB with 4 cpus on default settings (1950-2020).. reduce 
   # adjust based upon RAM requirements and ncores
 
-  fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) " )   # 79 configs @ 110s / config = 2.4 hrs, ~ 20 hrs total
+  fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=TRUE )   # 79 configs @ 110s / config = 2.4 hrs, ~ 20 hrs total
 
     # extract results
     if (0) {
