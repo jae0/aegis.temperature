@@ -908,7 +908,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
 
      # already has depth .. but in case some are missing data
-    pB = bathymetry_parameters( p=parameters_reset(p), project_class="carstm"  )
+    pB = bathymetry_parameters( project_class="core"  )
     vnB = pB$variabletomodel
     if ( !(exists(vnB, M ))) {
       vnB2 = paste(vnB, "mean", sep=".")
