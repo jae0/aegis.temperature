@@ -74,7 +74,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       tus="yr",
       fraction_todrop = 1/5,
       fraction_cv = 1.0,
-      fraction_good_bad = 0.95,
+      fraction_good_bad = 0.9,
       nAU_min = 100,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",

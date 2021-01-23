@@ -14,15 +14,15 @@
         inla.setOption(blas.num.threads= 1 )
 
         # to recreate the underlying data
-        xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)
+        xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
         # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
         
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
 
-        M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-        M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-        # to extract fits and predictions
+        M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # redo if input data has changes
+
+        M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
     }
     
 
