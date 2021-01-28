@@ -920,7 +920,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     iM = which(!is.finite( M[, vnB] ))
     if (length(iM > 0)) {
-      M[iM, vnB] = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, lonlat=M[iM, c("lon", "lat")], sppoly=sppoly )
+      M[iM, vnB] = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, M=M[iM, c("lon", "lat")], sppoly=sppoly )
     }
 
     M = M[ which( M$z < 5000) , ]
@@ -931,18 +931,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       if ( exists("spatial_domain", p)) {
         M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
       }
-    }
-
-
-    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid") ) {
-      pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
-      LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
-      LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
-      M_map  = array_map( "xy->1", M[, c("plon","plat")], gridparams=p$gridparams )
-      iML = match( M_map, LU_map )
-      vns = intersect(  c( "z", "dZ", "ddZ", "b.sdSpatial", "b.sdObs", "b.phi", "b.nu", "b.localrange" ), names(LU) )
-      for (vn in setdiff( vns, "z") )  M[, vn] = LU[ iML, vn ]
-      M = M[ is.finite( rowSums( M[ , vns])  ) , ]
     }
 
 
@@ -965,68 +953,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
 
-    iAS = match( as.character( APS$AUID), as.character( sppoly$AUID ) )
-
-    if ( p$carstm_inputdata_model_source$bathymetry == "carstm") {
-      LU = carstm_model( p=pB, DS="carstm_modelled_summary" ) # to load exact sppoly, if present
-      LU_sppoly = areal_units( p=pB )  # default poly
-
-      if (is.null(LU)) {
-        message("Exactly modelled surface not found, estimating from default run...")
-        pBD = bathymetry_parameters( project_class="carstm" ) # choose "default" full bathy carstm run and re-estimate:
-        LU = carstm_model( p=pBD, DS="carstm_modelled_summary" )
-        LU_sppoly = areal_units( p=pBD )  # default poly
-      }
-
-      # now rasterize and re-estimate
-      raster_template = raster( sppoly, res=p$areal_units_resolution_km, crs=st_crs( sppoly ) ) # +1 to increase the area
-
-      vns = intersect( c( "z.predicted", "z.predicted_se" ), names(LU) )
-
-      bm = match( LU_sppoly$AUID, LU$AUID )
-      for (vn in vns) {
-        LL = LU_sppoly
-        LL[[vn]] = LU[,vn][ bm ]
-        # transfer the coordinate system to the raster
-#        LL = sf::st_transform( as( LL, "sf" ), crs=st_crs(LL) )  # B is a carstm LU
-        LL = fasterize::fasterize( LL, raster_template, field=vn )
-        sppoly[[vn]] = sp::over( sppoly, LL[, vn ], fn=median, na.rm=TRUE )
-        APS[, vn] = sppoly[[ vn ]] [iAS]
-      }
-      raster_template = NULL
-      LL = NULL
-      bm = NULL
-      LU = NULL
-
-    }
+    APS$z = bathymetry_lookup_modelled(  M=sppoly, spatial_domain=p$spatial_domain, lookup_mode=p$carstm_inputdata_model_source$bathymetry, vnsmaes="z" ) 
 
 
-    if ( p$carstm_inputdata_model_source$bathymetry %in% c("stmv", "hybrid")) {
-      pBD = bathymetry_parameters( project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
-      LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
-      LU = planar2lonlat(LU, pBD$aegis_proj4string_planar_km)
-      LU = sf::st_as_sf( LU, coords=c("lon", "lat") )
-      st_crs(LU) = st_crs( projection_proj4string("lonlat_wgs84") )
-      LU = sf::st_transform( LU, crs=st_crs(sppoly) )
-      vns = intersect(
-        c( "z", "dZ", "ddZ", "b.sdSpatial", "b.sdObs", "b.phi", "b.nu", "b.localrange" ),
-        names(LU)
-      )
-      for (vn in vns) {
-        # sppoly[[ vn ]] = aggregate( LU[, vn], sppoly, median, na.rm=TRUE )[[vn]]
-        # APS[, vn] = sppoly[[ vn ]] [iAS]
-        APS[, vn] = aggregate( LU[, vn], sppoly, median, na.rm=TRUE ) [[vn]] [iAS]
-      }
-
-    }
-
-    iAS =NULL
-    sppoly = NULL
-    gc()
-
-    APS = APS[ which(is.finite(rowSums(APS[,c("z", "dZ", "ddZ", "b.localrange")]))), ]
-
-    avn = c( p$variabletomodel, vns, "tag", "AUID"  )
+    avn = c( p$variabletomodel, "z", "tag", "AUID"  )
     APS = APS[, avn]
 
     # expand APS to all time slices
@@ -1043,13 +973,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$year = aegis_floor( M$tiyr)
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
     M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
-    # M$tiyri  = aegis_floor( M$tiyr / p$tres )*p$tres    # discretize for inla
-
-    M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
-
-    # M$seasonal = (as.numeric(M$year_factor) - 1) * length(p$dyears)  + as.numeric(M$dyear)
-
-    M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
+    
+    if (0) {
+      M$tiyri  = aegis_floor( M$tiyr / p$tres )*p$tres    # discretize for inla
+      M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
+      M$seasonal = (as.numeric(M$year_factor) - 1) * length(p$dyears)  + as.numeric(M$dyear)
+      M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
+    }
 
     save( M, file=fn, compress=TRUE )
     return( M )
@@ -1099,6 +1029,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     B = B[,varstokeep]
     B = B[ which(is.finite(rowSums(B))), ]
     return (list(input=B, output=OUT))
+
+    
   }
 
 

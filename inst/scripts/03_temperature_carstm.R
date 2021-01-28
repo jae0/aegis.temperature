@@ -31,6 +31,9 @@
 
   fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=TRUE )   # 79 configs @ 110s / config = 2.4 hrs, ~ 20 hrs total
 
+# maxld= -743939.873 fn=581 theta= -1.820 4.053 1.820 4.013 1.542 -1.898 2.561 [42.6, 261.83]
+# maxld= -736837.761 fn=629 theta= -1.823 3.970 1.787 4.164 1.181 -1.940 2.776 [36.7, 259.04]
+
     # extract results
     if (0) {
       # very large files .. slow 

@@ -46,65 +46,24 @@ temperature_lookup_rawdata = function( M, spatial_domain=NULL, sppoly=NULL,   tz
         )
         M_AUID = as.character( M_AUID )  # match each datum to an area
       }
-      M_dyear_discret = discretize_data( M$dyear[ii], pT$discretization$dyear )  # LU$dyear is discretized. . match discretization
-      M$uid =  paste(M_AUID, M$yr[ii], M_dyear_discret, sep=".")
+      T_map = array_map( "ts->1", M[ii, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
+      M_uid =  paste(M_AUID,  T_map, sep=".")
 
       LU$AUID = st_points_in_polygons(
         pts = st_as_sf( LU, coords=c("lon","lat"), crs=crs_lonlat ),
         polys = sppoly[, "AUID"],
         varname="AUID"
       )
-      LU_dyear_discret = discretize_data( LU$dyear, pT$discretization$dyear )
-      LU$uid = paste(LU$AUID, LU$yr, LU_dyear_discret, sep=".")
+      
+      LUT_map = array_map( "ts->1", LU[,c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
+      LU$uid = paste(LU$AUID, LUT_map, sep=".")
 
       LU = tapply( LU[, paste(vnmod, "mean", sep="." )], LU$uid, FUN=median, na.rm=TRUE )
 
-      jj = match( as.character( M_AUID), as.character( names(LU )) )
+      jj = match( as.character( M_uid), as.character( names(LU )) )
       M[ ii, vnmod ] = LU[jj]
     }
   }
-
-
-if (0) {
-  # not tested .. not sure if it should be used as it is rawdata not modelled data we are looking up
-  if (lookup_mode %in% c("stmv",  "hybrid") ) {
-      # if any still missing then use stmv depths
-    pC = temperature_parameters( spatial_domain=pT$spatial_domain, project_class=lookup_mode  )
-    ii = NULL
-    ii =  which( !is.finite( M[ , vnmod ] ))
-
-    if (length(ii) > 0) {
-
-      L1 = bathymetry_db(p=pC, DS="baseline")
-
-      BS = aegis_db( p=pC, DS="stmv.stats" )
-      colnames(BS) = paste(pC$stmv_variables$Y, colnames(BS), sep=".")
-      IC = cbind( L1, BS )
-
-      nL1 = nrow(L1)
-      LU = matrix( NA, nrow=nL1, ncol=pT$ny )
-
-      Myrs = unique( M$yr)
-      if (length(Myrs > 0 )) {
-        for (y in Myrs) {
-          jj = which(M$yr[ii] == y)
-          LU=NULL;
-          LU = temperature_db(p=pC, DS="predictions", ret="mean", yr=yr)
-          if (!is.null(oo)) {
-            T_map = array_map( "ts->1", M[ii[jj], c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
-            M_map = array_map( "xy->1", M[ii[jj], c("plon","plat")], gridparams=pT$gridparams )
-            LUT_map = array_map( "ts->1", LU[,c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
-            LUS_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=pT$gridparams )
-
-            iLM = match( paste(M_map, T_map, sep="_"), paste(LUS_map, LUT_map, sep="_") )
-            M[ ii[jj], vnmod ] = LU[ iLM, paste(vnmod, "mean", sep="." ) ]
-          }
-        }
-      }
-    }
-
-  }
-}
 
 
   return( M[ , vnmod ] )

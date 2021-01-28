@@ -21,40 +21,39 @@ if (0) {
 
 if (0) {
     # default is serial mode .. to enable multicore:
-    scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=1.25 ) # in GB; about 24 hr
-    interpolate_ncpus = ram_local( "ncores", ram_main=30, ram_process=2.5 ) # nn hrs
-
     if (!exists("stmv_runmode", p) ) p$stmv_runmode = list()
 
     p$stmv_runmode$globalmodel = FALSE
 
     p$stmv_runmode$scale =list(
-          c1 = rep("localhost", scale_ncpus),
-          c2 = rep("localhost", scale_ncpus),
-          c3 = rep("localhost", scale_ncpus),
-          c4 = rep("localhost", scale_ncpus),
-          c5 = rep("localhost", scale_ncpus),
-          c6 = rep("localhost", scale_ncpus),
-          c7 = rep("localhost", scale_ncpus),
-          c8 = rep("localhost", scale_ncpus)
+          c1 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c2 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c3 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c4 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c5 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c6 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c7 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c8 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) )
         )
+
 
     p$stmv_runmode$interpolate_correlation_basis = list(
-          cor_0.25 = rep("localhost", interpolate_ncpus),
-          cor_0.1  = rep("localhost", interpolate_ncpus),
-          cor_0.05 = rep("localhost", interpolate_ncpus),
-          cor_0.01 = rep("localhost", interpolate_ncpus)
+          cor_0.3  = rep("localhost", ram_local( "ncores", ram_main=30, ram_process=1.5 ) ),
+          cor_0.2  = rep("localhost", ram_local( "ncores", ram_main=40, ram_process=4.5 ) ), 
+          cor_0.05 = rep("localhost", ram_local( "ncores", ram_main=40, ram_process=6.0 ) ),
+          cor_0.01 = rep("localhost", ram_local( "ncores", ram_main=40, ram_process=8.0 ) )
         )
 
+    # need to check ram requirements for these
     p$stmv_runmode$interpolate_predictions = list(
-          c1 = rep("localhost", interpolate_ncpus),
-          c2 = rep("localhost", interpolate_ncpus),
-          c3 = rep("localhost", interpolate_ncpus),
-          c4 = rep("localhost", interpolate_ncpus),
-          c5 = rep("localhost", interpolate_ncpus),
-          c6 = rep("localhost", interpolate_ncpus),
-          c7 = rep("localhost", interpolate_ncpus),
-          c8 = rep("localhost", interpolate_ncpus)
+          c1 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c2 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c3 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c4 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c5 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c6 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c7 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) ),
+          c8 = rep("localhost", ram_local( "ncores", ram_main=20, ram_process=1.25 ) )
         )
 
     p$stmv_runmode$save_intermediate_results = TRUE
