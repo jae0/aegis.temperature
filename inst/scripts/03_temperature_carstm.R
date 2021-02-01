@@ -10,8 +10,8 @@
 
 
     if (0) { 
-        inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
-        inla.setOption(blas.num.threads= 2 )
+        inla.setOption(num.threads=1  )  # note, you want 1 here unless you have a lot of RAM and swap 
+        inla.setOption(blas.num.threads= 1 )
 
         # to recreate the underlying data
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed

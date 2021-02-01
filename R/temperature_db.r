@@ -978,10 +978,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$year = aegis_floor( M$tiyr)
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
     M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
+    M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
     
     if (0) {
       M$tiyri  = aegis_floor( M$tiyr / p$tres )*p$tres    # discretize for inla
-      M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
       M$seasonal = (as.numeric(M$year_factor) - 1) * length(p$dyears)  + as.numeric(M$dyear)
       M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
     }
