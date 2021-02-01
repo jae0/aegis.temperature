@@ -10,8 +10,8 @@
 
 
     if (0) { 
-        inla.setOption(num.threads=3  )  # note, you want 1 here unless you have a lot of RAM and swap 
-        inla.setOption(blas.num.threads= 1 )
+        inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
+        inla.setOption(blas.num.threads= 2 )
 
         # to recreate the underlying data
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
@@ -29,10 +29,7 @@
   # !!! WARNING, this uses a lot of RAM !!! 400 + GB with 4 cpus on default settings (1950-2020).. reduce 
   # adjust based upon RAM requirements and ncores
 
-  fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=TRUE )   # 79 configs @ 110s / config = 2.4 hrs, ~ 20 hrs total
-
-# maxld= -743939.873 fn=581 theta= -1.820 4.053 1.820 4.013 1.542 -1.898 2.561 [42.6, 261.83]
-# maxld= -736837.761 fn=629 theta= -1.823 3.970 1.787 4.164 1.181 -1.940 2.776 [36.7, 259.04]
+  fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=FALSE )   
 
     # extract results
     if (0) {
