@@ -956,7 +956,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS$z = bathymetry_lookup(  LOCS=sppoly, 
       lookup_from = p$carstm_inputdata_model_source$bathymetry,
       lookup_to = "areal_units", 
-      spatial_domain=p$spatial_domain, vnames="z" 
+      spatial_domain=p$spatial_domain, 
+      vnames="z" 
     ) 
 
 
