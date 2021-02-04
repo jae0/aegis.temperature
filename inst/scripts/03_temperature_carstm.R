@@ -16,7 +16,9 @@
         # to recreate the underlying data
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
         # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
-        
+
+        p$areal_units_constraint_nmin = 50  # n time slices req in each au
+
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
 
@@ -50,59 +52,90 @@
 
   
   # maps of some of the results
-  
+
+  coastline = coastline_db( p=p, DS="eastcoast_gadm" )
+  coastline = st_transform( coastline, st_crs(p$aegis_proj4string_planar_km) )
+
+ # depth contours
+  isobaths = aegis.bathymetry::isobath_db( p=p, depths=c(50, 100, 200, 400, 800)  )
+  isobaths = st_transform( isobaths, st_crs(p$aegis_proj4string_planar_km) )
+ 
+  # mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
+  # mypalette = rev( heat.colors( 150 ) )
+  mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
+
+
   time_match = list(year="2019", dyear="0.85")
   time_match = list(year="2020", dyear="0.85")
 
   vn = paste(p$variabletomodel, "predicted", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
-    at=seq(-2, 10, by=2),          
-    sp.layout = p$coastLayout, 
-    col.regions = p$mypalette, 
+          breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          coastline=coastline,
+          isobaths=isobaths,
+          pal = mypalette, 
+          xlim = c(-600, 540),
+          ylim = c(0, 200),
     main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
 
   vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
-    at=seq(-10, 10, by=4),          
-    sp.layout = p$coastLayout, 
-    col.regions = p$mypalette, 
+         breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          coastline=coastline,
+          isobaths=isobaths,
+          pal = mypalette, 
+          xlim = c(-600, 540),
+          ylim = c(0, 200),
     main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  )
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    at=seq(-10, 10, by=4),          
-    sp.layout = p$coastLayout, 
-    col.regions = p$mypalette, 
+         breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          coastline=coastline,
+          isobaths=isobaths,
+          pal = mypalette, 
+          xlim = c(-600, 540),
+          ylim = c(0, 200),
     main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") )  )
 
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    at=seq(-10, 10, by=4),          
-    sp.layout = p$coastLayout, 
-    col.regions = p$mypalette, 
+           breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          coastline=coastline,
+          isobaths=isobaths,
+          pal = mypalette, 
+          xlim = c(-600, 540),
+          ylim = c(0, 200),
     main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  )
 
 
 
   # map all bottom temps:
   vn = paste(p$variabletomodel, "predicted", sep=".")
-  outputdir = file.path( gsub( ".rdata", "", dirname(res$fn_res) ), "figures", vn )
+  outputdir = file.path( gsub( ".rdata", "", res$fn_res ), "figures", vn )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
+  graphics.off()
 
-  for (y in res$yrs ){
-    for ( s in dyear ){
+  for (y in res$year ){
+    for ( s in res$dyear ){
       time_match = list( year=as.character(y), dyear=as.character(s) )
       fn_root = paste( "Bottom temperature",  paste0(time_match, collapse=" - ") )
-      fn = file.path( outdir, paste(fn_root, "png", sep=".") )
-      png( filename=fn, width=3072, height=2304, pointsize=40, res=300  )
+      fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+       
         o = carstm_map(  res=res, vn=vn, time_match=time_match, 
-          at=seq(-2, 10, by=2), 
-          sp.layout = p$coastLayout, 
-          col.regions = p$mypalette, 
+          breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          coastline=coastline,
+          isobaths=isobaths,
+          pal = mypalette, 
+          xlim = c(-600, 540),
+          ylim = c(0, 200),
           main=fn_root  )
-      print(o); dev.off()
-    }
+       
+      png( filename=fn, width=3072, height=2304, pointsize=40, res=300  )
+        print(o)
+      dev.off()
+     }
   }
   
 # end

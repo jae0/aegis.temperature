@@ -812,9 +812,31 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     names(xydata)[which(names(xydata)=="z.mean" )] = "z"
     xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
 
+    keep = which( xydata$lon < -54 & xydata$lon > -71 & xydata$lat < 49 & xydata$lat > 41 ) 
+
+    xydata =xydata[ keep, ]
+
     # drop a corner far offshore
     x0 = c(40, -60 )
     x1 = c(43, -55 )
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    i = which( xydata$lon > m*xydata$lat + b )
+    xydata = xydata[ -i, ]
+
+    # drop a corner Gulf of St Lawrence
+    x0 = c(46, -71 )
+    x1 = c(49, -66 )
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    i = which( xydata$lon < m*xydata$lat + b )
+
+    xydata = xydata[ -i, ]
+
+
+    # drop a corner NFLD
+    x0 = c(48, -54 )
+    x1 = c(49, -58.5 )
     m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
     b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
     i = which( xydata$lon > m*xydata$lat + b )
@@ -822,7 +844,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     xydata = xydata[ -i, ]
 
     xydata = xydata[ which(xydata$z  < 2500) , ]
-    xydata = xydata[ which(xydata$z  > 0) , ]
+    xydata = xydata[ which(xydata$z  > 5) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
 
     save(xydata, file=fn, compress=TRUE )
@@ -923,8 +945,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M[iM, vnB] = bathymetry_lookup( LOCS=M[iM, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
     }
 
-    M = M[ which( M$z < 5000) , ]
-    M = M[ which( M$z > 0 ) , ]
+    M = M[ which( M$z < 2500) , ]
+    M = M[ which( M$z > 5 ) , ]
 
     # must go after depths have been finalized
     if (p$carstm_inputs_aggregated) {
@@ -953,13 +975,12 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS$tag ="predictions"
     APS[, p$variabletomodel] = NA
 
-    APS$z = bathymetry_lookup(  LOCS=sppoly, 
+    APS[, pB$variabletomodel] = bathymetry_lookup(  LOCS=sppoly, 
       lookup_from = p$carstm_inputdata_model_source$bathymetry,
       lookup_to = "areal_units", 
       spatial_domain=p$spatial_domain, 
       vnames="z" 
     ) 
-
 
     avn = c( p$variabletomodel, "z", "tag", "AUID"  )
     APS = APS[, avn]

@@ -1,6 +1,7 @@
 temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=NULL, lookup_from="core", lookup_to="points", FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), lookup_from_class="aggregated_data", tz="America/Halifax" ) {
  
   # z = temperature_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
+message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
 
   if (is.null(spatial_domain))  {
     pT = temperature_parameters(  project_class=lookup_from  )
@@ -17,9 +18,9 @@ temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=
     
     LOCS = lonlat2planar(LOCS, proj.type=pT$aegis_proj4string_planar_km) # get planar projections of lon/lat in km
     
-    if (! "POSIXct" %in% class(LOCS$TIMESTAMP)  ) LOCS$TIMESTAMP = as.POSIXct( LOCS$TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year( LOCS$TIMESTAMP ) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    LOCS$yr = lubridate::year( LOCS$timestamp ) 
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
     LU = temperature_db ( p=pT, year.assessment=max(pT$yrs), DS=lookup_from_class )  # raw data
     LU = lonlat2planar(LU, proj.type=pT$aegis_proj4string_planar_km)
@@ -44,7 +45,7 @@ temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=
 
 
   if ( lookup_from %in% c("core") & lookup_to == "areal_units" )  {
-    # point (LU) -> areal unit (LOCS: AU/TIMESTAMP)
+    # point (LU) -> areal unit (LOCS: AU/timestamp)
     #   $ t.predicted             : num [1:190, 1:20, 1:10] 2.37 2.01 5.27 1.98 1.56 ...
     # ..- attr(*, "dimnames")=List of 3
     # .. ..$ AUID : chr [1:190] "106" "107" "108" "121" ...
@@ -53,11 +54,11 @@ temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=
 
     if (!exists("AU")) AU = areal_units( p=pT )
     if (!exists("AUID", AU)) AU$AUID = as.character(1:nrow(AU))
-    if (!exists("AUID", LOCS) | !exists("TIMESTAMP", LOCS) ) stop("require AUID and TIMESTAMP in LOCS") 
+    if (!exists("AUID", LOCS) | !exists("timestamp", LOCS) ) stop("require AUID and timestamp in LOCS") 
 
-    if (! "POSIXct" %in% class(LOCS$TIMESTAMP)  ) LOCS$TIMESTAMP = as.POSIXct( LOCS$TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year(LOCS$TIMESTAMP) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    LOCS$yr = lubridate::year(LOCS$timestamp) 
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
 
     LU = temperature_db ( p=pT, year.assessment=max(pT$yrs), DS=lookup_from_class )  # raw data
@@ -100,9 +101,9 @@ temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=
     LOCS_map = array_map( "xy->1", LOCS[, c("plon","plat")], gridparams=p$gridparams )
     LOCS_index = match( LOCS_map, LU_map )
 
-    if (! "POSIXct" %in% class(TIMESTAMP)  ) TIMESTAMP = as.POSIXct( TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year(TIMESTAMP) 
-    LOCS$dyear = lubridate::decimal_date( TIMESTAMP ) - LOCS$yr
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    LOCS$yr = lubridate::year(LOCS$timestamp) 
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
     TIMESTAMP_index = array_map( "ts->2", LOCS[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
 
@@ -121,8 +122,8 @@ temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=
 
      if (!exists("AUID", LOCS_AU)) LOCS_AU$AUID = as.character(1:nrow(LOCS_AU))
 
-    if (! "POSIXct" %in% class(LOCS$TIMESTAMP)  ) LOCS$TIMESTAMP = as.POSIXct( LOCS$TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year(LOCS$TIMESTAMP) 
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
     TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
   
