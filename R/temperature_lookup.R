@@ -1,4 +1,4 @@
-temperature_lookup = function( LOCS=NULL, LOCS_AU=NULL, AU=NULL, spatial_domain=NULL, lookup_from="core", lookup_to="points", FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), lookup_from_class="aggregated_data", tz="America/Halifax" ) {
+temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domain=NULL, lookup_from="core", lookup_to="points", FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), lookup_from_class="aggregated_data", tz="America/Halifax" ) {
  
   # z = temperature_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
 message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
@@ -11,14 +11,13 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
 
   crs_lonlat =  st_crs(projection_proj4string("lonlat_wgs84"))
 
-
   if ( lookup_from %in% c("core") & lookup_to == "points" )  {
     # matching to point (LU ) to point (LOCS)
     # if any still missing then use stmv depths
     
     LOCS = lonlat2planar(LOCS, proj.type=pT$aegis_proj4string_planar_km) # get planar projections of lon/lat in km
     
-    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year( LOCS$timestamp ) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
@@ -38,9 +37,9 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
       sep="_"
     )
 
-    LOCS[ , vn ] = LU[ match( LOCS_map, LU_map ), vn ]
+    LOCS[ , vnames ] = LU[ match( LOCS_map, LU_map ), vnames ]
 
-    return( LOCS[ , vn ] )
+    return( LOCS[ , vnames ] )
   }
 
 
@@ -56,7 +55,7 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
     if (!exists("AUID", AU)) AU$AUID = as.character(1:nrow(AU))
     if (!exists("AUID", LOCS) | !exists("timestamp", LOCS) ) stop("require AUID and timestamp in LOCS") 
 
-    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
@@ -82,11 +81,11 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
       sep="_"
     )
 
-    LU_summ = tapply( st_drop_geometry(LU)[, vn], LU_map, FUN=FUNC, na.rm=TRUE )
+    LOCS_regridded = tapply( st_drop_geometry(LU)[, vnames], LU_map, FUN=FUNC, na.rm=TRUE )
 
-    LOCS[ , vn ] = LU_summ[ match( LOCS_map, as.character( names( LU_summ )) ) ]
+    LOCS[ , vnames ] = LOCS_regridded[ match( LOCS_map, as.character( names( LOCS_regridded )) ) ]
 
-    return( LOCS[, vn] )
+    return( LOCS[, vnames] )
   }
 
 
@@ -101,7 +100,7 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
     LOCS_map = array_map( "xy->1", LOCS[, c("plon","plat")], gridparams=p$gridparams )
     LOCS_index = match( LOCS_map, LU_map )
 
-    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
@@ -120,19 +119,19 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
      st_crs(LU) = st_crs( projection_proj4string("lonlat_wgs84") )
      LU = sf::st_transform( LU, crs=st_crs(LOCS) )
 
-     if (!exists("AUID", LOCS_AU)) LOCS_AU$AUID = as.character(1:nrow(LOCS_AU))
+     if (!exists("AUID", AU_target)) AU_target$AUID = as.character(1:nrow(AU_target))
 
-    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp = as.POSIXct( LOCS$timestamp, tz=tz, origin=lubridate::origin  )
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
     TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
   
  
     # now rasterize and re-estimate
     LOCS$AU_index = match( LOCS$AUID, LU$AUID  )    # assuming AUID's are consistent
     
-    # LOCS_AU .... must be sent ... <---------
-    LOCS_AU = sf::st_transform( LOCS_AU, crs=st_crs(pT$aegis_proj4string_planar_km) )
+    # AU_target .... must be sent ... <---------
+    AU_target = sf::st_transform( AU_target, crs=st_crs(pT$aegis_proj4string_planar_km) )
 
 
   #   LOCS_AUID = st_points_in_polygons( pts=st_as_sf( LOCS, coords=c("lon","lat"), crs=crs_lonlat ), polys = LU[, "AUID"], varname= "AUID" )
@@ -144,15 +143,15 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
   #   )
 
      LU_map = paste( 
-       st_points_in_polygons( pts=LU, polys=LOCS_AU[, "AUID"], varname= "AUID" ),
+       st_points_in_polygons( pts=LU, polys=AU_target[, "AUID"], varname= "AUID" ),
        array_map( "ts->1", LU[,c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) ), 
        sep="_"
      )
     
 
   #   for (vn in vnames) {
-  #     LU_summ = tapply( LU[, vn], LU_uid, FUN=FUNC, na.rm=TRUE )
-  #     LOCS[ , vn ] = LU_summ[ match( LOCS_map, as.character( names( LU_summ )) ) ]
+  #     LOCS_regridded = tapply( LU[, vn], LU_uid, FUN=FUNC, na.rm=TRUE )
+  #     LOCS[ , vn ] = LOCS_regridded[ match( LOCS_map, as.character( names( LOCS_regridded )) ) ]
   #   }
   #   return( st_drop_geometry(LOCS)[,vnames] )
    }
@@ -168,25 +167,22 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
       stop()
     }
 
-    if (is.null(AU)) AU = areal_units( p=pT )
-    if (!exists("AUID", AU)) AU$AUID = as.character(1:nrow(AU))
-    AU = sf::st_transform( AU, crs=st_crs(pT$aegis_proj4string_planar_km) )
-    
-    bm = match( AU$AUID, LU$AUID )
-      
+    AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
+    AU$au_index = 1:nrow(AU)
+    AU = st_cast(AU, "POLYGON")
+           
     LOCS = sf::st_as_sf( LOCS, coords=c("lon", "lat") )
     st_crs(LOCS) = st_crs( projection_proj4string("lonlat_wgs84") )
     LOCS = sf::st_transform( LOCS, crs=st_crs(pT$aegis_proj4string_planar_km) )
     LOCS$AUID = st_points_in_polygons( pts=LOCS, polys = AU[, "AUID"], varname= "AUID" )   
     LOCS$AU_index = match( LOCS$AUID, LU$AUID  )    
     
-    if (! "POSIXct" %in% class(LOCS$TIMESTAMP)  ) LOCS$TIMESTAMP = as.POSIXct( LOCS$TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year(LOCS$TIMESTAMP) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
+    LOCS$yr = lubridate::year(LOCS$timestamp) 
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
     TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
   
-    # need to check bm <<<---
-    LOCS[,vnames] = LU[[vnames_from]][ cbind( LOCS$AU_index[bm], TIMESTAMP_index )]
+    LOCS[,vnames] = LU[[vnames_from]][ cbind( LOCS$AU_index, TIMESTAMP_index )]
 
     return( LOCS[,vnames] )  
   
@@ -196,59 +192,50 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
   if ( lookup_from %in% c("carstm") & lookup_to == "areal_units" )  {
     # areal unit (LU) to areal units (AU/LOCS) 
 
+    # from source data: LU = modelled predictions; AU are associated areal units linked by "AUID" 
     LU = carstm_model( p=pT, DS="carstm_modelled_summary" ) 
     if (is.null(LU)) stop("Carstm predicted fields not found")
     if (!exists(vnames_from, LU)) {
-      message( "vnames_from: ", vnames_from, "not found. You probably want: t.predicted" )
+      message( "vnames_from: ", vnames_from, " not found. You probably want: t.predicted" )
       stop()
     }
 
-    if (is.null(AU)) AU = areal_units( p=pT )
-    if (!exists("AUID", AU)) AU$AUID = as.character(1:nrow(AU))
-    AU = sf::st_transform( AU, crs=st_crs(pT$aegis_proj4string_planar_km) )
+    AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
+    AU = st_cast(AU, "POLYGON")
+    AU$au_uid = 1:nrow(AU)
     
-    bm = match( AU$AUID, LU$AUID ); message("must check bm")
+    # au_uid is internal index of AU /LU
+    AU_raster = fasterize::fasterize( AU, raster( AU, res=min(pT$gridparams$res)/2, crs=st_crs( AU ) ), field="au_uid" )  
+    AU_pts = sf::st_as_sf( as.data.frame( raster::rasterToPoints(AU_raster)), coords=c("x", "y") )
+    st_crs(AU_pts) = st_crs( AU ) 
 
+    pts_AU = match(AU_pts$layer, AU$au_uid[match(LU$AUID, AU$AUID)] ) ## (layer==au_uid) -- to -- LU
 
-    if (! "POSIXct" %in% class(LOCS$TIMESTAMP)  ) LOCS$TIMESTAMP = as.POSIXct( LOCS$TIMESTAMP, tz=tz, origin=lubridate::origin  )
-    LOCS$yr = lubridate::year(LOCS$TIMESTAMP) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$TIMESTAMP ) - LOCS$yr
+    # to target locations: AU_target 
+    AU_target = sf::st_transform( AU_target, crs=st_crs(AU) )  # AU_target .... must be sent ... <---------
+    AU_target = st_cast( AU_target, "POLYGON")
+
+    if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
+    LOCS$yr = lubridate::year(LOCS$timestamp) 
+    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
     TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
-  
-    # now rasterize and re-estimate
-    LOCS$AU_index = match( LOCS$AUID, LU$AUID  )    # assuming AUID's are consistent
     
-    # LOCS_AU .... must be sent ... <---------
-    LOCS_AU = sf::st_transform( LOCS_AU, crs=st_crs(pT$aegis_proj4string_planar_km) )
+    # id membership in AU_target
+    pts_AUID = st_points_in_polygons( pts=AU_pts, polys=AU_target[,"AUID"], varname="AUID" ) 
 
-    raster_template = raster( LOCS_AU, res=min(pT$gridparams$res), crs=st_crs( pT$aegis_proj4string_planar_km ) ) 
-    
-    LL = fasterize::fasterize( AU, raster_template, field=vnames[1] )
-    LOCS_pts = sf::st_as_sf( as.data.frame( raster::rasterToPoints(LL)), coords=c("x", "y") )
-    st_crs(LOCS_pts) = st_crs( LOCS )
+    time_index = array_map( "ts->2", LOCS[ , c("yr", "dyear") ], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
 
-    # map LOCS to AU
-    LOCS_map =  paste( 
-      st_points_in_polygons( pts=LOCS_pts, polys=AU[, "AUID"], varname="AUID" ),  
-      array_map( "ts->1", LOCS[ , c("yr", "dyear") ], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) ), 
-      sep="_"
-    )
-
-    LU_map = paste( 
-      st_points_in_polygons( pts=LU, polys = AU[, "AUID"], varname= "AUID" ), 
-      array_map( "ts->1", st_drop_geometry( LU) [,c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) ), 
-      sep="_"
-    )
-    
     for (nn in 1:length(vnames)) {
       vn = vnames[nn]
-      if (nn > 1) {
-        LL = fasterize::fasterize( LU, raster_template, field=vn )
-        LOCS_pts = sf::st_as_sf( as.data.frame( raster::rasterToPoints(LL)), coords=c("x", "y") )
-        st_crs(LOCS_pts) = st_crs( LOCS )
-      } 
-      LU_summ = tapply( st_drop_geometry(LU)[, vn], LU_map, FUN=FUNC, na.rm=TRUE )
-      LOCS[ , vn ] = LU_summ[ match( LOCS_map, as.character( names( LU_summ )) ) ]
+      LOCS_regridded = apply( 
+        LU[[vn]], 
+        MARGIN=c(2,3), 
+        FUN=function( LUV ) {
+          tapply(X=LUV[ pts_AU ], INDEX=pts_AUID, FUN=FUNC, na.rm=TRUE) 
+        }
+      )
+      space_index = match( LOCS$AUID, as.numeric(as.character(dimnames(LOCS_regridded )[[1]] ))  )   # AUID of AU_target (from pts_AUID)
+      LOCS[ , vn ] = LOCS_regridded[ cbind( space_index, time_index ) ]
     }
 
     return( LOCS[,vnames] )
