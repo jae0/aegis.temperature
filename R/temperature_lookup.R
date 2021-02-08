@@ -1,7 +1,10 @@
-temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domain=NULL, lookup_from="core", lookup_to="points", FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), lookup_from_class="aggregated_data", tz="America/Halifax" ) {
+temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domain=NULL, 
+  lookup_from="core", lookup_to="points", 
+  FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), 
+  lookup_from_class="aggregated_data", tz="America/Halifax" ) {
  
   # z = temperature_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
-message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
+  message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
 
   if (is.null(spatial_domain))  {
     pT = temperature_parameters(  project_class=lookup_from  )
@@ -166,6 +169,8 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
       message( "vnames_from: ", vnames_from, "not found. You probably want: t.predicted" )
       stop()
     }
+    names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
+
 
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU$au_index = 1:nrow(AU)
@@ -199,13 +204,14 @@ message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
       message( "vnames_from: ", vnames_from, " not found. You probably want: t.predicted" )
       stop()
     }
+    names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
 
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU = st_cast(AU, "POLYGON")
     AU$au_uid = 1:nrow(AU)
     
     # au_uid is internal index of AU /LU
-    AU_raster = fasterize::fasterize( AU, raster( AU, res=min(pT$gridparams$res)/2, crs=st_crs( AU ) ), field="au_uid" )  
+    AU_raster = fasterize::fasterize( AU, raster::raster( AU, res=min(pT$gridparams$res)/2, crs=st_crs( AU ) ), field="au_uid" )  
     AU_pts = sf::st_as_sf( as.data.frame( raster::rasterToPoints(AU_raster)), coords=c("x", "y") )
     st_crs(AU_pts) = st_crs( AU ) 
 

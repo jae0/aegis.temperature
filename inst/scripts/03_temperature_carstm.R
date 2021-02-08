@@ -73,41 +73,31 @@
           breaks=seq(-1, 9, length.out=length(mypalette)+1), 
           coastline=coastline,
           isobaths=isobaths,
-          pal = mypalette, 
-          xlim = c(-600, 540),
-          ylim = c(0, 200),
-    main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
+  main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
 
   vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
-         breaks=seq(-1, 9, length.out=length(mypalette)+1), 
-          coastline=coastline,
-          isobaths=isobaths,
-          pal = mypalette, 
-          xlim = c(-600, 540),
-          ylim = c(0, 200),
-    main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  )
+    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    coastline=coastline,
+    isobaths=isobaths,
+    main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  
+  )
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-         breaks=seq(-1, 9, length.out=length(mypalette)+1), 
-          coastline=coastline,
-          isobaths=isobaths,
-          pal = mypalette, 
-          xlim = c(-600, 540),
-          ylim = c(0, 200),
-    main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") )  )
+    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    coastline=coastline,
+    isobaths=isobaths,
+    main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") ) 
+  )
 
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-           breaks=seq(-1, 9, length.out=length(mypalette)+1), 
-          coastline=coastline,
-          isobaths=isobaths,
-          pal = mypalette, 
-          xlim = c(-600, 540),
-          ylim = c(0, 200),
-    main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  )
-
+    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    coastline=coastline,
+    isobaths=isobaths,
+    main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  
+  )
 
 
   # map all bottom temps:
@@ -127,10 +117,8 @@
           breaks=seq(-1, 9, length.out=length(mypalette)+1), 
           coastline=coastline,
           isobaths=isobaths,
-          pal = mypalette, 
-          xlim = c(-600, 540),
-          ylim = c(0, 200),
-          main=fn_root  )
+          main=fn_root  
+        )
        
       png( filename=fn, width=3072, height=2304, pointsize=40, res=300  )
         print(o)
