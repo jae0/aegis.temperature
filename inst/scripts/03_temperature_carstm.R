@@ -111,19 +111,19 @@
     for ( s in res$dyear ){
       time_match = list( year=as.character(y), dyear=as.character(s) )
       fn_root = paste( "Bottom temperature",  paste0(time_match, collapse=" - ") )
-      fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
-       
-        o = carstm_map(  res=res, vn=vn, time_match=time_match, 
-          breaks=seq(-1, 9, length.out=length(mypalette)+1), 
-          coastline=coastline,
-          isobaths=isobaths,
-          main=fn_root  
-        )
-       
-      png( filename=fn, width=3072, height=2304, pointsize=40, res=300  )
-        print(o)
+      fn = file.path( outputdir, paste(fn_root, "pdf", sep=".") )
+
+      pdf( file=fn, width=8, height=6, bg='white', pointsize=10 )
+ 
+      carstm_map(  res=res, vn=vn, time_match=time_match, 
+        breaks=seq( 1, 9, length.out=9), 
+        coastline=coastline,
+        isobaths=isobaths,
+        main=fn_root  
+      )
       dev.off()
-     }
+            
+    }
   }
   
 # end
