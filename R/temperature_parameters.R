@@ -34,7 +34,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   # define focal years
   yrs_default = 1950:lubridate::year(lubridate::now())
   p = parameters_add_without_overwriting( p, yrs = yrs_default )  # default unless already provided
-  p = temporal_parameters(p=p)
+  p = temporal_parameters(p=p, timezone="America/Halifax")
 
   p = parameters_add_without_overwriting( p,
     additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
