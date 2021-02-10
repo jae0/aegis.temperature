@@ -32,7 +32,10 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   p = spatial_parameters( p=p )  # default grid and resolution
 
   # define focal years
-  if (!exists("year.assessment", p )) stop("need probably want to assign current year.assessment")  
+  if (!exists("year.assessment", p )) {
+    message("need probably want to assign current year.assessment, using current year for now")  
+    p$year.assessment = lubridate::year(Sys.Date()) 
+  }
 
   yrs_default = 1950:year.assessment
   p = parameters_add_without_overwriting( p, yrs = yrs_default, timezone="America/Halifax" )  # default unless already provided
