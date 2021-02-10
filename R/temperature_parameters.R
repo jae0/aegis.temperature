@@ -34,7 +34,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   # define focal years
   if (!exists("year.assessment", p )) {
     message("need probably want to assign current year.assessment, using current year for now")  
-    p$year.assessment = lubridate::year(Sys.Date()) 
+    p$year.assessment = lubridate::year(lubridate::now()) 
   }
 
   yrs_default = 1950:year.assessment
