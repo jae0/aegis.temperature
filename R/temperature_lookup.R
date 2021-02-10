@@ -1,15 +1,17 @@
 temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domain=NULL, 
   lookup_from="core", lookup_to="points", 
   FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), 
-  lookup_from_class="aggregated_data", tz="America/Halifax" ) {
+  lookup_from_class="aggregated_data", tz="America/Halifax", year.assessment=NULL ) {
  
   # z = temperature_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
   message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
 
+  if (is.null(year.assessment)) year.assessment = max( lubridate::year(LOCS$timestamp) )
+
   if (is.null(spatial_domain))  {
-    pT = temperature_parameters(  project_class=lookup_from  )
+    pT = temperature_parameters(  project_class=lookup_from, year.assessment=year.assessment )
   } else {
-    pT = temperature_parameters( spatial_domain=spatial_domain, project_class=lookup_from  )
+    pT = temperature_parameters( spatial_domain=spatial_domain, project_class=lookup_from,  year.assessment=year.assessment )
   }
 
   crs_lonlat =  st_crs(projection_proj4string("lonlat_wgs84"))
@@ -97,17 +99,17 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domai
     # matching to point (LU) to points (LOCS)
     LU = temperature_db ( p=pT, DS="spatial.annual.seasonal" )  # raw data
     LU = planar2lonlat(LU, proj.type=pT$aegis_proj4string_planar_km)
-    LU_map = array_map( "xy->1", LU[, c("plon","plat")], gridparams=p$gridparams )
+    LU_map = array_map( "xy->1", LU[, c("plon","plat")], gridparams=pT$gridparams )
     
     LOCS = lonlat2planar(LOCS, proj.type=pT$aegis_proj4string_planar_km) # get planar projections of lon/lat in km
-    LOCS_map = array_map( "xy->1", LOCS[, c("plon","plat")], gridparams=p$gridparams )
+    LOCS_map = array_map( "xy->1", LOCS[, c("plon","plat")], gridparams=pT$gridparams )
     LOCS_index = match( LOCS_map, LU_map )
 
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
-    TIMESTAMP_index = array_map( "ts->2", LOCS[, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+    TIMESTAMP_index = array_map( "ts->2", LOCS[, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
 
     return( LOCS[ cbind( LOCS_index, TIMESTAMP_index ) ] )
   }
@@ -127,7 +129,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domai
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+#     TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
   
  
     # now rasterize and re-estimate
@@ -185,7 +187,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domai
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
   
     LOCS[,vnames] = LU[[vnames_from]][ cbind( LOCS$AU_index, TIMESTAMP_index )]
 
@@ -224,7 +226,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, spatial_domai
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(p$ny, p$nw), res=c( 1, 1/p$nw ), origin=c( min(p$yrs), 0) )
+    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
     
     # id membership in AU_target
     pts_AUID = st_points_in_polygons( pts=AU_pts, polys=AU_target[,"AUID"], varname="AUID" ) 
