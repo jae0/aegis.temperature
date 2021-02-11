@@ -1,14 +1,14 @@
 temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL, 
   lookup_from="core", lookup_to="points", 
   FUNC=mean,  vnames="t", vnames_from=paste(vnames, "mean", sep="."), 
-  lookup_from_class="aggregated_data", tz="America/Halifax", year.assessment=NULL ) {
+  lookup_from_class="aggregated_data", tz="America/Halifax", year.assessment=NULL, pT=NULL ) {
  
   # z = temperature_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
   message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
 
   if (is.null(year.assessment)) year.assessment = max( lubridate::year(LOCS$timestamp) )
 
-  pT = temperature_parameters(  project_class=lookup_from, year.assessment=year.assessment )
+  if (is.null(pT)) pT = temperature_parameters(  project_class=lookup_from, year.assessment=year.assessment )
 
   crs_lonlat =  st_crs(projection_proj4string("lonlat_wgs84"))
 
