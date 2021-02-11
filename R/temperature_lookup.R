@@ -22,7 +22,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     LOCS$yr = lubridate::year( LOCS$timestamp ) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
-    LU = temperature_db ( p=pT, year.assessment=max(pT$yrs), DS=lookup_from_class )  # raw data
+    LU = temperature_db ( p=pT, DS=lookup_from_class )  # raw data
     LU = lonlat2planar(LU, proj.type=pT$aegis_proj4string_planar_km)
     names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
 
@@ -61,7 +61,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
 
 
-    LU = temperature_db ( p=pT, year.assessment=max(pT$yrs), DS=lookup_from_class )  # raw data
+    LU = temperature_db ( p=pT, DS=lookup_from_class )  # raw data
     LU = lonlat2planar(LU, proj.type=pT$aegis_proj4string_planar_km)
     names(LU)[ which(names(LU) ==vnames_from) ] =  vnames
     LU = sf::st_as_sf( LU, coords=c("lon", "lat") )
