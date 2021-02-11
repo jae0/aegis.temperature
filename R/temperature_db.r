@@ -942,7 +942,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     iM = which(!is.finite( M[, vnB] ))
     if (length(iM > 0)) {
-      M[iM, vnB] = bathymetry_lookup( LOCS=M[iM, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
+      M[iM, vnB] = bathymetry_lookup( LOCS=M[iM, c("lon", "lat")],  lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
     }
 
     M = M[ which( M$z < 2500) , ]
@@ -978,7 +978,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS[, pB$variabletomodel] = bathymetry_lookup(  LOCS=sppoly, 
       lookup_from = p$carstm_inputdata_model_source$bathymetry,
       lookup_to = "areal_units", 
-      spatial_domain=p$spatial_domain, 
       vnames="z" 
     ) 
 
