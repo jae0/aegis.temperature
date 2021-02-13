@@ -29,6 +29,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     aegis_dimensionality="space-year-season"
   )
 
+  p$quantile_bounds =c(0, 0.95) # trim upper bounds
+
   p = spatial_parameters( p=p )  # default grid and resolution
 
   # define focal years
