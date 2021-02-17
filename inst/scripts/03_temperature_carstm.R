@@ -20,7 +20,7 @@
 
 #          p$fraction_cv = 1.25
 #          p$fraction_todrop = 1/7
-          p$areal_units_constraint_nmin = 50  # n time slices req in each au >> nyears as we resolve season
+          p$areal_units_constraint_nmin = 30  # n time slices req in each au >> nyears as we resolve season
 
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
@@ -74,7 +74,7 @@
   vn = paste(p$variabletomodel, "predicted", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
           breaks=seq(-1, 9), 
-          palette="RdYlBu",
+          palette="viridis",
           coastline=coastline,
           isobaths=isobaths,
   main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
@@ -90,7 +90,7 @@
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
     breaks=seq(-1, 9), 
-    palette="RdYlBu",
+    palette="viridis",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") ) 
@@ -99,7 +99,7 @@
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
     breaks=seq(-1, 9), 
-    palette="RdYlBu",
+    palette="viridis",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  
@@ -117,20 +117,16 @@
     for ( s in res$dyear ){
       time_match = list( year=as.character(y), dyear=as.character(s) )
       fn_root = paste( "Bottom temperature",  paste0(time_match, collapse=" - ") )
-      fn = file.path( outputdir, paste(fn_root, "pdf", sep=".") )
+      fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-      pdf( file=fn, width=8, height=6, bg='white', pointsize=10 )
- 
       carstm_map(  res=res, vn=vn, time_match=time_match, 
         breaks=seq( 1, 9), 
         coastline=coastline,
         isobaths=isobaths,
-        palette="RdYlBu",
+        palette="viridis",
         main=fn_root,  
         outfilename=fn
       )
-      dev.off()
-            
     }
   }
   
