@@ -888,17 +888,18 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
       # reduce size
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      M = M[ which(M$yr %in% p$yrs), ]
       M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
       M$tiyr = M$yr + M$dyear
 
     } else {
 
       M = temperature_db( p=p, DS="bottom.all"  )
+      M = M[ which(M$yr %in% p$yrs), ]
       names(M)[which(names(M)=="t")] = p$variabletomodel
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
       M = lonlat2planar( M, p$aegis_proj4string_planar_km) # in case plon/plats are from an alternate projection  .. as there are multiple data sources
-      M = M[ which(M$yr %in% p$yrs), ]
 
       # globally remove all unrealistic data
       keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits

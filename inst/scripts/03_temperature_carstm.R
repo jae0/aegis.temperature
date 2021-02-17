@@ -9,7 +9,6 @@
   # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
   
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
-    p$areal_units_constraint_nmin = 15
 
     if (0) { 
         inla.setOption(num.threads=1  )  # note, you want 1 here unless you have a lot of RAM and swap 
@@ -19,7 +18,9 @@
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
         # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
-        p$areal_units_constraint_nmin = 50  # n time slices req in each au
+#          p$fraction_cv = 1.25
+#          p$fraction_todrop = 1/7
+          p$areal_units_constraint_nmin = 50  # n time slices req in each au >> nyears as we resolve season
 
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
@@ -72,14 +73,15 @@
 
   vn = paste(p$variabletomodel, "predicted", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
-          breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+          breaks=seq(-1, 9), 
+          palette="RdYlBu",
           coastline=coastline,
           isobaths=isobaths,
   main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
 
   vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match, 
-    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    breaks=seq(-1, 9), 
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  
@@ -87,7 +89,8 @@
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    breaks=seq(-1, 9), 
+    palette="RdYlBu",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") ) 
@@ -95,7 +98,8 @@
 
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    breaks=seq(-1, 9, length.out=length(mypalette)+1), 
+    breaks=seq(-1, 9), 
+    palette="RdYlBu",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  
@@ -118,10 +122,12 @@
       pdf( file=fn, width=8, height=6, bg='white', pointsize=10 )
  
       carstm_map(  res=res, vn=vn, time_match=time_match, 
-        breaks=seq( 1, 9, length.out=9), 
+        breaks=seq( 1, 9), 
         coastline=coastline,
         isobaths=isobaths,
-        main=fn_root  
+        palette="RdYlBu",
+        main=fn_root,  
+        outfilename=fn
       )
       dev.off()
             
