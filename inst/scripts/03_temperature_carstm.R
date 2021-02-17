@@ -6,8 +6,10 @@
 
   # construct basic parameter list defining the main characteristics of the study
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
-
+  # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
+  
+  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
+    p$areal_units_constraint_nmin = 15
 
     if (0) { 
         inla.setOption(num.threads=1  )  # note, you want 1 here unless you have a lot of RAM and swap 
