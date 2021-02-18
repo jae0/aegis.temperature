@@ -85,8 +85,8 @@
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    breaks=seq(-1, 9), 
-    palette="viridis",
+    breaks=seq(1, 9), 
+    palette="-RdYlBu",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") ) 
@@ -118,7 +118,7 @@
         breaks=seq( 1, 9), 
         coastline=coastline,
         isobaths=isobaths,
-        palette="YlOrRd",
+        palette="-RdYlBu",
         main=fn_root,  
         outfilename=fn
       )
