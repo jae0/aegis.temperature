@@ -168,7 +168,10 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
       stop()
     }
     names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
-
+  
+    nw = length(LU$dyear)
+    ny = length(LU$year)
+    yr0 = min(as.numeric(LU$year))
 
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU$au_index = 1:nrow(AU)
@@ -183,7 +186,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
+    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
   
     LOCS[,vnames] = LU[[vnames_from]][ cbind( LOCS$AU_index, TIMESTAMP_index )]
 
@@ -204,6 +207,10 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     }
     names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
 
+    nw = length(LU$dyear)
+    ny = length(LU$year)
+    yr0 = min(as.numeric(LU$year))
+
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU = st_cast(AU, "POLYGON")
     AU$au_uid = 1:nrow(AU)
@@ -222,12 +229,12 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
     LOCS$yr = lubridate::year(LOCS$timestamp) 
     LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
+    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
     
     # id membership in AU_target
     pts_AUID = st_points_in_polygons( pts=AU_pts, polys=AU_target[,"AUID"], varname="AUID" ) 
 
-    time_index = array_map( "ts->2", LOCS[ , c("yr", "dyear") ], dims=c(pT$ny, pT$nw), res=c( 1, 1/pT$nw ), origin=c( min(pT$yrs), 0) )
+    time_index = array_map( "ts->2", LOCS[ , c("yr", "dyear") ], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
 
     for (nn in 1:length(vnames)) {
       vn = vnames[nn]
@@ -239,6 +246,7 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
         }
       )
       space_index = match( LOCS$AUID, as.numeric(as.character(dimnames(LOCS_regridded )[[1]] ))  )   # AUID of AU_target (from pts_AUID)
+
       LOCS[ , vn ] = LOCS_regridded[ cbind( space_index, time_index ) ]
     }
 
