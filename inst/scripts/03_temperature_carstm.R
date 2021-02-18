@@ -8,10 +8,12 @@
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
   
-  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
+  ## -- WARNING: current default with 21 years of data, discretized to 10 seasonal slices and areal_units_constraint_nmin=30 with 2830 areal units took 500 GB RAM and 8 hours to process ... 2 cpus were used with 1 blas thread only 
 
+  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
     if (0) { 
-        inla.setOption(num.threads=1  )  # note, you want 1 here unless you have a lot of RAM and swap 
+        require(INLA)
+        inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
         inla.setOption(blas.num.threads= 1 )
 
         # to recreate the underlying data
@@ -56,16 +58,10 @@
   
   # maps of some of the results
 
-  coastline = coastline_db( p=p, DS="eastcoast_gadm" )
-  coastline = st_transform( coastline, st_crs(p$aegis_proj4string_planar_km) )
 
- # depth contours
-  isobaths = aegis.bathymetry::isobath_db( p=p, depths=c(50, 100, 200, 400, 800)  )
-  isobaths = st_transform( isobaths, st_crs(p$aegis_proj4string_planar_km) )
- 
-  # mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
-  # mypalette = rev( heat.colors( 150 ) )
-  mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
+  plot_crs = p$aegis_proj4string_planar_km
+  coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
+  isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
 
 
   time_match = list(year="2019", dyear="0.85")
@@ -99,7 +95,6 @@
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
     breaks=seq(-1, 9), 
-    palette="viridis",
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  
@@ -123,7 +118,7 @@
         breaks=seq( 1, 9), 
         coastline=coastline,
         isobaths=isobaths,
-        palette="viridis",
+        palette="YlOrRd",
         main=fn_root,  
         outfilename=fn
       )
