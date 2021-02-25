@@ -74,7 +74,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_proj4string_planar_km =  p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_type= "tesselation",
-      areal_units_constraint_nmin = 30,  # n time slices req in each au
+      areal_units_constraint_ntarget = 30,  # n time slices req in each au
+      areal_units_constraint_nmin = 3,  # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tesselation/ otherwise grid size ()
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
