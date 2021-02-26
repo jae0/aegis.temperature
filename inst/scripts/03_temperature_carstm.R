@@ -11,6 +11,8 @@
   ## -- WARNING: current default with 21 years of data, discretized to 10 seasonal slices and areal_units_constraint_nmin=30 with 2830 areal units took 500 GB RAM and 8 hours to process ... 2 cpus were used with 1 blas thread only 
 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
+
+
     if (0) { 
         require(INLA)
         inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
@@ -20,10 +22,12 @@
         xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
         # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
-#          p$fraction_cv = 1.25
-#          p$fraction_todrop = 1/7
-          p$areal_units_constraint_nmin = 30  # n time slices req in each au >> nyears as we resolve season
-
+          p$fraction_cv = 1.0
+          p$fraction_todrop = 1/5
+#          p$areal_units_constraint_nmin = 30  # n time slices req in each au >> nyears as we resolve season
+          p$areal_units_constraint_ntarget = 50  # n time slices req in each au
+          p$areal_units_constraint_nmin = 10   # n time slices req in each au
+ 
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
 
