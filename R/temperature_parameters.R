@@ -104,7 +104,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
-      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "normal"
+      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "gaussian"
     }
 
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks

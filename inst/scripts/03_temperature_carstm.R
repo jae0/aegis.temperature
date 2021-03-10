@@ -25,7 +25,7 @@
           p$fraction_cv = 1.0
           p$fraction_todrop = 1/5
 #          p$areal_units_constraint_nmin = 30  # n time slices req in each au >> nyears as we resolve season
-          p$areal_units_constraint_ntarget = 50  # n time slices req in each au
+          p$areal_units_constraint_ntarget = 40  # n time slices req in each au
           p$areal_units_constraint_nmin = 10   # n time slices req in each au
  
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
@@ -65,7 +65,7 @@
 
   plot_crs = p$aegis_proj4string_planar_km
   coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-  isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
+  isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400 ), project_to=plot_crs )
 
 
   time_match = list(year="2019", dyear="0.85")
