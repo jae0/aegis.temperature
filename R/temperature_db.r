@@ -995,6 +995,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     APS = NULL
 
     M$auid = match( M$AUID, region.id )
+    M$auid_main = M$auid
 
     M$year = aegis_floor( M$tiyr)
     M$year_factor = as.numeric( factor( M$year, levels=p$yrs))

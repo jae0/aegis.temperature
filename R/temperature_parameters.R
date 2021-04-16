@@ -68,6 +68,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$libs = c( p$libs, project.library ( "carstm", "INLA"  ) )
     p$project_class = "carstm"
 
+    nyrs = diff(range( p$yrs )) 
+
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
       areal_units_xydata = "temperature_db(p=p, DS='areal_units_input')",
@@ -99,9 +101,11 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       if ( !exists("carstm_model_formula", p)  ) {
         p$carstm_model_formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
-          '+ f( dyri, model="ar1", hyper=H$ar1 )',
-          '+ f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          '+ f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
+          ' + f( dyri, model="ar1", hyper=H$ar1 )',
+          ' + f( yr, model="ar1",  hyper=H$ar1 ) ',
+          ' + f( auid_main, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) ',
+          ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          ' + f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "gaussian"
