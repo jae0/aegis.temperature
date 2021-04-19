@@ -46,51 +46,45 @@
 
   fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=FALSE )   
 
-# Call:
-#    c("inla(formula = p$carstm_model_formula, family = p$carstm_model_family, ", " data = M, verbose = TRUE, 
-#    control.compute = list(dic = TRUE, ", " waic = TRUE, cpo = FALSE, config = TRUE), control.predictor = 
-#    list(compute = TRUE, ", " link = 1), control.family = p$options.control.family, ", " control.inla = 
-#    p$options.control.inla[[civ]], control.results = list(return.marginals.random = TRUE, ", " 
-#    return.marginals.predictor = TRUE))") 
+ 
 # Time used:
-#     Pre = 52.9, Running = 19283, Post = 88.3, Total = 19424 
+#     Pre = 76, Running = 9403, Post = 90, Total = 9569 
 # Fixed effects:
 #              mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-# (Intercept) 6.079 0.114      5.855    6.079      6.303 6.079   0
+# (Intercept) 6.255 0.165      5.932    6.255      6.579 6.255   0
 
 # Random effects:
 #   Name	  Model
 #     dyri AR1 model
 #    year AR1 model
-#    auid_main BYM2 model
+#    auid_main Besags ICAR model
 #    inla.group(z, method = "quantile", n = 9) RW2 model
 #    auid BYM2 model
 
 # Model hyperparameters:
-#                                                             mean       sd 0.025quant 0.5quant 0.975quant     mode
-# Precision for the Gaussian observations                      Inf      NaN   0.00e+00 0.00e+00        Inf      NaN
-# Precision for dyri                                      5.45e+01    0.076   5.44e+01 5.45e+01   5.47e+01 5.45e+01
-# Rho for dyri                                            7.61e-01    0.000   7.60e-01 7.61e-01   7.61e-01 7.61e-01
-# Precision for year                                      5.73e+01    0.029   5.73e+01 5.73e+01   5.74e+01 5.73e+01
-# Rho for year                                            7.57e-01    0.000   7.57e-01 7.57e-01   7.57e-01 7.57e-01
-# Precision for auid_main                                 2.16e+07 7146.359   2.16e+07 2.16e+07   2.16e+07 2.16e+07
-# Phi for auid_main                                       4.90e-02    0.000   4.90e-02 4.90e-02   4.90e-02 4.90e-02
-# Precision for inla.group(z, method = "quantile", n = 9) 4.78e+01    0.021   4.77e+01 4.78e+01   4.78e+01 4.78e+01
-# Precision for auid                                      5.13e+00    0.003   5.12e+00 5.13e+00   5.13e+00 5.13e+00
-# Phi for auid                                            5.20e-02    0.000   5.20e-02 5.20e-02   5.30e-02 5.20e-02
-# GroupRho for auid                                       1.86e-01    0.000   1.86e-01 1.86e-01   1.87e-01 1.86e-01
+#                                                           mean    sd 0.025quant 0.5quant 0.975quant   mode
+# Precision for the Gaussian observations                  0.358 0.001      0.357    0.358      0.359  0.359
+# Precision for dyri                                       6.004 0.016      5.973    6.003      6.036  6.002
+# Rho for dyri                                             0.115 0.001      0.113    0.115      0.118  0.115
+# Precision for year                                      11.642 0.038     11.561   11.645     11.710 11.656
+# Rho for year                                             0.267 0.001      0.265    0.267      0.269  0.267
+# Precision for auid_main                                  2.612 0.005      2.601    2.613      2.620  2.615
+# Precision for inla.group(z, method = "quantile", n = 9)  0.063 0.000      0.063    0.063      0.063  0.063
+# Precision for auid                                       0.004 0.000      0.004    0.004      0.004  0.004
+# Phi for auid                                             0.265 0.001      0.264    0.265      0.266  0.265
+# GroupRho for auid                                       -1.000 0.000     -1.000   -1.000     -1.000 -1.000
 
-# Expected number of effective parameters(stdev): 3253.15(0.008)
-# Number of equivalent replicates : 30.38 
+# Expected number of effective parameters(stdev): 7341.23(0.00)
+# Number of equivalent replicates : 13.46 
 
-# Deviance Information Criterion (DIC) ...............: 444473.28
-# Deviance Information Criterion (DIC, saturated) ....: 1662775.24
-# Effective number of parameters .....................: 3252.97
+# Deviance Information Criterion (DIC) ...............: 403891.81
+# Deviance Information Criterion (DIC, saturated) ....: 1622194.95
+# Effective number of parameters .....................: 7314.75
 
-# Watanabe-Akaike information criterion (WAIC) ...: 445858.87
-# Effective number of parameters .................: 4468.11
+# Watanabe-Akaike information criterion (WAIC) ...: 404937.97
+# Effective number of parameters .................: 7557.23
 
-# Marginal log-Likelihood:  -229235.22 
+# Marginal log-Likelihood:  -202605.62 
 # Posterior marginals for the linear predictor and
 #  the fitted values are computed
 
