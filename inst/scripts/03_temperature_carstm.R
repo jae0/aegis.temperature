@@ -8,7 +8,6 @@
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
   
-  ## -- WARNING: current default with 21 years of data, discretized to 10 seasonal slices and areal_units_constraint_nmin=30 with 2830 areal units took 500 GB RAM and 8 hours to process ... 2 cpus were used with 1 blas thread only 
 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
 
@@ -40,10 +39,63 @@
     }
     
 
-  # !!! WARNING, this uses a lot of RAM !!! 400 + GB with 4 cpus on default settings (1950-2020).. reduce 
-  # adjust based upon RAM requirements and ncores
+  # !!! WARNING: this uses a lot of RAM !!! 400 + GB with 4 cpus on default settings (1950-2020).. reduce 
+  # !!! WARNING: adjust based upon RAM requirements and ncores
+  # !!! WARNING: current default with 21 years of data, discretized to 10 seasonal slices and areal_units_constraint_nmin=30 with 2830 areal units 
+  # !!! WARNING: took 500 GB RAM/SWAP and 8 hours to process ... 2 cpus were used with 1 blas thread only 
 
   fit = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", file_compress_method=FALSE )   
+
+# Call:
+#    c("inla(formula = p$carstm_model_formula, family = p$carstm_model_family, ", " data = M, verbose = TRUE, 
+#    control.compute = list(dic = TRUE, ", " waic = TRUE, cpo = FALSE, config = TRUE), control.predictor = 
+#    list(compute = TRUE, ", " link = 1), control.family = p$options.control.family, ", " control.inla = 
+#    p$options.control.inla[[civ]], control.results = list(return.marginals.random = TRUE, ", " 
+#    return.marginals.predictor = TRUE))") 
+# Time used:
+#     Pre = 52.9, Running = 19283, Post = 88.3, Total = 19424 
+# Fixed effects:
+#              mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+# (Intercept) 6.079 0.114      5.855    6.079      6.303 6.079   0
+
+# Random effects:
+#   Name	  Model
+#     dyri AR1 model
+#    year AR1 model
+#    auid_main BYM2 model
+#    inla.group(z, method = "quantile", n = 9) RW2 model
+#    auid BYM2 model
+
+# Model hyperparameters:
+#                                                             mean       sd 0.025quant 0.5quant 0.975quant     mode
+# Precision for the Gaussian observations                      Inf      NaN   0.00e+00 0.00e+00        Inf      NaN
+# Precision for dyri                                      5.45e+01    0.076   5.44e+01 5.45e+01   5.47e+01 5.45e+01
+# Rho for dyri                                            7.61e-01    0.000   7.60e-01 7.61e-01   7.61e-01 7.61e-01
+# Precision for year                                      5.73e+01    0.029   5.73e+01 5.73e+01   5.74e+01 5.73e+01
+# Rho for year                                            7.57e-01    0.000   7.57e-01 7.57e-01   7.57e-01 7.57e-01
+# Precision for auid_main                                 2.16e+07 7146.359   2.16e+07 2.16e+07   2.16e+07 2.16e+07
+# Phi for auid_main                                       4.90e-02    0.000   4.90e-02 4.90e-02   4.90e-02 4.90e-02
+# Precision for inla.group(z, method = "quantile", n = 9) 4.78e+01    0.021   4.77e+01 4.78e+01   4.78e+01 4.78e+01
+# Precision for auid                                      5.13e+00    0.003   5.12e+00 5.13e+00   5.13e+00 5.13e+00
+# Phi for auid                                            5.20e-02    0.000   5.20e-02 5.20e-02   5.30e-02 5.20e-02
+# GroupRho for auid                                       1.86e-01    0.000   1.86e-01 1.86e-01   1.87e-01 1.86e-01
+
+# Expected number of effective parameters(stdev): 3253.15(0.008)
+# Number of equivalent replicates : 30.38 
+
+# Deviance Information Criterion (DIC) ...............: 444473.28
+# Deviance Information Criterion (DIC, saturated) ....: 1662775.24
+# Effective number of parameters .....................: 3252.97
+
+# Watanabe-Akaike information criterion (WAIC) ...: 445858.87
+# Effective number of parameters .................: 4468.11
+
+# Marginal log-Likelihood:  -229235.22 
+# Posterior marginals for the linear predictor and
+#  the fitted values are computed
+
+
+
 
     # extract results
     if (0) {
@@ -79,17 +131,17 @@
           isobaths=isobaths,
   main=paste("Bottom temperature", paste0(time_match, collapse="-") )  )
 
-  vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
-  carstm_map(  res=res, vn=vn, time_match=time_match, 
-    breaks=seq(-1, 9), 
-    coastline=coastline,
-    isobaths=isobaths,
-    main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  
-  )
+  # vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
+  # carstm_map(  res=res, vn=vn, time_match=time_match, 
+  #   breaks=seq(-1, 9), 
+  #   coastline=coastline,
+  #   isobaths=isobaths,
+  #   main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  
+  # )
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    breaks=seq(1, 9), 
+    breaks=seq(-1, 1, by=0.25), 
     palette="-RdYlBu",
     coastline=coastline,
     isobaths=isobaths,
@@ -98,7 +150,7 @@
 
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
-    breaks=seq(-1, 9), 
+    breaks=seq(-1, 1, by=0.25), 
     coastline=coastline,
     isobaths=isobaths,
     main=paste("Bottom temperature spatial effects", paste0(time_match, collapse="-") )  
