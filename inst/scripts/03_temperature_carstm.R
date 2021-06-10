@@ -57,9 +57,9 @@
 #   Name	  Model
 #     dyri AR1 model
 #    year AR1 model
-#    auid_main Besags ICAR model
+#    space Besags ICAR model
 #    inla.group(z, method = "quantile", n = 9) RW2 model
-#    auid BYM2 model
+#    space BYM2 model
 
 # Model hyperparameters:
 #                                                           mean    sd 0.025quant 0.5quant 0.975quant   mode
@@ -68,11 +68,11 @@
 # Rho for dyri                                             0.115 0.001      0.113    0.115      0.118  0.115
 # Precision for year                                      11.642 0.038     11.561   11.645     11.710 11.656
 # Rho for year                                             0.267 0.001      0.265    0.267      0.269  0.267
-# Precision for auid_main                                  2.612 0.005      2.601    2.613      2.620  2.615
+# Precision for space                                  2.612 0.005      2.601    2.613      2.620  2.615
 # Precision for inla.group(z, method = "quantile", n = 9)  0.063 0.000      0.063    0.063      0.063  0.063
-# Precision for auid                                       0.004 0.000      0.004    0.004      0.004  0.004
-# Phi for auid                                             0.265 0.001      0.264    0.265      0.266  0.265
-# GroupRho for auid                                       -1.000 0.000     -1.000   -1.000     -1.000 -1.000
+# Precision for space                                       0.004 0.000      0.004    0.004      0.004  0.004
+# Phi for space                                             0.265 0.001      0.264    0.265      0.266  0.265
+# GroupRho for space                                       -1.000 0.000     -1.000   -1.000     -1.000 -1.000
 
 # Expected number of effective parameters(stdev): 7341.23(0.00)
 # Number of equivalent replicates : 13.46 
@@ -133,7 +133,7 @@
   #   main=paste("Bottom temperature random effects", paste0(time_match, collapse="-") )  
   # )
 
-  vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
+  vn = paste(p$variabletomodel, "random_space_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
     breaks=seq(-1, 1, by=0.25), 
     palette="-RdYlBu",
@@ -142,7 +142,7 @@
     main=paste("Bottom temperature nonspatial effects", paste0(time_match, collapse="-") ) 
   )
 
-  vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
+  vn = paste(p$variabletomodel, "random_space_spatial", sep=".")
   carstm_map(  res=res, vn=vn, time_match=time_match , 
     breaks=seq(-1, 1, by=0.25), 
     coastline=coastline,

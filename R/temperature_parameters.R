@@ -101,11 +101,12 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       if ( !exists("carstm_model_formula", p)  ) {
         p$carstm_model_formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
-          ' + f( dyri, model="ar1", hyper=H$ar1 )',
-          ' + f( year, model="ar1",  hyper=H$ar1 ) ',
-          ' + f( auid_main, model="besag", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE  ) ',
+          ' + f( uid, model="iid" )',
+          ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE )',
+          ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE  ) ',
           ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          ' + f( auid, model="bym2", graph=slot(sppoly, "nb"), group=year_factor, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
+          ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "gaussian"
@@ -354,7 +355,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       stmv_local_modelcall = paste(
         'inla(
           formula = t ~ 1
-            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+            + f( uid, model="iid" )
+            + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
           family = "normal",
           data= dat,
           control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations

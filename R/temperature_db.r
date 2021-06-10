@@ -994,19 +994,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = rbind( M[, vtokeep], APS[, vtokeep] )
     APS = NULL
 
-    M$auid = match( M$AUID, region.id )
-    M$auid_main = M$auid
-
-    M$year = aegis_floor( M$tiyr)
-    M$year_factor = as.numeric( factor( M$year, levels=p$yrs))
-    M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
-    M$dyri = discretize_data( M[, "dyear"], p$discretization[["dyear"]] )
+    M$space =  M$AUID
     
-    if (0) {
-      M$tiyri  = aegis_floor( M$tiyr / p$tres )*p$tres    # discretize for inla
-      M$seasonal = (as.numeric(M$year_factor) - 1) * length(p$dyears)  + as.numeric(M$dyear)
-      M$zi = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
-    }
+    M$year = aegis_floor( M$tiyr)
+    M$time =  as.character( M$year )
+    M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
+    M$season = as.character( discretize_data( M[, "dyear"], p$discretization[["dyear"]] ) )
+    M$uid = 1:nrow(M)  # seems to require an iid model for each obs for stability .. use this for iid
 
     save( M, file=fn, compress=TRUE )
     return( M )
