@@ -812,23 +812,23 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     names(xydata)[which(names(xydata)=="z.mean" )] = "z"
     xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
 
-    keep = which( xydata$lon < -54 & xydata$lon > -71 & xydata$lat < 49 & xydata$lat > 41 ) 
+    keep = which( xydata$lon < -54 & xydata$lon > -71 & xydata$lat < 49 & xydata$lat > 41 )
 
     xydata =xydata[ keep, ]
 
     # drop a corner far offshore
     x0 = c(40, -60 )
     x1 = c(43, -55 )
-    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
-    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] )
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b
     i = which( xydata$lon > m*xydata$lat + b )
     xydata = xydata[ -i, ]
 
     # drop a corner Gulf of St Lawrence
     x0 = c(46, -71 )
     x1 = c(49, -66 )
-    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
-    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] )
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b
     i = which( xydata$lon < m*xydata$lat + b )
 
     xydata = xydata[ -i, ]
@@ -837,8 +837,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # drop a corner NFLD
     x0 = c(48, -54 )
     x1 = c(49, -58.5 )
-    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] ) 
-    b = x0[2] - m *x0[1]   # -60 = m * 40 + b 
+    m = ( x0[2] - x1[2] ) / ( x0[1] - x1[1] )
+    b = x0[2] - m *x0[1]   # -60 = m * 40 + b
     i = which( xydata$lon > m*xydata$lat + b )
 
     xydata = xydata[ -i, ]
@@ -921,86 +921,15 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     }
 
-    M$AUID = st_points_in_polygons(
-      pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
-      polys = sppoly[, "AUID"],
-      varname="AUID"
+    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
+      lookup = c("bathymetry" ),
+      varstoretain = c( "sa" ),
+      APS_data_offset=1
     )
-    M = M[ which(!is.na(M$AUID)),]
-    M$AUID = as.character( M$AUID )  # match each datum to an area
 
-
-     # already has depth .. but in case some are missing data
-    pB = bathymetry_parameters( project_class="core"  )
-    vnB = pB$variabletomodel
-    if ( !(exists(vnB, M ))) {
-      vnB2 = paste(vnB, "mean", sep=".")
-      if ((exists(vnB2, M ))) {
-        names(M)[which(names(M) == vnB2 )] = vnB
-      } else {
-        M[,vnB] = NA
-      }
-    }
-    iM = which(!is.finite( M[, vnB] ))
-    if (length(iM > 0)) {
-      M[iM, vnB] = bathymetry_lookup( LOCS=M[iM, c("lon", "lat")],  lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
-    }
 
     M = M[ which( M$z < 2500) , ]
     M = M[ which( M$z > 5 ) , ]
-
-    # must go after depths have been finalized
-    if (p$carstm_inputs_aggregated) {
-      if ( exists("spatial_domain", p)) {
-        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-      }
-    }
-
-
-
-    M$lon = NULL
-    M$lat = NULL
-    M$plon = NULL
-    M$plat = NULL
-    M$tag = "observations"
-
-    # end observations
-    # ----------
-
-    # predicted locations (APS)
-
-    region.id = slot( slot(sppoly, "nb"), "region.id" )
-    APS = st_drop_geometry(sppoly)
-
-    APS$AUID = as.character( APS$AUID )
-    APS$tag ="predictions"
-    APS[, p$variabletomodel] = NA
-
-    APS[, pB$variabletomodel] = bathymetry_lookup(  LOCS=sppoly, 
-      lookup_from = p$carstm_inputdata_model_source$bathymetry,
-      lookup_to = "areal_units", 
-      vnames="z" 
-    ) 
-
-    avn = c( p$variabletomodel, "z", "tag", "AUID"  )
-    APS = APS[, avn]
-
-    # expand APS to all time slices
-    n_aps = nrow(APS)
-    APS = cbind( APS[ rep.int(1:n_aps, p$nt), ], rep.int( p$prediction_ts, rep(n_aps, p$nt )) )
-    names(APS) = c(avn, "tiyr")
-
-    vtokeep = intersect( names(M), names(APS) )
-    M = rbind( M[, vtokeep], APS[, vtokeep] )
-    APS = NULL
-
-    M$space =  M$AUID
-    
-    M$year = aegis_floor( M$tiyr)
-    M$time =  as.character( M$year )
-    M$dyear =  M$tiyr - M$year  # reset in case it has been discretized
-    M$season = as.character( discretize_data( M[, "dyear"], p$discretization[["dyear"]] ) )
-    M$uid = 1:nrow(M)  # seems to require an iid model for each obs for stability .. use this for iid
 
     save( M, file=fn, compress=TRUE )
     return( M )
@@ -1051,7 +980,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     B = B[ which(is.finite(rowSums(B))), ]
     return (list(input=B, output=OUT))
 
-    
+
   }
 
 
