@@ -39,7 +39,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$year.assessment = lubridate::year(lubridate::now()) 
   }
 
-  yrs_default = 1950:year.assessment
+  yrs_default = 1950:p$year.assessment
   p = parameters_add_without_overwriting( p, yrs = yrs_default, timezone="America/Halifax" )  # default unless already provided
   p = temporal_parameters(p=p)
 
