@@ -747,47 +747,60 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$dyear = M$tiyr - M$yr
     M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
 
-    bb = as.data.frame( t( simplify2array(
-      tapply( X=M[,p$variabletomodel], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
-        FUN = function(w) { c(
-          mean(w, na.rm=TRUE),
-          sd(w, na.rm=TRUE),
-          length( which(is.finite(w)) )
-        ) }, simplify=TRUE )
-    )))
-    colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
-    bb$id = rownames(bb)
-    out = bb
+
+    setDT(M)
+    M$t = M[[p$variabletomodel]]
+    M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
+    colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep="."), paste( "z", c("mean", "sd", "n"), sep=".") )
+    M = setDF(M)
 
 
-    bb = NULL
-    labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
 
-    out$plon = labs[,1]
-    out$plat = labs[,2]
-    out$yr = labs[,3]
-    out$dyear = labs[,4]
-    labs = NULL
+    if (0) {
+      # old method .. too slow
 
-    gc()
+        bb = as.data.frame( t( simplify2array(
+          tapply( X=M[,p$variabletomodel], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+            FUN = function(w) { c(
+              mean(w, na.rm=TRUE),
+              sd(w, na.rm=TRUE),
+              length( which(is.finite(w)) )
+            ) }, simplify=TRUE )
+        )))
+        colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
+        bb$id = rownames(bb)
+        out = bb
 
-    bb = as.data.frame( t( simplify2array(
-      tapply( X=M[,"z"], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
-        FUN = function(w) { c(
-          mean(w, na.rm=TRUE),
-          sd(w, na.rm=TRUE),
-          length( which(is.finite(w)) )
-        ) }, simplify=TRUE )
-    )))
-    colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
-    bb$id = rownames(bb)
 
-    M = merge( out, bb, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+        bb = NULL
+        labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
 
-    M = M[ which( is.finite( M[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
-    out =NULL
+        out$plon = labs[,1]
+        out$plat = labs[,2]
+        out$yr = labs[,3]
+        out$dyear = labs[,4]
+        labs = NULL
 
-    M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+        gc()
+
+        bb = as.data.frame( t( simplify2array(
+          tapply( X=M[,"z"], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
+            FUN = function(w) { c(
+              mean(w, na.rm=TRUE),
+              sd(w, na.rm=TRUE),
+              length( which(is.finite(w)) )
+            ) }, simplify=TRUE )
+        )))
+        colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
+        bb$id = rownames(bb)
+
+        M = merge( out, bb, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+        M = M[ which( is.finite( M[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
+        out =NULL
+
+        M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+    }
 
     save( M, file=fn, compress=TRUE )
     return( M )
