@@ -863,7 +863,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
     fn = carstm_filenames( p=p, returntype="carstm_inputs", areal_units_fn=areal_units_fn )
-    if (!p$carstm_inputs_aggregated) {
+    if (!p$carstm_inputs_prefilter) {
       fn = carstm_filenames( p=p, returntype="carstm_inputs_rawdata", areal_units_fn=areal_units_fn )
     }
 
@@ -882,7 +882,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
 
-    if (p$carstm_inputs_aggregated) {
+    if (p$carstm_inputs_prefilter) {
 
       M = temperature_db( p=p, DS="aggregated_data"  )
       names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
