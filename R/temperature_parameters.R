@@ -7,7 +7,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
   # create/update library list
   p$libs = unique( c( p$libs, RLibrary ( "colorspace", "lubridate",  "lattice",
-    "parallel", "sf", "GADMTools", "INLA" ) ) )
+    "parallel", "sf", "GADMTools", "INLA" , "data.table") ) )
 
   p$libs = unique( c( p$libs, project.library ( "aegis", "aegis.bathymetry", "aegis.coastline",
     "aegis.polygons", "aegis.substrate", "aegis.temperature", "aegis.survey" ) ) )

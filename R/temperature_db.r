@@ -752,7 +752,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$t = M[[p$variabletomodel]]
     M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
     colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep="."), paste( "z", c("mean", "sd", "n"), sep=".") )
-    M = setDF(M)
+    setDF(M)
 
 
 
@@ -923,7 +923,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
         M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
     
-        M = setDT(M)
+        setDT(M)
         M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
         # M = M[ M[, sample(.N, min(.N, p$carstm_inputs_prefilter_n) ), by=list(plon, plat)], .SD[i.V1], on=list(plon, plat), by=.EACHI]  # faster .. just a bit
         setDF(M)
