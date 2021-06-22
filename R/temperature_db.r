@@ -750,7 +750,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     setDT(M)
     M$t = M[[p$variabletomodel]]
-    M = M[, .( mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
+    M = M[, .( mean=mean(t, na.rm=TRUE), sd=sd(t, na.rm=TRUE), n=length(which(is.finite(t))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
     colnames(M) = c( "plon", "plat", "yr", "dyear", paste( p$variabletomodel, c("mean", "sd", "n"), sep="."), paste( "z", c("mean", "sd", "n"), sep=".") )
     setDF(M)
 
@@ -959,12 +959,17 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) M = M[ keep, ]
 
-    M$tiyr = lubridate::decimal_date ( M$date )
-    M$dyear = M$tiyr - M$yr
+    M$tiyr = M$yr + M$dyear 
+
+    if ("numeric" %in% class(sppoly$au_sa_km2)) {
+      sppoly$data_offset = sppoly$au_sa_km2
+    } else {
+      sppoly$data_offset = units::drop_units(sppoly$au_sa_km2)
+    }
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
       lookup = c("bathymetry" ),
-      varstoretain = c( "sa" ),
+      varstoretain = c( "data_offset" ),
       APS_data_offset=1
     )
 
