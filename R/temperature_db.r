@@ -750,9 +750,11 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     setDT(M)
     M$t = M[[p$variabletomodel]]
-    M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
-    colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep="."), paste( "z", c("mean", "sd", "n"), sep=".") )
+    M = M[, .( mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))), meanz=mean(z, na.rm=TRUE), sdz=sd(z, na.rm=TRUE), nz=length(which(is.finite(z))) ), by=list(plon, plat, yr, dyear) ]
+    colnames(M) = c( "plon", "plat", "yr", "dyear", paste( p$variabletomodel, c("mean", "sd", "n"), sep="."), paste( "z", c("mean", "sd", "n"), sep=".") )
     setDF(M)
+
+    M = planar2lonlat( M, p$aegis_proj4string_planar_km, returntype="DF")
 
 
 
