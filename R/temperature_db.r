@@ -969,7 +969,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
       lookup = c("bathymetry" ),
-      varstoretain = c( "data_offset" ),
+      varstoretain = c( "data_offset", "tiyr" ),
       APS_data_offset=1
     )
 
