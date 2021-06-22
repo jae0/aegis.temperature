@@ -944,12 +944,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     keep = which( M[,p$variabletomodel] >= -3 & M[,p$variabletomodel] <= 25 ) # hard limits
     if (length(keep) > 0 ) M = M[ keep, ]
 
-    # p$quantile_bounds = c(0.0005, 0.9995)
-    if (exists("quantile_bounds", p)) {
-      TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
-      keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
-      if (length(keep) > 0 ) M = M[ keep, ]
-      # this was -1.7, 21.8 in 2015
+    if (p$carstm_inputs_prefilter != "aggregated") {
+      # aggregated data already have been truncated ... 
+      if (exists("quantile_bounds", p)) {
+        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        if (length(keep) > 0 ) M = M[ keep, ]
+        # this was -1.7, 21.8 in 2015
+      }
     }
 
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
