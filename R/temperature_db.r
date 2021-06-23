@@ -961,18 +961,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     M$tiyr = M$yr + M$dyear 
 
-    if ("numeric" %in% class(sppoly$au_sa_km2)) {
-      sppoly$data_offset = sppoly$au_sa_km2
-    } else {
-      sppoly$data_offset = units::drop_units(sppoly$au_sa_km2)
-    }
-
-    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
-      lookup = c("bathymetry" ),
-      varstoretain = c( "data_offset", "tiyr" ),
-      APS_data_offset=1
-    )
-
+    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly, lookup = c("bathymetry" ) )
 
     M = M[ which( M$z < 2500) , ]
     M = M[ which( M$z > 5 ) , ]
