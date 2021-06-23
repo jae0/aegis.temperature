@@ -44,7 +44,7 @@
   # !!! WARNING: current default with 21 years of data, discretized to 10 seasonal slices and areal_units_constraint_nmin=30 with 2830 areal units 
   # !!! WARNING: took 500 GB RAM/SWAP and 8 hours to process ... 2 cpus were used with 1 blas thread only 
 
-  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=0, redo_fit = TRUE )   
+  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=5, redo_fit = TRUE )   
 
  
 # Time used:

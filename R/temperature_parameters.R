@@ -45,8 +45,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
   p = parameters_add_without_overwriting( p,
     additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
-    inputdata_spatial_discretization_planar_km = p$pres / 4, # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
-    inputdata_temporal_discretization_yr = 1/52,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling;; use 1/12 -- monthly or even 1/4.. if data density is low
+    inputdata_spatial_discretization_planar_km = p$pres / 5, # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+    inputdata_temporal_discretization_yr = 1/365,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling;; use 1/12 -- monthly or even 1/4.. if data density is low
     dyear_discretization_rawdata = c( {c(1:365)-1}/365, 1)
   )
   # dyear_discretization_rawdata :: intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..) .. need to close right side for "cut" .. controls resolution of data prior to modelling
@@ -106,7 +106,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE )',
           ' + f( time, model="ar1",  hyper=H$ar1 ) ',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE  ) ',
-          ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          ' + f( inla.group( z, method="quantile", n=7 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
