@@ -163,32 +163,27 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
      # areal unit (LU) to points (LOCS)
     LU = carstm_model( p=pT, DS="carstm_modelled_summary" ) 
     if (is.null(LU)) stop("Carstm predicted fields not found")
-    if (!exists(vnames_from, LU)) {
-      message( "vnames_from: ", vnames_from, "not found. You probably want: t.predicted" )
-      stop()
-    }
-    names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
-  
-    nw = length(LU$dyear)
-    ny = length(LU$year)
-    yr0 = min(as.numeric(LU$year))
+ 
+    nw = length(LU$season)
+    ny = length(LU$time)
+    yr0 = min(as.numeric(LU$time))
 
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU$au_index = 1:nrow(AU)
     AU = st_cast(AU, "POLYGON")
-           
+
     LOCS = sf::st_as_sf( LOCS, coords=c("lon", "lat") )
     st_crs(LOCS) = st_crs( projection_proj4string("lonlat_wgs84") )
     LOCS = sf::st_transform( LOCS, crs=st_crs(pT$aegis_proj4string_planar_km) )
     LOCS$AUID = st_points_in_polygons( pts=LOCS, polys = AU[, "AUID"], varname= "AUID" )   
-    LOCS$AU_index = match( LOCS$AUID, LU$AUID  )    
+    LOCS$AU_index = match( LOCS$AUID, LU$space  )    
     
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
-    LOCS$yr = lubridate::year(LOCS$timestamp) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("yr", "dyear")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
+    LOCS$time = lubridate::year(LOCS$timestamp) 
+    LOCS$season = lubridate::decimal_date( LOCS$timestamp ) - LOCS$time
+    TIMESTAMP_index = array_map( "ts->2", st_drop_geometry(LOCS) [, c("time", "season")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
   
-    LOCS[,vnames] = LU[[vnames_from]][ cbind( LOCS$AU_index, TIMESTAMP_index )]
+    LOCS[,vnames] = LU[["predictions"]][ cbind( LOCS$AU_index, TIMESTAMP_index, "mean" )]
 
     return( LOCS[,vnames] )  
   
@@ -201,15 +196,10 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     # from source data: LU = modelled predictions; AU are associated areal units linked by "AUID" 
     LU = carstm_model( p=pT, DS="carstm_modelled_summary" ) 
     if (is.null(LU)) stop("Carstm predicted fields not found")
-    if (!exists(vnames_from, LU)) {
-      message( "vnames_from: ", vnames_from, " not found. You probably want: t.predicted" )
-      stop()
-    }
-    names(LU)[ which(names(LU) == vnames_from ) ] =  vnames
 
-    nw = length(LU$dyear)
-    ny = length(LU$year)
-    yr0 = min(as.numeric(LU$year))
+    nw = length(LU$season)
+    ny = length(LU$time)
+    yr0 = min(as.numeric(LU$time))
 
     AU = sf::st_transform( LU$sppoly, crs=st_crs(pT$aegis_proj4string_planar_km) )
     AU = st_cast(AU, "POLYGON")
@@ -220,26 +210,28 @@ temperature_lookup = function( LOCS=NULL, AU_target=NULL, AU=NULL,
     AU_pts = sf::st_as_sf( as.data.frame( raster::rasterToPoints(AU_raster)), coords=c("x", "y") )
     st_crs(AU_pts) = st_crs( AU ) 
 
-    pts_AU = match(AU_pts$layer, AU$au_uid[match(LU$AUID, AU$AUID)] ) ## (layer==au_uid) -- to -- LU
+    pts_AU = match(AU_pts$layer, AU$au_uid[match(LU$space, AU$AUID)] ) ## (layer==au_uid) -- to -- LU
 
     # to target locations: AU_target 
     AU_target = sf::st_transform( AU_target, crs=st_crs(AU) )  # AU_target .... must be sent ... <---------
     AU_target = st_cast( AU_target, "POLYGON")
 
     if (! "POSIXct" %in% class(LOCS$timestamp)  ) LOCS$timestamp =  lubridate::date_decimal( LOCS$timestamp, tz=tz )
-    LOCS$yr = lubridate::year(LOCS$timestamp) 
-    LOCS$dyear = lubridate::decimal_date( LOCS$timestamp ) - LOCS$yr
-    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("yr", "dyear")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
+    LOCS$time = lubridate::year(LOCS$timestamp) 
+    LOCS$season = lubridate::decimal_date( LOCS$timestamp ) - LOCS$time
+    TIMESTAMP_index = array_map( "ts->2", LOCS [, c("time", "season")], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
     
     # id membership in AU_target
     pts_AUID = st_points_in_polygons( pts=AU_pts, polys=AU_target[,"AUID"], varname="AUID" ) 
 
-    time_index = array_map( "ts->2", LOCS[ , c("yr", "dyear") ], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
+    time_index = array_map( "ts->2", LOCS[ , c("time", "season") ], dims=c(ny, nw), res=c( 1, 1/nw ), origin=c( yr0, 0) )
 
-    for (nn in 1:length(vnames)) {
-      vn = vnames[nn]
+    stats = dimnames(LU$predictions)[["stat"]]
+
+    for (nn in 1:length(stats)) {
+      vn = stats[nn]
       LOCS_regridded = apply( 
-        LU[[vn]], 
+        LU[,,,vn], 
         MARGIN=c(2,3), 
         FUN=function( LUV ) {
           tapply(X=LUV[ pts_AU ], INDEX=pts_AUID, FUN=FUNC, na.rm=TRUE) 
