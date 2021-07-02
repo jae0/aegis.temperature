@@ -40,10 +40,10 @@
     
 
   # !!! WARNING: this uses a lot of RAM  
+  # Time used: 13841.799 sec (to fit) ~ 4 hrd
   
   res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE )   
 
-  # Time used: 13841.799 sec (to fit)
 
  
 
