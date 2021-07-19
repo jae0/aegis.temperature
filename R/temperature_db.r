@@ -447,7 +447,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     loc.bottom.database = file.path( basedir, "archive", "bottomdatabase"  )
 
     if (DS=="bottom.annual.rawdata") {
-      file.path(  "profiles")
       fn = file.path( loc.bottom.database, paste("bottom", yr, "rdata", sep="."))
       Z = NULL
       if (file.exists(fn) ) load (fn )
@@ -522,6 +521,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     BS_map = array_map( "xy->1", BS[,c("plon","plat")], gridparams=p$gridparams )
 
     for ( yt in yr ) {
+      message( "bottom annual year ", yt)
       Z = NULL
       TDB = temperature_db( p=p, DS="bottom.annual.rawdata", yr=yt )
 
@@ -535,6 +535,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             if (length(bad) > 0) TDB=TDB[-bad,]
             # add approximate depth for filtering.. high resolution space
             TDB = lonlat2planar( TDB, p$aegis_proj4string_planar_km )
+            TDB_map = NULL
             if (exists("z", TDB)) {
               im = which(!is.finite( TDB$z ))
               TDB_map = array_map( "xy->1", TDB[im, c("plon","plat")], gridparams=p$gridparams )
@@ -543,6 +544,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
               TDB_map = array_map( "xy->1", TDB[,c("plon","plat")], gridparams=p$gridparams )
               TDB$z = BS[ match( TDB_map, BS_map ), "z.mean" ]
             }
+            TDB_map = NULL
             TDB = TDB[ is.finite(TDB$z), ]
           } else {
             TDB = NULL
@@ -550,15 +552,12 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-      bottom = NULL
+      bottom = NULL 
       BS = NULL
-      BS_map = NULL
-      TDB = NULL
-      TDB_map = NULL
 
       profile = NULL
       profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
-
+ 
       if (!is.null(profile)) {
         igood = which( profile$lon >= p$corners$lon[1] & profile$lon <= p$corners$lon[2]
                     &  profile$lat >= p$corners$lat[1] & profile$lat <= p$corners$lat[2] )
@@ -610,7 +609,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-      if (!is.null(TDB)) if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
+      if ( !is.null(TDB)) if ( nrow(TDB) > 0  )   Z = rbind( Z, TDB[ , output_vars] )
+      TDB = NULL
 
       if ( !is.null(bottom) ) Z = rbind( Z, bottom[ , output_vars ] )
 
