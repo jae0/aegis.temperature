@@ -45,8 +45,11 @@
 
   # override defaults to try to reduce RAM requirements
   
+  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE, control.inla = list( list( strategy='adaptive' ) ), inla.mode="experimental" )   
 
-  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE, options.control.inla = list( list( strategy='adaptive', int.strategy='eb' ) ) )   
+
+
+  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE, control.inla = list( list( strategy='adaptive', int.strategy='eb' ) ) )   
 
 
  
