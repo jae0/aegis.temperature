@@ -45,11 +45,9 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
   p = parameters_add_without_overwriting( p,
     additional.data=c("groundfish", "snowcrab", "USSurvey_NEFSC", "lobster"),
-    inputdata_spatial_discretization_planar_km = p$pres / 5, # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
-    inputdata_temporal_discretization_yr = 1/365,  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling;; use 1/12 -- monthly or even 1/4.. if data density is low
-    dyear_discretization_rawdata = c( {c(1:365)-1}/365, 1)
+    inputdata_spatial_discretization_planar_km = p$pres / 5, # controls resolution of data prior to modelling (km )
+    inputdata_temporal_discretization_yr = 1/52  # ie., weekly .. controls resolution of data prior to modelling to reduce data set and speed up modelling;; use 1/12 -- monthly or even 1/4.. if data density is low
   )
-  # dyear_discretization_rawdata :: intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..) .. need to close right side for "cut" .. controls resolution of data prior to modelling
 
 
   # ---------------------
@@ -116,7 +114,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
-      warning( "temperatp$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
+      warning( "p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
     }
 
     return(p)

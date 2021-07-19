@@ -575,8 +575,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           # don't need year as this is a yearly breakdown but just to be clear ..
           profile$id =  paste(
             aegis_floor(profile$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
-            aegis_floor(profile$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
-            paste(profile$yr, cut( profile$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
+            aegis_floor(profile$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km 
             sep="~"
           )
           ids =  sort( unique( profile$id ) )
