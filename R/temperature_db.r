@@ -523,6 +523,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     for ( yt in yr ) {
       message( "bottom annual year ", yt)
       Z = NULL
+
+      # if (yt %in% c(1999, 2000) ) browser()
+
       TDB = temperature_db( p=p, DS="bottom.annual.rawdata", yr=yt )
 
       if (!is.null(TDB)) {
@@ -553,8 +556,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
 
       bottom = NULL 
-      BS = NULL
-
       profile = NULL
       profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
  
@@ -689,15 +690,16 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     # depths are problematic: reject and use stmv solution:
 
-    pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class=p$carstm_inputdata_model_source$bathymetry )  # full default
+    pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain )  # full default
+
       LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
       LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
       O = lonlat2planar(O, p$aegis_proj4string_planar_km)
       M_map  = array_map( "xy->1", O[, c("plon","plat")], gridparams=p$gridparams )
       iML = match( M_map, LU_map )
       O[, "z"] = LU[ iML, "z" ]
-
      save(O, file=fbAll, compress=TRUE)
+
     return(fbAll)
   }
 
