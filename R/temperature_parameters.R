@@ -37,7 +37,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   if (!exists("year.assessment", p )) {
     if (exists("yr", p)) {
       p$year.assessment = max(p$yr)
-    if (exists("yrs", p)) {
+    } else if (exists("yrs", p)) {
       p$year.assessment = max(p$yrs)
     } else {
       message("need probably want to assign current year.assessment, using current year for now")  
