@@ -523,7 +523,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     for ( yt in yr ) {
       Z = NULL
-      TDB = temperature_db( DS="bottom.annual.rawdata", yr=yt )
+      TDB = temperature_db( p=p, DS="bottom.annual.rawdata", yr=yt )
 
       if (!is.null(TDB)) {
         if (nrow(TDB) > 0 ) {
