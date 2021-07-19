@@ -514,6 +514,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       return(Z)
     }
 
+    # probably want to change to DT : todo
+
     output_vars = c( "project", "date", "lon", "lat", "t", "z", "dyear", "yr", "t_uid" )
 
     BS = bathymetry_db ( p=bathymetry_parameters( spatial_domain=p$spatial_domain, project_class="core"  ), DS="aggregated_data" )  # raw data
