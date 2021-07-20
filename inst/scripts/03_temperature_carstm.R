@@ -45,13 +45,17 @@
 
   # override defaults to try to reduce RAM requirements
   
-  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE, control.inla = list( list( strategy='adaptive' ) ), inla.mode="experimental" )   
+  res = carstm_model( p=p, 
+    M="temperature_db( p=p, DS='carstm_inputs' ) ", 
+    compression_level=1, 
+    redo_fit = TRUE, 
+    control.inla = list( strategy='adaptive' ) , 
+    # control.inla = list( strategy='adaptive', int.strategy='eb' ),
+    # control.results  = list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ), 
+    inla.mode="experimental", 
+    verbose=TRUE )   
 
-
-
-  res = carstm_model( p=p, M="temperature_db( p=p, DS='carstm_inputs' ) ", compression_level=1, redo_fit = TRUE, control.inla = list( list( strategy='adaptive', int.strategy='eb' ) ) )   
-
-
+ 
  
 
     # extract results
@@ -70,29 +74,31 @@
   res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
 
   
+  map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
+  map_zoom = 6.5
+
   # maps of some of the results
   tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
     breaks=seq(-1, 1, by=0.25), 
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5),
+    tmap_zoom= c(map_centre, map_zoom),
     main=paste( "Bottom temperature spatial effects")  
-  )
-
-  tmout = carstm_map(  res=res, vn="predictions", tmatch="2019", umatch="0.85", 
-    breaks=seq(-1, 1, by=0.25), 
-    palette="-RdYlBu",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5),
-    main=paste("Bottom temperature predictions", tmatch, umatch, sep=" - " ) 
   )
 
   tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), tmatch="2019", umatch="0.85", 
     breaks=seq(-1, 1, by=0.25), 
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5),
+    tmap_zoom= c(map_centre, map_zoom),
     main=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch, sep=" - " )  
   )
 
+  tmout = carstm_map(  res=res, vn="predictions", tmatch="2019", umatch="0.85", 
+    breaks=seq(-1, 11, by=0.25), 
+    palette="-RdYlBu",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c(map_centre, map_zoom),
+    main=paste("Bottom temperature predictions", tmatch, umatch, sep=" - " ) 
+  )
 
   # map all bottom temps:
   outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, "carstm_modelled_fit") ), "figures" )
@@ -111,7 +117,7 @@
         main=fn_root,  
         outfilename=fn,
         plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-        tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+        tmap_zoom= c(map_centre, map_zoom)
       )
     }
   }
