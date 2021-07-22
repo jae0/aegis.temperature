@@ -11,8 +11,6 @@
 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
 
-  require(INLA)
-  # inla.setOption(num.threads="4:1"  )  # note, you want 1 here unless you have a lot of RAM and swap 
 
     if (0) { 
         require(INLA)
@@ -49,11 +47,10 @@
     M="temperature_db( p=p, DS='carstm_inputs' ) ", 
     compression_level=1, 
     redo_fit = TRUE, 
-    control.inla = list( strategy='adaptive' ) , 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
-    # control.results  = list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ), 
     inla.mode="experimental", 
-    verbose=TRUE )   
+    verbose=TRUE 
+  )   
 
  
  
@@ -64,8 +61,7 @@
       fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
       fit$summary$dic$dic
       fit$summary$dic$p.eff
-      fit$dyear
-
+    
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
     }
@@ -78,27 +74,33 @@
   map_zoom = 6.5
 
   # maps of some of the results
-  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
-    breaks=seq(-1, 1, by=0.25), 
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c(map_centre, map_zoom),
-    main=paste( "Bottom temperature spatial effects")  
-  )
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), tmatch="2019", umatch="0.85", 
-    breaks=seq(-1, 1, by=0.25), 
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c(map_centre, map_zoom),
-    main=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch, sep=" - " )  
-  )
-
-  tmout = carstm_map(  res=res, vn="predictions", tmatch="2019", umatch="0.85", 
-    breaks=seq(-1, 11, by=0.25), 
+  tmout = carstm_map(  res=res, vn="predictions", tmatch="2015", umatch="0.15", 
+    breaks=seq(-1, 9, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
-    main=paste("Bottom temperature predictions", tmatch, umatch, sep=" - " ) 
+    title="Bottom temperature predictions"  
   )
+  tmout
+
+  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+    breaks=seq(-1, 1, by=0.25), 
+    palette="-RdYlBu",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c(map_centre, map_zoom),
+    title="Bottom temperature spatial effects"
+  )
+  tmout
+
+  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), tmatch="2019", umatch="0.85", 
+    breaks=seq(-1, 1, by=0.25), 
+    palette="-RdYlBu",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c(map_centre, map_zoom),
+    title="Bottom temperature spatiotemporal effects"
+  )
+  tmout
 
   # map all bottom temps:
   outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, "carstm_modelled_fit") ), "figures" )
@@ -106,15 +108,15 @@
 
   graphics.off()
 
-  for (y in res$year ){
-    for ( u in res$dyear ){
-      time_match = list( year=as.character(y), dyear=as.character(u) )
-      fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep=" - ") )
+  # slow due to use of webshot to save html to png
+  for (y in res$time ){
+    for ( u in res$season ){
+      fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       fn = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
       carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=seq( 1, 9), 
         palette="-RdYlBu",
-        main=fn_root,  
+        title=fn_root,  
         outfilename=fn,
         plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
         tmap_zoom= c(map_centre, map_zoom)
@@ -126,3 +128,5 @@
 
 
   
+vn="predictions"; tmatch="2019"; umatch="0.15"; 
+    breaks=seq(-1, 11, by=0.25); palette="-RdYlBu"; plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ); tmap_zoom= c(map_centre, map_zoom); title="Bottom temperature predictions"  
