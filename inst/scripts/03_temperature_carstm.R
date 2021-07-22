@@ -127,6 +127,4 @@
 # end
 
 
-  
-vn="predictions"; tmatch="2019"; umatch="0.15"; 
-    breaks=seq(-1, 11, by=0.25); palette="-RdYlBu"; plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ); tmap_zoom= c(map_centre, map_zoom); title="Bottom temperature predictions"  
+   
