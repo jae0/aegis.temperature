@@ -94,7 +94,7 @@
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
-    title="Bottom temperature spatial effects"
+    title="Bottom temperature spatial effects (Celcius)"
   )
   tmout
 
