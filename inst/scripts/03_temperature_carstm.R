@@ -28,7 +28,11 @@
  
         sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
-
+        
+        # or using carstm_map: 
+        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
+        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
+        
         M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # redo if input data has changes
 
         M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
@@ -48,7 +52,6 @@
     compression_level=1, 
     redo_fit = TRUE, 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
-    inla.mode="experimental", 
     verbose=TRUE 
   )   
 
@@ -74,13 +77,15 @@
   map_zoom = 6.5
 
   # maps of some of the results
+  tmatch="2015"
+  umatch="0.15"
 
-  tmout = carstm_map(  res=res, vn="predictions", tmatch="2015", umatch="0.15", 
+  tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
     breaks=seq(-1, 9, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
-    title="Bottom temperature predictions"  
+    title=paste( "Bottom temperature predictions", tmatch, umatch)  
   )
   tmout
 
@@ -93,12 +98,12 @@
   )
   tmout
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), tmatch="2019", umatch="0.85", 
+  tmout = carstm_map(  res=res, vn=c( "random", "spacetime", "combined" ), tmatch=tmatch, umatch=umatch, 
     breaks=seq(-1, 1, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
-    title="Bottom temperature spatiotemporal effects"
+    title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
   )
   tmout
 
@@ -108,7 +113,7 @@
 
   graphics.off()
 
-  # slow due to use of webshot to save html to png
+  # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
   for (y in res$time ){
     for ( u in res$season ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
