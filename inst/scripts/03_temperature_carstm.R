@@ -49,8 +49,8 @@
   
   res = carstm_model( p=p, 
     M="temperature_db( p=p, DS='carstm_inputs' ) ", 
-    compression_level=1, 
     redo_fit = TRUE, 
+    # compression_level=1, 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
     verbose=TRUE 
   )   
