@@ -178,7 +178,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
        # require(RODBC)
        #  con = odbcConnect(oracle.server , uid=oracle.lobster.username, pwd=oracle.lobster.password, believeNRows=F) # believeNRows=F required for oracle db's
        #  fsrs = sqlQuery(con, "select * from fsrs_lobster.FSRS_LOBSTER_VW")
-       #  odbcClose(con)
+       #  odbcClose(con)  
 
         require(ROracle)
         con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=lobster.oracle.server , username=oracle.lobster.username, password=oracle.lobster.password, believeNRows=F)
@@ -955,11 +955,20 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         if (length(keep) > 0 ) M = M[ keep, ]
         # this was -1.7, 21.8 in 2015
       }
+    } 
+    
+    keep = NULL
+    if (exists( "z.mean", M)) {
+      if (!exists( "z", M)) {
+        names(M)[which(names(M)=="z.mean" )] = "z"
+      } 
     }
 
     keep = which( M$z >=  2 ) # ignore very shallow areas ..
+      
     if (length(keep) > 0 ) M = M[ keep, ]
-
+    
+    
     M$tiyr = M$yr + M$dyear 
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly, lookup = c("bathymetry" ) )

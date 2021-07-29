@@ -8,6 +8,7 @@
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
   
+  # about 24 hrs
 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
 
