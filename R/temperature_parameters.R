@@ -110,15 +110,13 @@ temperature_parameters = function( p=list(), project_name="temperature", project
          p$variabletomodel, ' ~ 1',
           ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE )',
           ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE  ) ',
-          ' + f( inla.group( z, method="quantile", n=7 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          ' + f( space_time, model="besag", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$besag, control.group=list(model="ar1", hyper=H$ar1_group) ) '
+          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), hyper=H$bym2  ) ',
+          ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          ' + f( space_time, model="besag", graph=slot(sppoly, "nb"), group=time_space, hyper=H$besag, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "gaussian"
     }
-
-    p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
       warning( "p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
