@@ -51,6 +51,7 @@
   res = carstm_model( p=p, 
     M="temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
+    num.threads="4:2",
     # compression_level=1, 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
     verbose=TRUE 
@@ -91,7 +92,7 @@
   tmout
 
   tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
-    breaks=seq(-1, 1, by=0.25), 
+    breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
@@ -99,8 +100,21 @@
   )
   tmout
 
-  tmout = carstm_map(  res=res, vn=c( "random", "spacetime", "combined" ), tmatch=tmatch, umatch=umatch, 
-    breaks=seq(-1, 1, by=0.25), 
+  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "besag" ), tmatch=tmatch, umatch=umatch, 
+    breaks=seq(-2, 2, by=0.25), 
+    palette="-RdYlBu",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c(map_centre, map_zoom),
+    title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
+  )
+  tmout
+
+
+  tmatch="2020"
+  umatch="0.15"
+
+  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "besag" ), tmatch=tmatch, umatch=umatch, 
+    breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
