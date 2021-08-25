@@ -105,17 +105,17 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     )
 
     if ( grepl("inla", p$carstm_modelengine) ) {
-      if ( !exists("carstm_model_formula", p)  ) {
-        p$carstm_model_formula = as.formula( paste(
+      if ( !exists("formula", p)  ) {
+        p$formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
-          ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE )',
+          ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE )',
           ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), hyper=H$bym2  ) ',
+          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          ' + f( space_time, model="besag", graph=slot(sppoly, "nb"), group=time_space, hyper=H$besag, control.group=list(model="ar1", hyper=H$ar1_group) ) '
+          ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
-      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "gaussian"
+      if ( !exists("family", p)  )  p$family = "gaussian"
     }
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {

@@ -12,7 +12,6 @@
 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment )
 
-
     if (0) { 
         require(INLA)
         inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
@@ -41,7 +40,7 @@
       M = NULL
       gc()
     }
-    
+
 
   # !!! WARNING: this uses a lot of RAM  
   # Time used: 13841.799 sec (to fit) ~ 4 hrd
@@ -49,11 +48,9 @@
   # override defaults to try to reduce RAM requirements
   
   res = carstm_model( p=p, 
-    M="temperature_db( p=p, DS='carstm_inputs' ) ", 
+    data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
     num.threads="4:2",
-    # compression_level=1, 
-    # control.inla = list( strategy='adaptive', int.strategy='eb' ),
     verbose=TRUE 
   )   
 
@@ -75,8 +72,8 @@
   res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
 
   
-  map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
-  map_zoom = 6.5
+  map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2   )
+  map_zoom = 7
 
   # maps of some of the results
   tmatch="2015"
@@ -100,7 +97,7 @@
   )
   tmout
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "besag" ), tmatch=tmatch, umatch=umatch, 
+  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -113,7 +110,7 @@
   tmatch="2020"
   umatch="0.15"
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "besag" ), tmatch=tmatch, umatch=umatch, 
+  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -139,6 +136,8 @@
         title=fn_root,  
         outfilename=fn,
         plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+        vwidth = 1600,
+        vheight=1000,
         tmap_zoom= c(map_centre, map_zoom)
       )
     }
