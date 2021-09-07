@@ -47,15 +47,13 @@
 
   # override defaults to try to reduce RAM requirements
   
-  res = carstm_model( p=p, 
+  fit = carstm_model( 
+    p=p, 
     data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
     num.threads="4:2",
     verbose=TRUE 
   )   
-
- 
- 
 
     # extract results
     if (0) {
