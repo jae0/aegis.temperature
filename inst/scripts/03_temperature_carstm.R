@@ -2,7 +2,7 @@
 
   require(aegis.temperature)
 
-  year.assessment = 2020
+  year.assessment = 2021
 
   # construct basic parameter list defining the main characteristics of the study
   # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
@@ -51,7 +51,7 @@
     p=p, 
     data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
-    num.threads="4:2",
+    num.threads="6:2",
     verbose=TRUE 
   )   
 
@@ -125,7 +125,7 @@
 
   # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
   for (y in res$time ){
-    for ( u in res$season ){
+    for ( u in res$cyclic ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       fn = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
       carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),

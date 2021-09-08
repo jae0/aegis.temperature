@@ -3,7 +3,7 @@
 # Prep OSD, snow crab and groundfish temperature profiles
 # this one has to be done manually .. no longer mainted by anyone ..
 
-  year.assessment=2020
+  year.assessment=2021
 
 
 p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years

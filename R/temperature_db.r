@@ -553,8 +553,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       }
 
       bottom = NULL 
-      BS = NULL
-
       profile = NULL
       profile = temperature_db( DS="osd.profiles.annual", yr=yt, p=p )
  
