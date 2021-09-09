@@ -51,7 +51,9 @@
     p=p, 
     data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
-    num.threads="6:2",
+    num.threads="4:2",
+    control.inla = list( strategy='laplace' ), # "adaptive" strategy seems to run into problems with sparse data (in current year) 
+    # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain"),
     verbose=TRUE 
   )   
 
