@@ -734,7 +734,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
        # this was -1.7, 21.8 in 2015
     }
 
-    keep = which( M$z >=  2 ) # ignore very shallow areas ..
+    keep = which( M$z >=  5 ) # ignore very shallow areas ..
     if (length(keep) > 0 ) M = M[ keep, ]
 
     M = lonlat2planar( M, p$aegis_proj4string_planar_km)
@@ -744,8 +744,30 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
     M$dyear = M$tiyr - M$yr
+    i = which( M$dyear < 0 )  
+    if (length(i) > 0) {
+      message( "Data with time of year 'dyear' that are negative valued: setting to zero" )
+      print( M[i,] )
+      message( "Mostly OSD data and likely due to timestamping/roundoff issues. Might want to check these." )
+      M$dyear[i] = 0.001
+    }
+
+    j = which( M$dyear > 1 )  
+    if (length(j) > 0) {
+      message( "Data with time of year 'dyear' that are greater than 1: setting to 1" )
+      print( M[j,] )
+      message( "Might want to check these." )
+      M$dyear[j] = 0.999
+    }
+
     M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
 
+    k = which( !is.finite(M$dyear +M$tiyr) )  
+    if (length(j) > 0) {
+      message("Data with timestamp issues found. Dropping these:")
+      print( M[k,] )
+      M = M[-k,]
+    }
 
     setDT(M)
     M$t = M[[p$variabletomodel]]
