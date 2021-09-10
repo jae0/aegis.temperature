@@ -33,8 +33,7 @@
         carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
         carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
         
-        M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # redo if input data has changes
-
+   #     M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # redo if input data has changes
         M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
 
       M = NULL
