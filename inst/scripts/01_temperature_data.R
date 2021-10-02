@@ -40,10 +40,10 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
  
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
   # temperature_db( DS="bottom.annual.redo", p=p, yr=1900:year.assessment )
-  temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
+  o = temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
   
   (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
-    temperature_db ( DS="bottom.all.redo", p=p )
+  temperature_db ( DS="bottom.all.redo", p=p )
 
   o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )
 
