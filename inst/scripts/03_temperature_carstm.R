@@ -32,37 +32,38 @@
         # or using carstm_map: 
         carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
         carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
-        
-   #     M = temperature_db( p=p, DS="aggregated_data", redo=TRUE )  # redo if input data has changes
-        M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
 
-      M = NULL
-      gc()
+
     }
 
+    # update data:
+
+    (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
+    temperature_db ( DS="bottom.all.redo", p=p )
+
+    o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   # redo if input data has changes
+    o = NULL
+
+    M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
+    M = NULL
+
+    gc()
 
   # !!! WARNING: this uses a lot of RAM  
-  # Time used: 24hrs (to fit + extract) 
-  # lattice form has a hard time with phi in S and ST
-
-  # override defaults to try to reduce RAM requirements
-  # gets stuck in local minima ... requires use of multiple re-runs to find a solution
-  # make sure to update control.mode with new theta's  
   fit = carstm_model( 
     p=p, 
     data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
     redo_fit = TRUE, 
     num.threads="4:2",
-    # control.inla = list( strategy='laplace', fast=FALSE ), # "adaptive" strategy seems to run into problems with local minima .. switching back and forth with "laplace" seems to help
-    # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain"),
+    # if problems, try any of: 
+    # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     control.inla = list( strategy='adaptive' ),
-    
-    control.mode = list(theta = c( -0.494, 2.812,  -0.653 ,4.260 ,-1.221 ,-0.414 ,7.544 ,0.548), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
+    control.mode = list(theta = c(  -0.912, -5.715, -8.986, -7.043, -0.226, 4.702, -1.584, -0.484, 12.562, 0.984 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
     verbose=TRUE 
   )    
- 
+
+
     # in full AR1 model for time:
-    # control.mode = list(theta = c( -0.494, 2.761, -5.927, -7.241, -0.666, 4.140, -1.296, -0.404, 7.706, 0.517 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
     
   	# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for cyclic]

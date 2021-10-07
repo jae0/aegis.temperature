@@ -42,9 +42,5 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
   # temperature_db( DS="bottom.annual.redo", p=p, yr=1900:year.assessment )
   o = temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
   
-  (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
-  temperature_db ( DS="bottom.all.redo", p=p )
-
-  o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )
 
 # finished
