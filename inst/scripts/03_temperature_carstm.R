@@ -36,29 +36,34 @@
 
     }
 
-    # update data:
+    # update data ... must redo if input data has changes or new data
 
     (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
-    temperature_db ( DS="bottom.all.redo", p=p )
+    temperature_db ( DS="bottom.all.redo", p=p ) 
 
-    o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   # redo if input data has changes
+    o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
     o = NULL
 
-    M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed
+    M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed or new data
     M = NULL
-
+    
     gc()
+
+    p = temperature_parameters( project_class="carstm", yrs=1969:year.assessment )
+ 
+    M = temperature_db( p=p, DS="carstm_inputs"  )
+    M = M[ which(M$yr %in% p$yrs), ]
 
   # !!! WARNING: this uses a lot of RAM  
   fit = carstm_model( 
     p=p, 
-    data = "temperature_db( p=p, DS='carstm_inputs' ) ", 
+    data =M, 
     redo_fit = TRUE, 
     num.threads="4:2",
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     control.inla = list( strategy='adaptive' ),
-    control.mode = list(theta = c(  -0.912, -5.715, -8.986, -7.043, -0.226, 4.702, -1.584, -0.484, 12.562, 0.984 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
+    control.mode = list(theta = c(  -0.851, -5.656, -0.417, 4.720, -1.672, -0.459, 12.849, 0.766 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
     verbose=TRUE 
   )    
 
@@ -68,8 +73,8 @@
   	# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for cyclic]
     # drop these for factorial (yr_factor):
-        # theta[2] = [Log precision for time]
-        # theta[3] = [Rho_intern for time]
+        # theta[2] = [Log precision for time] -8.986, 
+        # theta[3] = [Rho_intern for time]  -7.043,
 		# theta[4] = [Log precision for space]
 		# theta[5] = [Logit phi for space]
 		# theta[6] = [Log precision for inla.group(z, method = "quantile", n = 11)]
