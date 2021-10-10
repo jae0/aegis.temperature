@@ -912,6 +912,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (!redo)  {
       if (file.exists(fn)) {
         load( fn)
+        M = M[ which( M$z < 2500) , ]
+        M = M[ which( M$z > 5 ) , ]
+        M = M[ which( M$yr %in% p$yrs), ]
         return( M )
       }
     }
@@ -983,20 +986,17 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         names(M)[which(names(M)=="z.mean" )] = "z"
       } 
     }
-
-    keep = which( M$z >=  2 ) # ignore very shallow areas ..
-      
-    if (length(keep) > 0 ) M = M[ keep, ]
-    
     
     M$tiyr = M$yr + M$dyear 
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly, lookup = c("bathymetry" ) )
 
+    save( M, file=fn, compress=TRUE )
+
     M = M[ which( M$z < 2500) , ]
     M = M[ which( M$z > 5 ) , ]
+    M = M[ which( M$yr %in% p$yrs), ]
 
-    save( M, file=fn, compress=TRUE )
     return( M )
   }
 
