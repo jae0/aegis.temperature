@@ -4,13 +4,9 @@
 
   year.assessment = 2021
 
-  # construct basic parameter list defining the main characteristics of the study
-  # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  # p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
-  
-  # about 24 hrs for 1999:2021
 
-  p = temperature_parameters( project_class="carstm", yrs=1950:year.assessment )
+  # construct basic parameter list defining the main characteristics of the study
+  p = temperature_parameters( project_class="carstm", yrs=1900:year.assessment )
 
     if (0) { 
         require(INLA)
@@ -26,7 +22,7 @@
           p$areal_units_constraint_ntarget = 40  # n time slices req in each au
           p$areal_units_constraint_nmin = 10   # n time slices req in each au
  
-        sppoly = areal_units( p=p , redo=TRUE, verbose=TRUE )  # same
+        sppoly = areal_units( p=p , hull_alpha=15, redo=TRUE, verbose=TRUE )  # same
         plot( sppoly[ "AUID" ] ) 
         
         # or using carstm_map: 
@@ -47,55 +43,37 @@
     M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed or new data
     M = NULL
     
-    gc()
 
-    p = temperature_parameters( project_class="carstm", yrs=1969:year.assessment )
- 
-    M = temperature_db( p=p, DS="carstm_inputs"  )
-    M = M[ which(M$yr %in% p$yrs), ]
 
+  # subset years ... earlier than 1970:present can take a lot RAM in posterior extraction ... reduce number of cores .. perhaps to 1 (of course this will be slower but alternative is to crash the system)
+  # about 24 hrs for 1999:2021
+
+  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, mc.cores=2 ) 
+    
   # !!! WARNING: this uses a lot of RAM  
   fit = carstm_model( 
     p=p, 
-    data =M, 
-    redo_fit = TRUE, 
-    num.threads="4:2",
+    data ='temperature_db( p=p, DS="carstm_inputs" )', 
+    num.threads="6:2",  # adjust for your machine
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     control.inla = list( strategy='adaptive' ),
-    control.mode = list(theta = c(  -0.851, -5.656, -0.417, 4.720, -1.672, -0.459, 12.849, 0.766 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
+    control.mode = list(theta = c( -0.851, -5.651, -0.419, 4.721, -0.934, -0.457, 20.846, 0.763 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
     verbose=TRUE 
   )    
 
-
-    # in full AR1 model for time:
-    
-  	# theta[0] = [Log precision for the Gaussian observations]
-		# theta[1] = [Log precision for cyclic]
-    # drop these for factorial (yr_factor):
-        # theta[2] = [Log precision for time] -8.986, 
-        # theta[3] = [Rho_intern for time]  -7.043,
-		# theta[4] = [Log precision for space]
-		# theta[5] = [Logit phi for space]
-		# theta[6] = [Log precision for inla.group(z, method = "quantile", n = 11)]
-		# theta[7] = [Log precision for space_time]
-		# theta[8] = [Logit phi for space_time]
-		# theta[9] = [Group rho_intern for space_time]
-
+	#, List of hyperparameters: 
+	# 	theta[0] = [Log precision for the Gaussian observations]
+	# 	theta[1] = [Log precision for cyclic]
+	# 	theta[2] = [Log precision for space]
+	# 	theta[3] = [Logit phi for space]
+	# 	theta[4] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+	# 	theta[5] = [Log precision for space_time]
+	# 	theta[6] = [Logit phi for space_time]
+	# 	theta[7] = [Group rho_intern for space_time]
+ 
 # NOTE::: when using an AR1 on time, the cor= -1 ... might as well drop it from the model and use a factorial representation (see below):
-
-#                                                            mean    sd 0.025quant 0.5quant 0.975quant   mode
-# Precision for the Gaussian observations                   0.610 0.002      0.606    0.610      0.615  0.610
-# Precision for cyclic                                     16.265 0.660     15.136   16.212     18.057 16.040
-# Precision for time                                        0.002 0.000      0.002    0.002      0.003  0.003
-# Rho for time                                             -0.999 0.000     -0.999   -0.999     -0.998 -0.999
-# Precision for space                                       0.512 0.020      0.475    0.512      0.552  0.511
-# Phi for space                                             0.986 0.003      0.981    0.986      0.991  0.985
-# Precision for inla.group(z, method = "quantile", n = 11)  0.494 0.438      0.129    0.362      1.642  0.229
-# Precision for space_time                                  0.671 0.014      0.645    0.670      0.698  0.669
-# Phi for space_time                                          NaN   NaN      0.000    0.000        NaN    NaN
-# GroupRho for space_time                                   0.252 0.017      0.217    0.252      0.285  0.252
-
+ 
 # Deviance Information Criterion (DIC) ...............: 534970.61
 # Deviance Information Criterion (DIC, saturated) ....: 2462069.13
 # Effective number of parameters .....................: 11002.04
@@ -107,11 +85,7 @@
 # Posterior summaries for the linear predictor and the fitted values are computed
 # (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
-#    --- NOTE: parameter estimates are on link scale and not user scale
-
-# Computing summaries and computing from posterior simulations (can be longer than model fitting depending upon no of posterior sims: 'nposteriors' ) ...
-# Extracting parameter summaries from marginals
-
+# 
 # Fixed effects
 #             mean      sd          quant0.025 quant0.5   quant0.975
 # (Intercept) 6.1717286 0.111128617 5.95339243 6.17155215 6.38969323
@@ -148,7 +122,7 @@
   map_zoom = 7
 
   # maps of some of the results
-  tmatch="1950"
+  tmatch="1970"
   umatch="0.15"
 
   tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
