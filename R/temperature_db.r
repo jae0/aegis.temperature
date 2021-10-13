@@ -915,7 +915,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         M = M[ which( M$z < 2500) , ]
         M = M[ which( M$z > 5 ) , ]
         M = M[ which( M$yr %in% p$yrs), ]
-        M$yr_factor = as.factor( M$yr )  # dropping yr means factor levels need to be updated  
         return( M )
       }
     }
@@ -997,7 +996,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = M[ which( M$z < 2500) , ]
     M = M[ which( M$z > 5 ) , ]
     M = M[ which( M$yr %in% p$yrs), ]
-    M$yr_factor = as.factor( M$yr )  # dropping yr means factor levels need to be updated  
 
     return( M )
   }
