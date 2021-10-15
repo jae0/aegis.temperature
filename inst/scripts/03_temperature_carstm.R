@@ -48,8 +48,15 @@
   # subset years ... earlier than 1970:present can take a lot RAM in posterior extraction ... reduce number of cores .. perhaps to 1 (of course this will be slower but alternative is to crash the system)
   # about 24 hrs for 1999:2021
 
-  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, mc.cores=2 ) 
-    
+  # choose one: 
+  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", mc.cores=2, 
+      theta = c( -0.851, -5.651, -8.986, -7.043, -0.419, 4.721, -0.934, -0.457, 20.846, 0.763 ) ) 
+  
+  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", mc.cores=3, theta = c( -0.552, -5.862, -8.714, -6.981, -0.662, 4.816, -1.024, -0.448, 20.803, 0.646 ) )
+
+  
+
+
   # !!! WARNING: this uses a lot of RAM  
   fit = carstm_model( 
     p=p, 
@@ -58,7 +65,6 @@
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     control.inla = list( strategy='adaptive' ),
-    control.mode = list(theta = c( -0.851, -5.651, -0.419, 4.721, -0.934, -0.457, 20.846, 0.763 ), restart=TRUE),  # to start optim from a solution close to the final in 2021 ... 
     verbose=TRUE 
   )    
 
