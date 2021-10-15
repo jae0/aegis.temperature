@@ -49,10 +49,15 @@
   # about 24 hrs for 1999:2021
 
   # choose one: 
+
+  # used by aegis.survey (cod, wolfish, etc)
   p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", mc.cores=2, 
-      theta = c( -0.851, -5.651, -8.986, -7.043, -0.419, 4.721, -0.934, -0.457, 20.846, 0.763 ) ) 
+      theta = c(-0.699, -0.475, -1.191, 2.456, 1.657, 2.466, -0.666, -1.494, 23.031, -3.218 ) ) 
   
-  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", mc.cores=3, theta = c( -0.552, -5.862, -8.714, -6.981, -0.662, 4.816, -1.024, -0.448, 20.803, 0.646 ) )
+
+  # used by bio.snowcrab
+  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", mc.cores=3, 
+      theta = c( -0.552, -5.862, -8.714, -6.981, -0.662, 4.816, -1.024, -0.448, 20.803, 0.646 ) )
 
   
 
