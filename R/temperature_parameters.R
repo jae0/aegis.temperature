@@ -124,11 +124,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       }
       if ( !exists("family", p)  )  p$family = "gaussian"
     }
-
-    if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
-      warning( "p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
-    }
-
+ 
     return(p)
   }
 
@@ -332,11 +328,6 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p = aegis_parameters( p=p, DS="stmv" )
 
 
-    if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
-      warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
-    }
-  #    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
-
     return(p)
 
   }
@@ -406,11 +397,6 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     if ( !exists("bstats", p) )  p$bstats = c("tmean", "tsd", "tmin", "tmax", "tamplitude", "degreedays" )
 
-
-    if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
-      warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
-    }
-    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
 
     return(p)
 
