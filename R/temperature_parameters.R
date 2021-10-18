@@ -106,7 +106,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
         # generics using "default" carstm models and stmv solutions for spatial effects
         p$carstm_lookup_parameters = list()
         p$carstm_lookup_parameters = parameters_add_without_overwriting( p$carstm_lookup_parameters,
-          bathymetry = bathymetry_parameters( project_class="stmv"  )
+          bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
         )
     }
 
