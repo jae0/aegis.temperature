@@ -51,25 +51,25 @@
   # choose one: 
 
   # used by aegis.survey (cod, wolfish, etc)
-  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", mc.cores=2, 
-      theta = c(-0.699, -0.475, -1.191, 2.456, 1.657, 2.466, -0.666, -1.494, 23.031, -3.218 ) ) 
-  
+  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", 
+      theta = c(-0.838, -0.288, -1.168, 2.533, -0.400, 3.288, -2.052, -0.455, 23.433, 0.809 ) ) 
+   
+ 
 
   # used by bio.snowcrab
-  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", mc.cores=3, 
-      theta = c( -0.552, -5.862, -8.714, -6.981, -0.662, 4.816, -1.024, -0.448, 20.803, 0.646 ) )
+  p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", 
+      theta = c(  -0.550, -6.456, -9.116, -5.736, -0.737, 5.328, -0.637, -0.431, 21.103, 0.633  ) )
 
   
-
-
   # !!! WARNING: this uses a lot of RAM  
   fit = carstm_model( 
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs" )', 
     num.threads="6:2",  # adjust for your machine
+    mc.cores=2,
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
-    control.inla = list( strategy='adaptive' ),
+    control.inla = list( strategy='laplace' ),
     verbose=TRUE 
   )    
 
@@ -181,6 +181,10 @@
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
   graphics.off()
+  # bbox = c(-71.5, 41, -52.5,  50.5 )
+
+
+  background = tmap::tm_basemap(leaflet::providers$CartoDB.Positron, alpha=0.8) 
 
   # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
   for (y in res$time ){
@@ -193,15 +197,14 @@
         title=fn_root,  
         outfilename=fn,
         plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+        background = background,
         vwidth = 1600,
         vheight=1000,
+        map_mode="view",
         tmap_zoom= c(map_centre, map_zoom)
       )
     }
   }
-  
 # end
 
-
-   
-
+ 
