@@ -114,8 +114,8 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       if ( !exists("formula", p)  ) {
         p$formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
-#          ' + as.factor(time) ',
-          ' + f( time, model="ar1",  hyper=H$ar1 ) ',   
+          ' + as.factor(time) ',
+#          ' + f( time, model="ar1",  hyper=H$ar1 ) ',   
           ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values )',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',

@@ -52,66 +52,81 @@
 
   # used by aegis.survey (cod, wolfish, etc)
   p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", 
-      theta = c(-0.838, -0.288, -1.168, 2.533, -0.400, 3.288, -2.052, -0.455, 23.433, 0.809 ) ) 
-   
+      theta = c(  -0.837, -0.266, -0.414, 4.493, -1.586, -0.454, 23.405, 0.786  ) ) 
+ #      theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
+ 
  
 
-  # used by bio.snowcrab
+  # used by bio.snowcrab  --- about 24 hrs ( ~12 hrs + ;  6+ for mapping )... 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", 
-      theta = c(  -0.550, -6.456, -9.116, -5.736, -0.737, 5.328, -0.637, -0.431, 21.103, 0.633  ) )
+      theta = c( -0.556, -6.324,  -0.733, 5.260, -0.642, -0.438, 21.244, 0.621  ) )
+       
 
-  
+
   # !!! WARNING: this uses a lot of RAM  
   fit = carstm_model( 
     p=p, 
-    data ='temperature_db( p=p, DS="carstm_inputs" )', 
+    data ='temperature_db( p=p, DS="carstm_inputs" )',  
     num.threads="6:2",  # adjust for your machine
     mc.cores=2,
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
-    control.inla = list( strategy='laplace' ),
+    control.inla = list( strategy='adaptive', int.strategy="eb" ),
     verbose=TRUE 
   )    
 
 	#, List of hyperparameters: 
 	# 	theta[0] = [Log precision for the Gaussian observations]
 	# 	theta[1] = [Log precision for cyclic]
-	# 	theta[2] = [Log precision for space]
-	# 	theta[3] = [Logit phi for space]
-	# 	theta[4] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+        # theta[2] = [Log precision for space]
+        # theta[3] = [Logit phi for space]
+		# theta[4] = [Log precision for inla.group(z, method = "quantile", n = 11)]
 	# 	theta[5] = [Log precision for space_time]
 	# 	theta[6] = [Logit phi for space_time]
 	# 	theta[7] = [Group rho_intern for space_time]
  
-# NOTE::: when using an AR1 on time, the cor= -1 ... might as well drop it from the model and use a factorial representation (see below):
+
+
+## --- long run results: 1970-present
+
  
-# Deviance Information Criterion (DIC) ...............: 534970.61
-# Deviance Information Criterion (DIC, saturated) ....: 2462069.13
-# Effective number of parameters .....................: 11002.04
 
-# Watanabe-Akaike information criterion (WAIC) ...: 535971.76
-# Effective number of parameters .................: 10718.72
 
-# Marginal log-Likelihood:  -231972.49 
-# Posterior summaries for the linear predictor and the fitted values are computed
-# (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
 
-# 
+##############
+
+
+## --- short run results: 1999- present
+# Fitted model saved as: /home/jae/bio.data/aegis/temperature/modelled/1999_present/temperature|canada.east|tesselation|1|none|40|10|none.rdata|carstm_modelled_summary|t|inla|100|7.rdata
+
+# Deviance Information Criterion (DIC) ...............: 546440.39
+# Deviance Information Criterion (DIC, saturated) ....: 2500670.27
+# Effective number of parameters .....................: 10878.08
+
+# Watanabe-Akaike information criterion (WAIC) ...: 547416.00
+# Effective number of parameters .................: 10607.07
+
+
 # Fixed effects
-#             mean      sd          quant0.025 quant0.5   quant0.975
-# (Intercept) 6.1717286 0.111128617 5.95339243 6.17155215 6.38969323
+#             mean       sd           quant0.025 quant0.5   quant0.975
+# (Intercept) 6.16773144 0.0600921552 6.04969833 6.16761527 6.28568136
 
-# Model may be over parameterized. NAN and Inf values encountered. Try alt parameterizations or smaller number of n or masking negative values
 
 # Random effects:
-#                                                     mean            sd  quant0.025    quant0.5  quant0.975
-# SD the Gaussian observations                  1.28016351 0.00239205016   1.2754022  1.28018691  1.28479192
-# SD cyclic                                     0.24790958  0.0047944458 0.237208228 0.248511453 0.255537996
-# SD time                                        20.587215    1.27526226  18.8691944  20.3331901   23.655753
-# SD space                                      1.39783646  0.0265768005  1.34634171  1.39754159   1.4506838
-# SD inla.group(z, method = "quantile", n = 11)  1.6908805   0.523304436 0.781357514  1.66265463  2.78140715
-# SD space_time                                 1.22137344  0.0122219904  1.19683107  1.22160161  1.24478417
+#                                                       mean             sd   quant0.025     quant0.5  quant0.975
+# SD the Gaussian observations                    1.31971928  0.00274093815    1.3138489   1.31993557  1.32452319
+# SD cyclic                                       18.4943731    0.584222092   17.5445605   18.4209961  19.8042772
+# SD time                                         23.5569114    0.271565676   23.0005998    23.567039  24.0645223
+# SD space                                        1.43986716   0.0278023228   1.38457729    1.4401821  1.49367044
+# SD inla.group(z, method = "quantile", n = 11)   1.49313565     0.26008593   1.09551099   1.45176975  2.10720371
+# SD space_time                                   1.24155046   0.0132395874   1.21421637   1.24214444  1.26602426
+# Rho for time                                  -0.999747217 8.99040293e-06 -0.999764035 -0.999747555 -0.99972883
+# Phi for space                                  0.995140678  0.00147205219  0.991924236   0.99525121 0.997603221
+# Phi for space_time                             0.999999813 4.50164302e-06  0.999961747  0.999997158 0.999998399
+# GroupRho for space_time                        0.299742681   0.0167560123  0.266076008  0.300014107 0.331725306
 #    --- NOTE: 'SD *' are on link scale and not user scale
+
+
 
 
     # extract results
