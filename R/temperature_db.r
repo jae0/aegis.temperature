@@ -899,7 +899,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
     label =  "carstm_inputs" 
-    if (p$carstmif (p$carstm_inputs_prefilter =="rawdata") label = "carstm_inputs_rawdata"
+    if (p$carstm_inputs_prefilter =="rawdata") label = "carstm_inputs_rawdata"
     fn = carstm_filenames( p=p, returntype=label, areal_units_fn=areal_units_fn )
 
 
