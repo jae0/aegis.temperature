@@ -40,7 +40,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     } else if (exists("yrs", p)) {
       p$year.assessment = max(p$yrs)
     } else {
-      message("need probably want to assign current year.assessment, using current year for now")  
+      message("probably want to assign current year.assessment, using current year for now")  
       p$year.assessment = lubridate::year(lubridate::now()) 
     }
   }
