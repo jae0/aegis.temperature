@@ -211,7 +211,7 @@
         palette="-RdYlBu",
         title=fn_root,  
         outfilename=fn,
-        plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+        plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
         background = background,
         vwidth = 1600,
         vheight=1000,
