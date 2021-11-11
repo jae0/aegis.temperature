@@ -499,7 +499,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
       }
 
-
   }
 
 
