@@ -95,7 +95,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       fraction_good_bad = 0.9,
       nAU_min = 100,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
-      carstm_model_label = "default",
+      carstm_model_label = "1970_present",
       carstm_inputs_prefilter = "aggregated",
       carstm_inputs_prefilter_n = 100  # only used for "sampled"
     )

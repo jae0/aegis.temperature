@@ -39,28 +39,28 @@
 
     o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
     o = NULL
-
-    M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed or new data
-    M = NULL
     
 
 
   # subset years ... earlier than 1970:present can take a lot RAM in posterior extraction ... reduce number of cores .. perhaps to 1 (of course this will be slower but alternative is to crash the system)
   # about 24 hrs for 1999:2021
 
+  # ------------------------------
   # choose one: 
 
   # used by aegis.survey (cod, wolfish, etc)
-  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="default", 
-      theta = c(  -0.837, -0.266, -0.414, 4.493, -1.586, -0.454, 23.405, 0.786  ) ) 
- #      theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
- 
- 
+  p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="1970_present", 
+      theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
 
   # used by bio.snowcrab  --- about 24 hrs ( ~12 hrs + ;  6+ for mapping )... 
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", 
-      theta = c( -0.556, -6.324,  -0.733, 5.260, -0.642, -0.438, 21.244, 0.621  ) )
+      theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
        
+
+  # ------------------------------
+  # prep data
+  M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed or new data
+  M = NULL
 
 
   # !!! WARNING: this uses a lot of RAM  
