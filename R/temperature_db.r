@@ -901,7 +901,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (p$carstm_inputs_prefilter =="rawdata") label = "carstm_inputs_rawdata"
     fn = carstm_filenames( p=p, returntype=label, areal_units_fn=areal_units_fn )
 
-
     # inputs are shared across various secneario using the same polys
     #.. store at the modeldir level as default
     outputdir = dirname( fn )
@@ -938,20 +937,20 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M = M[ which(M$yr %in% p$yrs), ]
       names(M)[which(names(M)=="t")] = p$variabletomodel
 
-        M = M[ which( !duplicated(M)), ]
-        M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+      M = M[ which( !duplicated(M)), ]
+      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+    # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
-    # thin data a bit ... remove potential duplicates and robustify
-        M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
+  # thin data a bit ... remove potential duplicates and robustify
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
 
-        M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-        M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-    
-        setDT(M)
-        M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
-        # M = M[ M[, sample(.N, min(.N, p$carstm_inputs_prefilter_n) ), by=list(plon, plat)], .SD[i.V1], on=list(plon, plat), by=.EACHI]  # faster .. just a bit
-        setDF(M)
+      M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+  
+      setDT(M)
+      M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
+      # M = M[ M[, sample(.N, min(.N, p$carstm_inputs_prefilter_n) ), by=list(plon, plat)], .SD[i.V1], on=list(plon, plat), by=.EACHI]  # faster .. just a bit
+      setDF(M)
 
     } else {
 
@@ -987,8 +986,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     
     M$tiyr = M$yr + M$dyear 
-
-    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly, lookup = c("bathymetry" ) )
+ 
+    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly, lookup_parameters = c("bathymetry" ) )
 
     save( M, file=fn, compress=TRUE )
 
