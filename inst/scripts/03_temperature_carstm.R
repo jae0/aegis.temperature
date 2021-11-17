@@ -48,14 +48,29 @@
   # ------------------------------
   # choose one: 
 
-  # used by aegis.survey (cod, wolfish, etc)
+  # used by aegis.survey (cod, wolfish, etc)  -- about 16 hrs to model 3+hr to plot
+  # the theta are starting points for the hyper params on link scale
   p = temperature_parameters( project_class="carstm", yrs=1970:year.assessment, carstm_model_label="1970_present", 
-      theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
-
-  # used by bio.snowcrab  --- about 24 hrs ( ~12 hrs + ;  6+ for mapping )... 
+      theta = c( -0.837, -0.264, -1.103, 2.394, -0.438, 4.916, -1.702, -0.466, 23.397, 0.770 ) ) 
+ 
+ 
+  # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs + ;  6+ for mapping )... 
+  # the theta are starting points for the hyper params on link scale
   p = temperature_parameters( project_class="carstm", yrs=1999:year.assessment, carstm_model_label="1999_present", 
       theta = c( -0.837, -0.270, -0.961, 2.389, -0.413, 4.492, -1.805, -0.454, 23.391, 0.789 ) ) 
-       
+    
+    # List of hyperparameters: 
+    # theta[0] = [Log precision for the Gaussian observations]
+		# theta[1] = [Log precision for time]
+		# theta[2] = [Rho_intern for time]
+		# theta[3] = [Log precision for cyclic]
+		# theta[4] = [Log precision for space]
+		# theta[5] = [Logit phi for space]
+		# theta[6] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+		# theta[7] = [Log precision for space_time]
+		# theta[8] = [Logit phi for space_time]
+		# theta[9] = [Group rho_intern for space_time]
+
 
   # ------------------------------
   # prep data
@@ -64,6 +79,8 @@
 
 
   # !!! WARNING: this uses a lot of RAM  
+  fit = NULL
+
   fit = carstm_model( 
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs" )',  
@@ -75,16 +92,6 @@
     verbose=TRUE 
   )    
 
-	#, List of hyperparameters: 
-	# 	theta[0] = [Log precision for the Gaussian observations]
-	# 	theta[1] = [Log precision for cyclic]
-        # theta[2] = [Log precision for space]
-        # theta[3] = [Logit phi for space]
-		# theta[4] = [Log precision for inla.group(z, method = "quantile", n = 11)]
-	# 	theta[5] = [Log precision for space_time]
-	# 	theta[6] = [Logit phi for space_time]
-	# 	theta[7] = [Group rho_intern for space_time]
- 
 
 
 ## --- long run results: 1970-present
