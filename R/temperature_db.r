@@ -273,10 +273,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     misc$lat = misc$latitude
 
     i = which( misc$lon < -90)  # deg-min
-    misc$lon[i] = aegis_floor(misc$lon[i]/100) + round((misc$lon[i]/100 - aegis_floor(misc$lon[i]/100 ))/60 * 100, 6)
+    misc$lon[i] = trunc(misc$lon[i]/100) + round((misc$lon[i]/100 - trunc(misc$lon[i]/100 ))/60 * 100, 6)
 
     i = which( misc$lat > 90)  # deg-min
-    misc$lat[i] = aegis_floor(misc$lat[i]/100) + round((misc$lat[i]/100 - aegis_floor(misc$lat[i]/100 ))/60 * 100, 6)
+    misc$lat[i] = trunc(misc$lat[i]/100) + round((misc$lat[i]/100 - trunc(misc$lat[i]/100 ))/60 * 100, 6)
 
     misc = lonlat2planar( misc, proj.type=p$aegis_proj4string_planar_km )
     misc$timestamp = lubridate::dmy( as.character(misc$date ) )
@@ -572,8 +572,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
           # don't need year as this is a yearly breakdown but just to be clear ..
           profile$id =  paste(
-            aegis_floor(profile$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
-            aegis_floor(profile$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
+            trunc(profile$plon/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
+            trunc(profile$plat/p$inputdata_spatial_discretization_planar_km + 1) * p$inputdata_spatial_discretization_planar_km,
             paste(profile$yr, cut( profile$dyear, breaks=p$dyear_discretization_rawdata, include.lowest=T, ordered_result=TRUE ), sep="_" ),
             sep="~"
           )
@@ -628,8 +628,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
       locs = Z[, c("lon", "lat")]
       locs = lonlat2planar( locs, proj.type=p$aegis_proj4string_planar_km )
-      locs$plon = aegis_floor(locs$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      locs$plat = aegis_floor(locs$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      locs$plon = trunc(locs$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      locs$plat = trunc(locs$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
       nw = 1 / p$inputdata_temporal_discretization_yr
       dyears_cuts = (c(1:nw)-1) / nw # intervals of decimal years... fractional year breaks
@@ -739,8 +739,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = lonlat2planar( M, p$aegis_proj4string_planar_km)
     # in case plon/plats are from an alternate projection  .. as there are multiple data sources
 
-    M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-    M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+    M$plon = trunc(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+    M$plat = trunc(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
     M$dyear = M$tiyr - M$yr
     i = which( M$dyear < 0 )  
@@ -944,8 +944,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   # thin data a bit ... remove potential duplicates and robustify
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
 
-      M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plon = trunc(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = trunc(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
   
       setDT(M)
       M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
