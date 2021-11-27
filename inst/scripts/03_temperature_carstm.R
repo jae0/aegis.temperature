@@ -84,6 +84,7 @@
   fit = carstm_model( 
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs" )',  
+    sppoly=sppoly,
     num.threads="6:2",  # adjust for your machine
     mc.cores=2,
     # if problems, try any of: 
@@ -150,7 +151,26 @@
 
   res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
 
-  
+
+  b0 = res$summary$fixed_effects[["(Intercept)", "mean"]]
+
+  ts = data.frame(lapply( res$random$time, function(x) Reduce(c, x)))
+  vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
+  ts[, vns] = ts[, vns] + b0 
+  plot( mean ~ ID, ts, type="b", ylim=c(-2,2)+b0, lwd=1.5, xlab="year")
+  lines( quant0.025 ~ ID, ts, col="gray", lty="dashed")
+  lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
+
+
+  ts = data.frame(lapply( res$random$cyclic, function(x) Reduce(c, x)))
+  vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
+  ts[, vns] = ts[, vns] + b0
+  plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5)+b0, lwd=1.5, xlab="fractional year")
+  lines( quant0.025 ~ID, ts, col="gray", lty="dashed")
+  lines( quant0.975 ~ID, ts, col="gray", lty="dashed")
+
+
+
   map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2   )
   map_zoom = 7
 
