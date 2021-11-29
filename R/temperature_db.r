@@ -1,5 +1,5 @@
 
-temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, redo=FALSE, ... ) {
+temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyear_index=NULL, sppoly=sppoly, redo=FALSE, ... ) {
 
   # over-ride default dependent variable name if it exists
 
@@ -893,7 +893,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     # prediction surface
     crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
-    sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = st_transform(sppoly, crs=crs_lonlat )
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 

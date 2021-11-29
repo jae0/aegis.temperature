@@ -57,7 +57,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
   )
   # dyear_discretization_rawdata :: intervals of decimal years... fractional year breaks finer than the default 10 units (taking daily for now..) .. need to close right side for "cut" .. controls resolution of data prior to modelling
 
-  p$discretization = discretizations(p=p$discretization)
+  p$discretization = aegis.survey::discretizations(p=p$discretization)
 
 
   # ---------------------

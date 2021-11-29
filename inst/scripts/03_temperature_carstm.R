@@ -74,7 +74,7 @@
 
   # ------------------------------
   # prep data
-  M = temperature_db( p=p, DS="carstm_inputs", redo=TRUE )  # must  redo if sppoly has changed or new data
+  M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
   M = NULL
 
 
@@ -83,7 +83,7 @@
 
   fit = carstm_model( 
     p=p, 
-    data ='temperature_db( p=p, DS="carstm_inputs" )',  
+    data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
     num.threads="6:2",  # adjust for your machine
     mc.cores=2,
@@ -136,11 +136,11 @@
 
 
 
-
+      
     # extract results
     if (0) {
       # very large files .. slow 
-      fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+      fit = carstm_model( p=p, DS="carstm_modelled_fit", sppoly=sppoly )  # extract currently saved model fit
       fit$summary$dic$dic
       fit$summary$dic$p.eff
     
@@ -149,7 +149,7 @@
     }
 
 
-  res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
+  res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
 
 
   b0 = res$summary$fixed_effects[["(Intercept)", "mean"]]
@@ -179,6 +179,7 @@
   umatch="0.15"
 
   tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
+    sppoly=sppoly,
     breaks=seq(-1, 9, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -188,6 +189,7 @@
   tmout
 
   tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+    sppoly=sppoly,
     breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -197,6 +199,7 @@
   tmout
 
   tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+    sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -210,6 +213,7 @@
   umatch="0.15"
 
   tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+    sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -235,6 +239,7 @@
       fn = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
       carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=seq( 1, 9), 
+        sppoly=sppoly,
         palette="-RdYlBu",
         title=fn_root,  
         outfilename=fn,
