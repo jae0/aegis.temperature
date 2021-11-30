@@ -74,6 +74,9 @@
 
   # ------------------------------
   # prep data
+  sppoly = areal_units( p=p  )  # same
+   
+
   M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
   M = NULL
 
@@ -152,9 +155,9 @@
   res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
 
 
-  b0 = res$summary$fixed_effects[["(Intercept)", "mean"]]
+  b0 = res$summary$fixed_effects["(Intercept)", "mean"]
 
-  ts = data.frame(lapply( res$random$time, function(x) Reduce(c, x)))
+  ts =  res$random$time 
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
   ts[, vns] = ts[, vns] + b0 
   plot( mean ~ ID, ts, type="b", ylim=c(-2,2)+b0, lwd=1.5, xlab="year")
@@ -162,7 +165,7 @@
   lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
 
 
-  ts = data.frame(lapply( res$random$cyclic, function(x) Reduce(c, x)))
+  ts =  res$random$cyclic
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
   ts[, vns] = ts[, vns] + b0
   plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5)+b0, lwd=1.5, xlab="fractional year")
