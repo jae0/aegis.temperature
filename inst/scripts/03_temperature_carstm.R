@@ -1,3 +1,4 @@
+  # 2022-01-14 14:17:20
 
 
   require(aegis.temperature)
@@ -5,41 +6,16 @@
   year.assessment = 2021
 
 
-  # construct basic parameter list defining the main characteristics of the study
+  # construct basic parameter list defining the main characteristics of the study 
   p = temperature_parameters( project_class="carstm", yrs=1900:year.assessment )
 
-    if (0) { 
-        require(INLA)
-        inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
+  # update data ... must redo if input data has changes or new data
 
-        # to recreate the underlying data
-        xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
-        # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+  (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
+  temperature_db ( DS="bottom.all.redo", p=p ) 
 
-          p$fraction_cv = 1.0
-          p$fraction_todrop = 1/5
-#          p$areal_units_constraint_nmin = 30  # n time slices req in each au >> nyears as we resolve season
-          p$areal_units_constraint_ntarget = 40  # n time slices req in each au
-          p$areal_units_constraint_nmin = 10   # n time slices req in each au
- 
-        sppoly = areal_units( p=p , hull_alpha=15, redo=TRUE, verbose=TRUE )  # same
-        plot( sppoly[ "AUID" ] ) 
-        
-        # or using carstm_map: 
-        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
-        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
-
-
-    }
-
-    # update data ... must redo if input data has changes or new data
-
-    (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
-    temperature_db ( DS="bottom.all.redo", p=p ) 
-
-    o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
-    o = NULL
-    
+  o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
+  o = NULL
 
 
   # subset years ... earlier than 1970:present can take a lot RAM in posterior extraction ... reduce number of cores .. perhaps to 1 (of course this will be slower but alternative is to crash the system)
@@ -71,12 +47,29 @@
 		# theta[8] = [Logit phi for space_time]
 		# theta[9] = [Group rho_intern for space_time]
 
+    if (0) { 
+        require(INLA)
+        inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
+
+        # to recreate the underlying data
+        xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
+        # sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+ 
+        sppoly = areal_units( p=p, redo=TRUE, verbose=TRUE )  # same
+        plot( sppoly[ "AUID" ] ) 
+        
+        # or using carstm_map: 
+        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
+        carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
+
+
+    }
+
 
   # ------------------------------
   # prep data
   sppoly = areal_units( p=p  )  # same
-   
-
+  
   M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
   M = NULL
 
