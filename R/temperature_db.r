@@ -444,10 +444,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS %in% c( "bottom.annual.rawdata", "bottom.annual.rawdata.redo" ) ) {
     # extract bottom temperatures and save annual time slice
-    loc.bottom.database = file.path( basedir, "archive", "bottomdatabase"  )
-
+   
     if (DS=="bottom.annual.rawdata") {
-      fn = file.path( loc.bottom.database, paste("bottom", yr, "rdata", sep="."))
+      fn = file.path( loc.bottom, paste("bottom", yr, "rdata", sep="."))
       Z = NULL
       if (file.exists(fn) ) load (fn )
       return(Z)
@@ -492,7 +491,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
         if (!is.null(Z)) {
           if ( nrow(Z) > 0  ) {
-            fn = file.path(  loc.bottom.database, paste("bottom", yt, "rdata", sep="."))
+            fn = file.path(  loc.bottom, paste("bottom", yt, "rdata", sep="."))
             print (fn)
             save( Z, file=fn, compress=T)
           }
