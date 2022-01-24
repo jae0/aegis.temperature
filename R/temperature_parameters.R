@@ -78,6 +78,17 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     nyrs = diff(range( p$yrs )) 
 
+    if (p$carstm_model_label == "1999_present"){
+        p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+        p$areal_units_constraint_nmin = 5   # n time slices req in each au
+        p$areal_units_timeperiod = p$carstm_model_label 
+    } else if (p$carstm_model_label == "1970_present"){
+        p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+        p$areal_units_constraint_nmin = 30   # n time slices req in each au
+        p$areal_units_timeperiod = p$carstm_model_label 
+    }
+
+
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
       areal_units_xydata = "temperature_db(p=p, DS='areal_units_input')",
@@ -90,10 +101,10 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
-      fraction_todrop = 1/5,
-      fraction_cv = 0.9,
+      fraction_todrop = 1/7,
+      fraction_cv = 1.0,
       fraction_good_bad = 0.9,
-      nAU_min = 100,
+      nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "1970_present",
       carstm_inputs_prefilter = "aggregated",
