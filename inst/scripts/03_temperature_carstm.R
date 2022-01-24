@@ -9,15 +9,9 @@
     # testing (ignore):
     # construct basic parameter list defining the main characteristics of the study 
     p = temperature_parameters( project_class="carstm", yrs=1900:year.assessment )
-
-    # update data ... must redo if input data has changes or new data
-
-    (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
     temperature_db ( DS="bottom.all.redo", p=p ) 
-
     o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
     o = NULL
-
   }
 
 
