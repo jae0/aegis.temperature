@@ -34,6 +34,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   loc.archive = file.path( basedir, "archive", "profiles")
   dir.create( loc.archive, recursive=T, showWarnings=F )
 
+  loc.bottomdatabase = file.path( basedir, "archive", "bottomdatabase"  )
+  dir.create( loc.bottomdatabase, recursive=T, showWarnings=F )
+
   loc.basedata = file.path( basedir, "basedata", "rawdata" )
   dir.create( loc.basedata, recursive=T, showWarnings=F )
 
@@ -446,7 +449,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # extract bottom temperatures and save annual time slice
    
     if (DS=="bottom.annual.rawdata") {
-      fn = file.path( loc.bottom, paste("bottom", yr, "rdata", sep="."))
+      fn = file.path( loc.bottomdatabase, paste("bottom", yr, "rdata", sep="."))
       Z = NULL
       if (file.exists(fn) ) load (fn )
       return(Z)
@@ -473,7 +476,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # $ T_UID  : chr  "AAA090-1" "AAA090-1" "AAA090-1" "AAA090-1" ...
       # $ TEMP   : num  12.7 12.8 12.8 12.6 12.6 12.5 12.5 12.5 12.5 12.5 ...
 
+      ythreshold = 1970 
+
       for ( yt in yr ) {
+        if (yt < ythreshold) {
+          message( "Warning: ",  yt, "is not in this database ... skipping" )
+          next()
+        }
         Z = NULL
         Z = ROracle::dbGetQuery( con,  paste(
           " select * " ,
@@ -491,7 +500,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
         if (!is.null(Z)) {
           if ( nrow(Z) > 0  ) {
-            fn = file.path(  loc.bottom, paste("bottom", yt, "rdata", sep="."))
+            fn = file.path(  loc.bottomdatabase, paste("bottom", yt, "rdata", sep="."))
             print (fn)
             save( Z, file=fn, compress=T)
           }

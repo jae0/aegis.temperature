@@ -5,17 +5,20 @@
 
   year.assessment = 2021
 
+  if (0) {
+    # testing (ignore):
+    # construct basic parameter list defining the main characteristics of the study 
+    p = temperature_parameters( project_class="carstm", yrs=1900:year.assessment )
 
-  # construct basic parameter list defining the main characteristics of the study 
-  p = temperature_parameters( project_class="carstm", yrs=1900:year.assessment )
+    # update data ... must redo if input data has changes or new data
 
-  # update data ... must redo if input data has changes or new data
+    (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
+    temperature_db ( DS="bottom.all.redo", p=p ) 
 
-  (p$yrs) # check the years to ensure we are selecting the correct years 1950:present
-  temperature_db ( DS="bottom.all.redo", p=p ) 
+    o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
+    o = NULL
 
-  o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   
-  o = NULL
+  }
 
 
   # subset years ... earlier than 1970:present can take a lot RAM in posterior extraction ... reduce number of cores .. perhaps to 1 (of course this will be slower but alternative is to crash the system)

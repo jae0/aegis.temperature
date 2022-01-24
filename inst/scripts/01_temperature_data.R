@@ -3,7 +3,7 @@
 # Prep OSD, snow crab and groundfish temperature profiles
 # this one has to be done manually .. no longer mainted by anyone ..
 
-  year.assessment=2021
+year.assessment=2021
 
 
 p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years
@@ -36,11 +36,13 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
   }
 
   # this one requires Orable connection
-  temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1999:year.assessment )  # brent and amy's new db view
+  o = temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1999:year.assessment )  # brent and amy's new db view
  
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
   # temperature_db( DS="bottom.annual.redo", p=p, yr=1900:year.assessment )
   o = temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
-  
+
+  o = temperature_db ( DS="aggregated_data", p=p, redo=TRUE )   # used to reduce data size and do quick empirical look ups (not modelled)
+
 
 # finished
