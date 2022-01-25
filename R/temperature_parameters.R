@@ -78,16 +78,17 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     nyrs = diff(range( p$yrs )) 
 
-    if (p$carstm_model_label == "1999_present"){
-        p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
-        p$areal_units_constraint_nmin = 5   # n time slices req in each au
-        p$areal_units_timeperiod = p$carstm_model_label 
-    } else if (p$carstm_model_label == "1970_present"){
-        p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
-        p$areal_units_constraint_nmin = 30   # n time slices req in each au
-        p$areal_units_timeperiod = p$carstm_model_label 
+    if (exists("carstm_model_label", p)) {
+      if (p$carstm_model_label == "1999_present"){
+          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_nmin = 5   # n time slices req in each au
+          p$areal_units_timeperiod = p$carstm_model_label 
+      } else if (p$carstm_model_label == "1970_present"){
+          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_nmin = 30   # n time slices req in each au
+          p$areal_units_timeperiod = p$carstm_model_label 
+      }
     }
-
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
