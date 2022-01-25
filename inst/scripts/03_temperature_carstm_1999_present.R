@@ -65,48 +65,6 @@
   )    
 
 
-
-## --- long run results: 1970-present
-
- 
-
-
-
-##############
-
-
-## --- short run results: 1999- present
-# Fitted model saved as: /home/jae/bio.data/aegis/temperature/modelled/1999_present/temperature|canada.east|tesselation|1|none|40|10|none.rdata|carstm_modelled_summary|t|inla|100|7.rdata
-
-# Deviance Information Criterion (DIC) ...............: 546440.39
-# Deviance Information Criterion (DIC, saturated) ....: 2500670.27
-# Effective number of parameters .....................: 10878.08
-
-# Watanabe-Akaike information criterion (WAIC) ...: 547416.00
-# Effective number of parameters .................: 10607.07
-
-
-# Fixed effects
-#             mean       sd           quant0.025 quant0.5   quant0.975
-# (Intercept) 6.16773144 0.0600921552 6.04969833 6.16761527 6.28568136
-
-
-# Random effects:
-#                                                       mean             sd   quant0.025     quant0.5  quant0.975
-# SD the Gaussian observations                    1.31971928  0.00274093815    1.3138489   1.31993557  1.32452319
-# SD cyclic                                       18.4943731    0.584222092   17.5445605   18.4209961  19.8042772
-# SD time                                         23.5569114    0.271565676   23.0005998    23.567039  24.0645223
-# SD space                                        1.43986716   0.0278023228   1.38457729    1.4401821  1.49367044
-# SD inla.group(z, method = "quantile", n = 11)   1.49313565     0.26008593   1.09551099   1.45176975  2.10720371
-# SD space_time                                   1.24155046   0.0132395874   1.21421637   1.24214444  1.26602426
-# Rho for time                                  -0.999747217 8.99040293e-06 -0.999764035 -0.999747555 -0.99972883
-# Phi for space                                  0.995140678  0.00147205219  0.991924236   0.99525121 0.997603221
-# Phi for space_time                             0.999999813 4.50164302e-06  0.999961747  0.999997158 0.999998399
-# GroupRho for space_time                        0.299742681   0.0167560123  0.266076008  0.300014107 0.331725306
-#    --- NOTE: 'SD *' are on link scale and not user scale
-
-
-
       
     # extract results
     if (0) {
@@ -120,14 +78,43 @@
     }
 
 
+
+
   res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
+
+  ( res$summary)
+
+  # $fixed_effects
+  #                mean       sd quant0.025 quant0.5 quant0.975   parameter
+  # (Intercept) 7.19757 0.231412    6.74317  7.19718    7.65117 (Intercept)
+
+  # $random_effects
+  #                                                   mean         sd quant0.025 quant0.5 quant0.975
+  # SD the Gaussian observations                  1.444302 0.00272497   1.438668 1.444423   1.449339
+  # SD time                                       0.799841 0.02516521   0.763887 0.795395   0.858967
+  # SD cyclic                                     0.262678 0.00855010   0.244700 0.263244   0.277970
+  # SD space                                      2.479560 0.05698903   2.373245 2.477228   2.596816
+  # SD inla.group(z, method = "quantile", n = 11) 3.533001 1.03773735   2.350499 3.256218   6.246516
+  # SD space_time                                 1.309558 0.01547451   1.279835 1.309265   1.340582
+  # Rho for time                                  0.319038 0.04883276   0.205123 0.327166   0.389866
+  # GroupRho for space_time                       0.375820 0.01859616   0.336755 0.376871   0.409390
+  #                                                                                   parameter
+  # SD the Gaussian observations                                   SD the Gaussian observations
+  # SD time                                                                             SD time
+  # SD cyclic                                                                         SD cyclic
+  # SD space                                                                           SD space
+  # SD inla.group(z, method = "quantile", n = 11) SD inla.group(z, method = "quantile", n = 11)
+  # SD space_time                                                                 SD space_time
+  # Rho for time                                                                   Rho for time
+  # GroupRho for space_time                                             GroupRho for space_time
+
 
 
   b0 = res$summary$fixed_effects["(Intercept)", "mean"]
 
   ts =  res$random$time 
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] + b0 
+  ts[, vns] = ts[, vns] 
   plot( mean ~ ID, ts, type="b", ylim=c(-2,2)+b0, lwd=1.5, xlab="year")
   lines( quant0.025 ~ ID, ts, col="gray", lty="dashed")
   lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
@@ -135,7 +122,7 @@
 
   ts =  res$random$cyclic
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] + b0
+  ts[, vns] = ts[, vns]
   plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5)+b0, lwd=1.5, xlab="fractional year")
   lines( quant0.025 ~ID, ts, col="gray", lty="dashed")
   lines( quant0.975 ~ID, ts, col="gray", lty="dashed")
