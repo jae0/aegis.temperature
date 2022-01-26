@@ -199,7 +199,7 @@
   tmout
 
   # map all bottom temps:
-  outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, returntype="carstm_modelled_fit") ), "figures" )
+  outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
   graphics.off()
@@ -213,7 +213,7 @@
     for ( u in res$cyclic ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       fn = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
-      carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
+      tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=seq( 1, 9), 
         sppoly=sppoly,
         palette="-RdYlBu",
@@ -226,6 +226,7 @@
         map_mode="view",
         tmap_zoom= c(map_centre, map_zoom)
       )
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
     }
   }
 # end
