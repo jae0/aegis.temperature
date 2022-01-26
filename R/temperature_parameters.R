@@ -114,10 +114,10 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
 
 
-    if ( !exists("carstm_lookup_parameters", p))  {
+    if ( !exists("carstm_prediction_surface_parameters", p))  {
         # generics using "default" carstm models and stmv solutions for spatial effects
-        p$carstm_lookup_parameters = list()
-        p$carstm_lookup_parameters = parameters_add_without_overwriting( p$carstm_lookup_parameters,
+        p$carstm_prediction_surface_parameters = list()
+        p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
           bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
         )
     }
