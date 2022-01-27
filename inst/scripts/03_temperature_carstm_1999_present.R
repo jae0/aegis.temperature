@@ -191,7 +191,8 @@
 
     background = tmap::tm_basemap(leaflet::providers$CartoDB.Positron, alpha=0.8) 
 
-    # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
+    # SLOW: FASTER TO RUN year of interest and then take a screenshot
+    # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly) 
     for (y in res$time ){
       for ( u in res$cyclic ){
         fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
@@ -208,7 +209,7 @@
           map_mode="view",
           tmap_zoom= c(map_centre, map_zoom)
         )
-        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
+        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       }
     }
   # end
