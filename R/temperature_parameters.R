@@ -81,11 +81,11 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     if (exists("carstm_model_label", p)) {
       if (p$carstm_model_label == "1999_present"){
           p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
-          p$areal_units_constraint_nmin = 5   # n time slices req in each au
+          p$areal_units_constraint_nmin = 3   # n time slices req in each au
           p$areal_units_timeperiod = p$carstm_model_label 
       } else if (p$carstm_model_label == "1970_present"){
           p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
-          p$areal_units_constraint_nmin = 30   # n time slices req in each au
+          p$areal_units_constraint_nmin = 3   # n time slices req in each au
           p$areal_units_timeperiod = p$carstm_model_label 
       }
     }
@@ -102,8 +102,9 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
-      fraction_todrop = 1/7,
-      fraction_cv = 1.0,
+      hull_alpha=20,
+      fraction_todrop = 1/10,
+      fraction_cv = 0.9,  # just under poisson (binomial)
       fraction_good_bad = 0.9,
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
