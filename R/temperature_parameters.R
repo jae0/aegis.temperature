@@ -85,7 +85,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           p$areal_units_timeperiod = p$carstm_model_label 
       } else if (p$carstm_model_label == "1970_present"){
           p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
-          p$areal_units_constraint_nmin = 3   # n time slices req in each au
+          p$areal_units_constraint_nmin = 5   # n time slices req in each au
           p$areal_units_timeperiod = p$carstm_model_label 
       }
     }
