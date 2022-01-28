@@ -13,12 +13,12 @@
       project_class="carstm", 
       yrs=1970:year.assessment, 
       carstm_model_label="1970_present", 
-      theta = c(-0.895, 0.596, 1.579, 0.614, -2.443, 6.533, -3.718, -0.788, 21.477, 1.252 ) 
+      theta = c(-0.893, 0.603, 1.579, 0.616, -2.443, 6.535, -3.718, -0.786, 21.477, 1.254 ) 
     ) 
 
 
-    require(INLA)
-    inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
+    # require(INLA)
+    # inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
     
     # List of hyperparameters: 
     # theta[0] = [Log precision for the Gaussian observations]
@@ -65,8 +65,11 @@
     num.threads="6:2",  # adjust for your machine
     mc.cores=2,
     # if problems, try any of: 
-    # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
-    control.inla = list( strategy='adaptive', int.strategy="eb" ),
+    control.inla = list( strategy='laplace'),
+    # control.inla = list( strategy='adaptive', int.strategy="eb" ),
+    redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    # debug = TRUE,
     verbose=TRUE 
   )    
 
