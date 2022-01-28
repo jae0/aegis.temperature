@@ -13,8 +13,9 @@
       project_class="carstm", 
       yrs=1970:year.assessment, 
       carstm_model_label="1970_present", 
-      theta = c( -0.837, -0.264, -1.103, 2.394, -0.438, 4.916, -1.702, -0.466, 23.397, 0.770 ) 
+      theta = c(-0.895, 0.596, 1.579, 0.614, -2.443, 6.533, -3.718, -0.788, 21.477, 1.252 ) 
     ) 
+
 
     require(INLA)
     inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
