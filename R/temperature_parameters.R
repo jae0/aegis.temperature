@@ -76,19 +76,28 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$libs = c( p$libs, project.library ( "carstm", "INLA"  ) )
     p$project_class = "carstm"
 
-    nyrs = diff(range( p$yrs )) 
+    #special cases
 
     if (exists("carstm_model_label", p)) {
       if (p$carstm_model_label == "1999_present"){
+          p$yrs = 1999:p$year.assessment
           p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
           p$areal_units_constraint_nmin = 3   # n time slices req in each au
-          p$areal_units_timeperiod = p$carstm_model_label 
       } else if (p$carstm_model_label == "1970_present"){
+          p$yrs = 1970:p$year.assessment
           p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
           p$areal_units_constraint_nmin = 5   # n time slices req in each au
-          p$areal_units_timeperiod = p$carstm_model_label 
+      } else if (p$carstm_model_label == "1950_present"){
+          p$yrs = 1950:p$year.assessment
+          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_nmin = 5   # n time slices req in each au
       }
     }
+
+    # resetss in case of changes above
+    p$areal_units_timeperiod = p$carstm_model_label # needed?
+    p$ny = length(p$yrs)
+    p$nt = p$nw*p$ny # i.e., seasonal with p$nw (default is annual: nt=ny)
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,

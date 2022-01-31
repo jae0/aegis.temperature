@@ -676,7 +676,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
 
   if (DS %in% c( "bottom.all", "bottom.all.redo" ) ) {
-    # collect bottom temperatures
+    # collect all bottom temperatures (1990 to present)
 
     fbAll = file.path( loc.bottom, "bottom.all.rdata" )
     if (DS=="bottom.all") {
@@ -685,8 +685,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       return(O)
     }
     O = NULL
-    if (!exists("yrs",p)) stop( "p$yrs needs to be defined" )
-    for ( yr in p$yrs ) {
+    
+    yrs_all = c( 1900: lubridate::year(lubridate::now()) )
+
+    for ( yr in yrs ) {
       o = temperature_db( p=p, DS="bottom.annual", yr=yr )
       message( "Year: ", yr, " --  depth ranges (m): ", paste0( range(o$z, na.rm=T), sep="  ") )
       if (!is.null(o)) O = rbind(O, o)
@@ -694,14 +696,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     # depths look to be problematic? : reject and use stmv solution:
     pBD = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class="stmv" )  # full default
-      LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
-      LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
-      O = lonlat2planar(O, p$aegis_proj4string_planar_km)
-      M_map  = array_map( "xy->1", O[, c("plon","plat")], gridparams=p$gridparams )
-      iML = match( M_map, LU_map )
-      O[, "z"] = LU[ iML, "z" ]
+    LU = bathymetry_db( p=pBD, DS="baseline", varnames="all" )
+    LU_map = array_map( "xy->1", LU[,c("plon","plat")], gridparams=p$gridparams )
+    O = lonlat2planar(O, p$aegis_proj4string_planar_km)
+    M_map  = array_map( "xy->1", O[, c("plon","plat")], gridparams=p$gridparams )
+    iML = match( M_map, LU_map )
+    O[, "z"] = LU[ iML, "z" ]
 
-     save(O, file=fbAll, compress=TRUE)
+    save(O, file=fbAll, compress=TRUE)
     return(fbAll)
   }
 
@@ -783,54 +785,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     setDF(M)
 
     M = planar2lonlat( M, p$aegis_proj4string_planar_km)
-
-
-
-    if (0) {
-      # old method .. too slow
-
-        bb = as.data.frame( t( simplify2array(
-          tapply( X=M[,p$variabletomodel], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
-            FUN = function(w) { c(
-              mean(w, na.rm=TRUE),
-              sd(w, na.rm=TRUE),
-              length( which(is.finite(w)) )
-            ) }, simplify=TRUE )
-        )))
-        colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
-        bb$id = rownames(bb)
-        out = bb
-
-
-        bb = NULL
-        labs = matrix( as.numeric( unlist(strsplit( rownames(out), "_", fixed=TRUE))), ncol=4, byrow=TRUE)
-
-        out$plon = labs[,1]
-        out$plat = labs[,2]
-        out$yr = labs[,3]
-        out$dyear = labs[,4]
-        labs = NULL
-
-        gc()
-
-        bb = as.data.frame( t( simplify2array(
-          tapply( X=M[,"z"], INDEX=list(paste( M$plon, M$plat, M$yr, M$dyear, sep="_") ),
-            FUN = function(w) { c(
-              mean(w, na.rm=TRUE),
-              sd(w, na.rm=TRUE),
-              length( which(is.finite(w)) )
-            ) }, simplify=TRUE )
-        )))
-        colnames(bb) = paste( "z", c("mean", "sd", "n"), sep=".")
-        bb$id = rownames(bb)
-
-        M = merge( out, bb, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-
-        M = M[ which( is.finite( M[, paste(p$variabletomodel, "mean", sep=".")] )) ,]
-        out =NULL
-
-        M = planar2lonlat( M, p$aegis_proj4string_planar_km)
-    }
 
     save( M, file=fn, compress=TRUE )
     return( M )
