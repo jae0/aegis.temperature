@@ -13,9 +13,10 @@
       project_class="carstm", 
       yrs=1970:year.assessment, 
       carstm_model_label="1970_present", 
-      theta = c(-0.893, 0.603, 1.579, 0.616, -2.443, 6.535, -3.718, -0.786, 21.477, 1.254 ) 
+      theta = c(-0.857, 0.678, 1.525, 0.560, -0.310, 6.957, -3.901, -0.409, 20.815, 0.813 ) 
     ) 
 
+ 
 
     # require(INLA)
     # inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
@@ -36,7 +37,7 @@
     # to recreate the underlying data
     xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-    sppoly = areal_units( p=p, xydata=xydata, hull_alpha=20, redo=TRUE )  # to force create
+    sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
     
@@ -62,13 +63,13 @@
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
-    num.threads="6:2",  # adjust for your machine
+    num.threads="4:2",  # adjust for your machine
     mc.cores=2,
     # if problems, try any of: 
     control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
     # debug = "random_covariates",
     verbose=TRUE 
@@ -137,16 +138,16 @@
 
   ts =  res$random$time 
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] + b0 
-  plot( mean ~ ID, ts, type="b", ylim=c(-2,2)+b0, lwd=1.5, xlab="year")
+  ts[, vns] = ts[, vns] 
+  plot( mean ~ ID, ts, type="b", ylim=c(-2,2), lwd=1.5, xlab="year")
   lines( quant0.025 ~ ID, ts, col="gray", lty="dashed")
   lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
 
 
   ts =  res$random$cyclic
   vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] + b0
-  plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5)+b0, lwd=1.5, xlab="fractional year")
+  ts[, vns] = ts[, vns] 
+  plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5), lwd=1.5, xlab="fractional year")
   lines( quant0.025 ~ID, ts, col="gray", lty="dashed")
   lines( quant0.975 ~ID, ts, col="gray", lty="dashed")
 
@@ -217,21 +218,19 @@
   for (y in res$time ){
     for ( u in res$cyclic ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
-      fn = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
+      outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
       tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=seq( 1, 9), 
         sppoly=sppoly,
         palette="-RdYlBu",
         title=fn_root,  
-        outfilename=fn,
         plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
         background = background,
-        vwidth = 1600,
-        vheight=1000,
         map_mode="view",
         tmap_zoom= c(map_centre, map_zoom)
       )
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
+      print( outfilename )
     }
   }
 # end
