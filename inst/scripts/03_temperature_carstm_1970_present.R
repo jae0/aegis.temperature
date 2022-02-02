@@ -1,5 +1,3 @@
-  # 2022-01-14 14:17:20
-
 
   require(aegis.temperature)
 
