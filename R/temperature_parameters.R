@@ -113,7 +113,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       tus="yr",
       hull_alpha = 20,
       fraction_todrop = 1/10,
-      fraction_cv = 0.9,  # just under poisson (binomial)
+      fraction_cv = 1.0,  # just under poisson (binomial)
       fraction_good_bad = 0.9,
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}

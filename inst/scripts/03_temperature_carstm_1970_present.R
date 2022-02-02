@@ -11,10 +11,10 @@
       project_class="carstm", 
       yrs=1970:year.assessment, 
       carstm_model_label="1970_present", 
-      theta = c(-0.857, 0.678, 1.525, 0.560, -0.310, 6.957, -3.901, -0.409, 20.815, 0.813 ) 
+      theta = c(  -0.887, 0.798, 1.485, 0.393, -2.320, 6.930, -4.109, -0.739, 21.410, 1.209   ) 
     ) 
 
- 
+
 
     # require(INLA)
     # inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
@@ -38,13 +38,8 @@
     sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
+    carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )   # or using carstm_map:
     
-    # or using carstm_map: 
-    carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
-    carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
-
-
-
 
   # ------------------------------
   # prep data
