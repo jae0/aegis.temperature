@@ -11,7 +11,7 @@
       project_class="carstm", 
       yrs=1970:year.assessment, 
       carstm_model_label="1970_present", 
-      theta = c(  -0.887, 0.798, 1.485, 0.393, -2.320, 6.930, -4.109, -0.739, 21.410, 1.209   ) 
+      theta = c( -0.887, 0.678, 1.573, 0.563, -2.321, 6.928, -4.056, -0.747, 21.491, 1.216   ) 
     ) 
 
 
@@ -157,7 +157,7 @@
     sppoly=sppoly,
     breaks=seq(-1, 9, by=0.25), 
     palette="-RdYlBu",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
     title=paste( "Bottom temperature predictions", tmatch, umatch)  
   )
@@ -167,7 +167,7 @@
     sppoly=sppoly,
     breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
     title="Bottom temperature spatial effects (Celcius)"
   )
@@ -177,7 +177,7 @@
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
     title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
   )
@@ -191,7 +191,7 @@
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     tmap_zoom= c(map_centre, map_zoom),
     title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
   )
