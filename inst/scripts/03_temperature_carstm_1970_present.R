@@ -34,10 +34,12 @@
 
     # to recreate the underlying data
     xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
+    
+    xydata=temperature_db(p=p, DS="areal_units_input" )  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
-    plot( sppoly[ "AUID" ] ) 
+    plot( sppoly[ "npts" ] ) 
     carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )   # or using carstm_map:
     
 

@@ -112,7 +112,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
       hull_alpha = 20,
-      fraction_todrop = 1/10,
+      fraction_todrop = 0.05,
       fraction_cv = 1.0,  # just under poisson (binomial)
       fraction_good_bad = 0.9,
       nAU_min = 30,
