@@ -13,12 +13,7 @@
       carstm_model_label="1970_present", 
       theta = c( -0.887, 0.678, 1.573, 0.563, -2.321, 6.928, -4.056, -0.747, 21.491, 1.216   ) 
     ) 
-
-
-
-    # require(INLA)
-    # inla.setOption(num.threads=2  )  # note, you want 1 here unless you have a lot of RAM and swap 
-    
+   
     # List of hyperparameters: 
     # theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
