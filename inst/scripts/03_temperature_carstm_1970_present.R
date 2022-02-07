@@ -28,6 +28,7 @@
  
 
     # to recreate the underlying data
+    # NOTE:: this reshapes the boundaries to make things a bit more compact .... will need to alter to get more expansive results
     xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
     
     xydata=temperature_db(p=p, DS="areal_units_input" )  # redo if inpute data has changed
