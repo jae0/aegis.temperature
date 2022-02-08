@@ -686,7 +686,6 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     O = NULL
     
-    yrs_all = c( 1900: lubridate::year(lubridate::now()) )
 
     for ( yr in yrs ) {
       o = temperature_db( p=p, DS="bottom.annual", yr=yr )
