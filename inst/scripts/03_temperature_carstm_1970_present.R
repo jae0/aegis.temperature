@@ -1,9 +1,9 @@
 
-  require(aegis.temperature)
+    require(aegis.temperature)
 
-  year.assessment = 2021
-  
-  # about 24 hrs for 1999:2021
+    year.assessment = 2021
+    
+    # about 24 hrs for 1999:2021
 
     # used by aegis.survey (cod, wolfish, etc)  -- about 16 hrs to model 3+hr to plot
     # the theta are starting points for the hyper params on link scale
