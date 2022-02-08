@@ -687,9 +687,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     O = NULL
     
 
-    for ( yr in yrs ) {
-      o = temperature_db( p=p, DS="bottom.annual", yr=yr )
-      message( "Year: ", yr, " --  depth ranges (m): ", paste0( range(o$z, na.rm=T), sep="  ") )
+    for ( y in yr ) {
+      o = temperature_db( p=p, DS="bottom.annual", yr=y )
+      message( "Year: ", y, " --  depth ranges (m): ", paste0( range(o$z, na.rm=T), sep="  ") )
       if (!is.null(o)) O = rbind(O, o)
     }
 

@@ -78,17 +78,6 @@
 # Effective number of parameters .................: 23671.73
 
 # Marginal log-Likelihood:  -493362.38 
-# Posterior summaries for the linear predictor and the fitted values are computed
-# (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
-
-#    --- NOTE: parameter estimates are on link scale and not user scale.
-
-#    --- NOTE: even if the model fit completes, failure of extraction is possible when NAN or INF are encountered... this means that your model / data probably needs tbe changed.
-
-
-# Computing summaries and computing from posterior simulations (can be longer than model fitting depending upon no of posterior sims: 'nposteriors' ) ...
-# Extracting parameter summaries
-
 # Fixed effects
 #                mean      sd quant0.025 quant0.5 quant0.975   parameter
 # (Intercept) 6.25488 0.12336    6.01278  6.25451    6.49624 (Intercept)
