@@ -38,6 +38,8 @@
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
+    sppoly = areal_units( p=p, xydata=xydata  )  # to force create
+    
     plot( sppoly[ "npts" ] ) 
     carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )   # or using carstm_map:
     
