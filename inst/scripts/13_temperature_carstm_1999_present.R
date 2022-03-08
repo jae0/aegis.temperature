@@ -130,6 +130,8 @@
 
 
 
+    
+
     map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2   )
     map_zoom = 7
 
@@ -185,33 +187,58 @@
     outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
   
+  
     graphics.off()
-    # bbox = c(-71.5, 41, -52.5,  50.5 )
+  
+  
+    additional_features = additional_features_tmap( 
+        p=p, 
+        isobaths=c( 10, 100, 200, 300, 500, 1000 ), 
+        coastline =  c("canada"), 
+        xlim=c(-80,-40), 
+        ylim=c(38, 60) 
+    )
+  
+    
+    fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
+    outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+    
+    vn = c( "random", "space", "combined" ) 
+    
+    toplot = carstm_results_unpack( res, vn )
+    brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+    tmout = carstm_map(  res=res, vn=vn, 
+      sppoly = sppoly, 
+      breaks = brks,
+      palette="-RdYlBu",
+      plot_elements=c(  "compass", "scale_bar", "legend" ),
+      additional_features=additional_features,
+      title= "Bottom temperature -- persistent spatial effect" ,
+      outfilename=outfilename
+    )  
+    tmout
 
 
-    background = tmap::tm_basemap(leaflet::providers$CartoDB.Positron, alpha=0.8) 
 
-    # SLOW: FASTER TO RUN year of interest and then take a screenshot
-    # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly) 
+    # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
+    brks = pretty(c(1, 9))
     for (y in res$time ){
-      for ( u in res$cyclic ){
+      for ( u in res$cyclic  ){
         fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
         tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
-          breaks=seq( 1, 9), 
+          breaks=brks, 
           sppoly=sppoly,
           palette="-RdYlBu",
+          plot_elements=c(  "compass", "scale_bar", "legend" ),
+          additional_features=additional_features,
           title=fn_root,  
-          plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-          background = background,
-          vwidth = 1600,
-          vheight=1000,
-          map_mode="view",
-          tmap_zoom= c(map_centre, map_zoom)
+          outfilename=outfilename
         )
-        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       }
     }
+      
   # end
 
   
