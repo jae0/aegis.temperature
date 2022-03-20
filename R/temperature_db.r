@@ -860,9 +860,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     sppoly = st_transform(sppoly, crs=crs_lonlat )
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-    label =  "carstm_inputs" 
-    if (p$carstm_inputs_prefilter =="rawdata") label = "carstm_inputs_rawdata"
-    fn = carstm_filenames( p=p, returntype=label, areal_units_fn=areal_units_fn )
+    fn = file.path( p$modeldir, p$carstm_model_label, paste("carstm_inputs", areal_units_fn, sep="_") )
+    if (p$carstm_inputs_prefilter =="rawdata") {
+      fn = file.path( p$modeldir, p$carstm_model_label, paste("carstm_inputs_rawdata", areal_units_fn, sep="_") )
+    }
 
     # inputs are shared across various secneario using the same polys
     #.. store at the modeldir level as default
