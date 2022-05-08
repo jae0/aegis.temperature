@@ -59,12 +59,13 @@
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
+    posterior_simulations_to_retain="predictions", 
     num.threads="4:2",  # adjust for your machine
     mc.cores=2,
     # if problems, try any of: 
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
-    redo_fit=TRUE, 
+    redo_fit=TRUE,
     # debug = TRUE,
     # debug = "random_covariates",
     verbose=TRUE 
@@ -147,15 +148,15 @@
 
 
   carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-    type="b", ylim=c(-2, 2), xlab="Year", ylab="Botton temperature (Celcius)", h=7  )
+    type="b", ylim=c(-2, 2), xlab="Year", ylab="Botton temperature (Celsius)", h=7  )
 
   carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-1.5, 1.5),
-    xlab="Season", ylab="Botton temperature (Celcius)", h=7  )
+    xlab="Season", ylab="Botton temperature (Celsius)", h=7  )
 
   carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-2, 2) ,
-    xlab="Depth (m)", ylab="Botton temperature (Celcius)", h=7  )
+    xlab="Depth (m)", ylab="Botton temperature (Celsius)", h=7  )
 
 
 
@@ -179,7 +180,7 @@
     breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-    title="Bottom temperature spatial effects (Celcius)"
+    title="Bottom temperature spatial effects (Celsius)"
   )
   tmout
 

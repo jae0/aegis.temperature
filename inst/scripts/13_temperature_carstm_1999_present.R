@@ -54,6 +54,7 @@
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
       sppoly=sppoly,
+      posterior_simulations_to_retain="predictions", 
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
       # if problems, try any of: 
@@ -155,7 +156,7 @@
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
       tmap_zoom= c(map_centre, map_zoom),
-      title="Bottom temperature spatial effects (Celcius)"
+      title="Bottom temperature spatial effects (Celsius)"
     )
     tmout
 
