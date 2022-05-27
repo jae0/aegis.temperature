@@ -77,6 +77,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$project_class = "carstm"
 
     #special cases
+    if (!exists("carstm_model_label", p)) p$carstm_model_label = "1970_present"
 
     if (exists("carstm_model_label", p)) {
       if (p$carstm_model_label == "1999_present"){
