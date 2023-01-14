@@ -1,7 +1,7 @@
 
     require(aegis.temperature)
 
-    year.assessment = 2021
+    year.assessment = 2022
     
     # about 24 hrs for 1999:2021
 
@@ -38,7 +38,7 @@
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
 
-    sppoly = areal_units( p=p, xydata=xydata  )  # to force create
+    sppoly = areal_units( p=p )  # to reload
     
     plot( sppoly[ "npts" ] ) 
     carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )   # or using carstm_map:
@@ -111,6 +111,37 @@
 # GroupRho for space_time                       0.576076 0.012911940   0.546949 0.577741   0.596559
 # Phi for space                                 0.998661 0.000381386   0.997762 0.998715   0.999242
 # Phi for space_time                            1.000000 0.000000000   1.000000 1.000000   1.000000
+
+
+
+# 2022 results:
+# Deviance Information Criterion (DIC) ...............: 1056524.81
+# Deviance Information Criterion (DIC, saturated) ....: 316818.52
+# Effective number of parameters .....................: 24244.12
+
+# Watanabe-Akaike information criterion (WAIC) ...: 1061336.34
+# Effective number of parameters .................: 25503.62
+
+# Marginal log-Likelihood:  -509258.47 
+#  is computed 
+
+# Fixed effects
+#              mean    sd quant0.025 quant0.5 quant0.975   parameter
+# (Intercept) 6.178 1.133      3.956    6.176      8.396 (Intercept)
+
+
+# Random effects:
+#                                                 mean        sd quant0.025
+# SD the Gaussian observations                  1.4737 1.048e-03     1.4716
+# SD time                                       5.8666 1.442e-01     5.5497
+# SD cyclic                                     0.1336 2.230e-03     0.1297
+# SD space                                      2.7486 4.259e-02     2.6895
+# SD inla.group(z, method = "quantile", n = 11) 1.0081 3.397e-02     0.9628
+# SD space_time                                 1.7177 1.611e-02     1.6851
+# Rho for time                                  0.3261 1.841e-02     0.2911
+# GroupRho for space_time                       0.7380 9.661e-03     0.7148
+# Phi for space                                 1.0000 3.273e-07     1.0000
+# Phi for space_time                            1.0000 6.747e-08     1.0000
 
 
     # extract results

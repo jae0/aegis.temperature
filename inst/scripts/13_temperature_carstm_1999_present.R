@@ -3,7 +3,7 @@
 
   require(aegis.temperature)
 
-  year.assessment = 2021
+  year.assessment = 2022
 
   # about 24 hrs for 1999:2021
   # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs + ;  6+ for mapping )... 
@@ -111,7 +111,45 @@
     # GroupRho for space_time                       0.328919 0.01641543  0.2973550 0.328572   0.361639
     # Phi for space                                 0.764311 0.05451491  0.6316819 0.775127   0.839297
     # Phi for space_time                            0.996552 0.03835902  0.9995463 0.999756   0.999965
-      
+ 
+#  2022:
+#    DIC:
+# 	Mean of Deviance ................. 545755
+# 	Deviance at Mean ................. 528685
+# 	Effective number of parameters ... 17070.2
+# 	DIC .............................. 562825
+# DIC (Saturated):
+# 	Mean of Deviance ................. 163551
+# 	Deviance at Mean ................. 146643
+# 	Effective number of parameters ... 17070.2
+# 	DIC .............................. 180621
+# Marginal likelihood: Integration -266213.760 Gaussian-approx -266204.821
+# Compute the marginal for each of the 10 hyperparameters
+#   Fixed effects:
+#             mean    sd 0.025quant 0.5quant 0.975quant  mode kld
+# (Intercept) 7.18 0.214      6.748    7.179      7.617 7.177   0
+
+# Random effects:
+#   Name	  Model
+#     time AR1 model
+#    cyclic RW2 model
+#    space BYM2 model
+#    inla.group(z, method = "quantile", n = 11) RW2 model
+#    space_time BYM2 model
+
+# Model hyperparameters:
+#                                                           mean    sd 0.025quant
+# Precision for the Gaussian observations                  0.609 0.000      0.608
+# Precision for time                                       0.763 0.079      0.610
+# Rho for time                                             0.038 0.055     -0.092
+# Precision for cyclic                                     6.730 2.083      3.239
+# Precision for space                                      0.098 0.000      0.095
+# Phi for space                                            0.875 0.002      0.828
+# Precision for inla.group(z, method = "quantile", n = 11) 0.002 0.000      0.001
+# Precision for space_time                                 0.697 0.008      0.662
+# Phi for space_time                                       0.734 0.002      0.696
+# GroupRho for space_time                                  0.383 0.011      0.333
+ 
     b0 = res$summary$fixed_effects["(Intercept)", "mean"]
 
     ts =  res$random$time 
@@ -138,6 +176,8 @@
 
     # maps of some of the results
     tmatch="2021"
+    tmatch="2022"
+
     umatch="0.75"
 
     tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
