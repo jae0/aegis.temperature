@@ -112,44 +112,50 @@
     # Phi for space                                 0.764311 0.05451491  0.6316819 0.775127   0.839297
     # Phi for space_time                            0.996552 0.03835902  0.9995463 0.999756   0.999965
  
-#  2022:
-#    DIC:
-# 	Mean of Deviance ................. 545755
-# 	Deviance at Mean ................. 528685
-# 	Effective number of parameters ... 17070.2
-# 	DIC .............................. 562825
-# DIC (Saturated):
-# 	Mean of Deviance ................. 163551
-# 	Deviance at Mean ................. 146643
-# 	Effective number of parameters ... 17070.2
-# 	DIC .............................. 180621
-# Marginal likelihood: Integration -266213.760 Gaussian-approx -266204.821
-# Compute the marginal for each of the 10 hyperparameters
-#   Fixed effects:
-#             mean    sd 0.025quant 0.5quant 0.975quant  mode kld
-# (Intercept) 7.18 0.214      6.748    7.179      7.617 7.177   0
+# #  2022:
+# Deviance Information Criterion (DIC) ...............: 562042.86
+# Deviance Information Criterion (DIC, saturated) ....: 179357.41
+# Effective number of parameters .....................: 15743.92
 
-# Random effects:
-#   Name	  Model
-#     time AR1 model
-#    cyclic RW2 model
-#    space BYM2 model
-#    inla.group(z, method = "quantile", n = 11) RW2 model
-#    space_time BYM2 model
+# Watanabe-Akaike information criterion (WAIC) ...: 565216.51
+# Effective number of parameters .................: 15638.36
 
-# Model hyperparameters:
-#                                                           mean    sd 0.025quant
-# Precision for the Gaussian observations                  0.609 0.000      0.608
-# Precision for time                                       0.763 0.079      0.610
-# Rho for time                                             0.038 0.055     -0.092
-# Precision for cyclic                                     6.730 2.083      3.239
-# Precision for space                                      0.098 0.000      0.095
-# Phi for space                                            0.875 0.002      0.828
-# Precision for inla.group(z, method = "quantile", n = 11) 0.002 0.000      0.001
-# Precision for space_time                                 0.697 0.008      0.662
-# Phi for space_time                                       0.734 0.002      0.696
-# GroupRho for space_time                                  0.383 0.011      0.333
- 
+# Marginal log-Likelihood:  -265967.87 
+#  is computed 
+# Posterior summaries for the linear predictor and the fitted values are computed
+# (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
+
+
+# $fixed_effects
+#             mean     sd quant0.025 quant0.5 quant0.975   parameter
+# (Intercept) 7.19 0.2209      6.756    7.189      7.623 (Intercept)
+
+# $random_effects
+#                                                 mean        sd quant0.025
+# SD the Gaussian observations                  1.2887 3.123e-03    1.28352
+# SD time                                       0.7554 9.627e-02    0.56433
+# SD cyclic                                     0.4999 1.277e-01    0.30439
+# SD space                                      2.3387 7.718e-02    2.16408
+# SD inla.group(z, method = "quantile", n = 11) 4.2720 1.504e+00    1.67528
+# SD space_time                                 1.4225 1.492e-02    1.39432
+# Rho for time                                  0.4163 1.775e-01    0.08968
+# GroupRho for space_time                       0.4159 1.720e-02    0.38005
+# Phi for space                                 0.7014 4.137e-02    0.60229
+# Phi for space_time                            1.0000 1.619e-06    0.99999
+#                                               quant0.5 quant0.975
+# SD the Gaussian observations                    1.2883     1.2956
+# SD time                                         0.7581     0.9374
+# SD cyclic                                       0.4804     0.8025
+# SD space                                        2.3498     2.4555
+# SD inla.group(z, method = "quantile", n = 11)   4.1945     7.3471
+# SD space_time                                   1.4220     1.4529
+# Rho for time                                    0.4106     0.7568
+# GroupRho for space_time                         0.4168     0.4473
+# Phi for space                                   0.7093     0.7583
+# Phi for space_time                              1.0000     1.0000
+  
+
+  
     b0 = res$summary$fixed_effects["(Intercept)", "mean"]
 
     ts =  res$random$time 
