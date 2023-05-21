@@ -45,22 +45,22 @@
     
     M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
     M = NULL
-
+ 
 
   # !!! WARNING: this uses a lot of RAM  
-    fit = NULL
+    res = NULL
 
-    fit = carstm_model( 
+    res = carstm_model( 
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
       sppoly=sppoly,
-      posterior_simulations_to_retain="predictions", 
+      posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       # control.inla = list( strategy='adaptive', int.strategy="eb" ),
-      control.inla = list( strategy='laplace'  ),
+      # control.inla = list( strategy='laplace'  ),
       verbose=TRUE 
     )    
 
