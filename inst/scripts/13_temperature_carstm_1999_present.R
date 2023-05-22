@@ -57,6 +57,7 @@
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
+      redo_fit=FALSE,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       # control.inla = list( strategy='adaptive', int.strategy="eb" ),
@@ -188,7 +189,7 @@
 
     tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
       sppoly=sppoly,
-      breaks=seq(-1, 9, by=0.25), 
+      breaks=seq(-1, 9, by=1), 
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
       tmap_zoom= c(map_centre, map_zoom),
@@ -198,7 +199,7 @@
 
     tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
       sppoly=sppoly,
-      breaks=seq(-5, 5, by=0.25), 
+      breaks=seq(-5, 5, by=1), 
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
       tmap_zoom= c(map_centre, map_zoom),
@@ -253,8 +254,8 @@
     vn = c( "random", "space", "combined" ) 
     
     toplot = carstm_results_unpack( res, vn )
-    brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
+    #brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+    brks = pretty(c(-6, 6))
     tmout = carstm_map(  res=res, vn=vn, 
       sppoly = sppoly, 
       breaks = brks,
@@ -270,8 +271,8 @@
 
     # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
     brks = pretty(c(1, 9))
-    for (y in res$time ){
-      for ( u in res$cyclic  ){
+    for (y in res$time_id ){
+      for ( u in res$cyclic_id  ){
         fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
         tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
