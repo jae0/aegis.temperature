@@ -948,14 +948,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         names(M)[which(names(M)=="z.mean" )] = "z"
       } 
     }
-    
+ 
     M$tiyr = M$yr + M$dyear 
  
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly  )
 
 # check this
     M$space = M$AUID
-    M$time = M$year    
+    M$time = M$yr    
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
     M$time_space = M$time  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 

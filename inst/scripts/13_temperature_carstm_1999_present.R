@@ -54,10 +54,11 @@
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
       sppoly=sppoly,
+      nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
-      redo_fit=FALSE,
+      redo_fit=TRUE,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       # control.inla = list( strategy='adaptive', int.strategy="eb" ),
@@ -206,31 +207,7 @@
       title="Bottom temperature spatial effects (Celsius)"
     )
     tmout
-
-    tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
-      sppoly=sppoly,
-      breaks=seq(-2, 2, by=0.25), 
-      palette="-RdYlBu",
-      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-      tmap_zoom= c(map_centre, map_zoom),
-      title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
-    )
-    tmout
-
-
-    tmatch="2021"
-    umatch="0.75"
-
-    tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
-      sppoly=sppoly,
-      breaks=seq(-2, 2, by=0.25), 
-      palette="-RdYlBu",
-      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-      tmap_zoom= c(map_centre, map_zoom),
-      title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
-    )
-    tmout
-
+ 
     # map all bottom temps:
     outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
