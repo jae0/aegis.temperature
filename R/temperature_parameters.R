@@ -26,7 +26,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     variabletomodel = "t",
     spatial_domain = "canada.east",  # canada.east.highres and canada.east.superhighres result in memory overflow
     spatial_domain_subareas = c( "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
-    aegis_dimensionality="space-year-season"
+    dimensionality="space-time-cyclic"
   )
 
   p$quantile_bounds =c(0, 0.95) # trim upper bounds

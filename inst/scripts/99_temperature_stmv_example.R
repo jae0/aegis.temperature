@@ -57,7 +57,7 @@ p = aegis.temperature::temperature_parameters(
   spatial_domain_subareas =NULL,  # prevent subgrid estimation
   inputdata_spatial_discretization_planar_km = 1 / 10, # 0.5==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   yrs = year.start:year.assessment,
-  aegis_dimensionality="space-year-season",
+  dimensionality="space-time-cyclic",
   stmv_global_modelengine = "none",
   stmv_local_modelengine = "twostep" ,
   stmv_local_modelformula_time = formula( paste(
