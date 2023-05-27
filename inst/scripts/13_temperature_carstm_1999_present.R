@@ -190,7 +190,7 @@
 
     tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
       sppoly=sppoly,
-      breaks=seq(-1, 9, by=1), 
+      breaks=seq(-1, 9, by=2), 
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
       tmap_zoom= c(map_centre, map_zoom),
@@ -199,7 +199,6 @@
     tmout
 
     tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
-      sppoly=sppoly,
       breaks=seq(-5, 5, by=1), 
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
@@ -218,8 +217,8 @@
   
     additional_features = additional_features_tmap( 
         p=p, 
-        isobaths=c( 10, 100, 200, 300, 500, 1000 ), 
-        coastline =  c("canada"), 
+        isobaths=c(10, 100, 200, 300, 400, 500  ), 
+        coastline =  c("canada", "us"), 
         xlim=c(-80,-40), 
         ylim=c(38, 60) 
     )
@@ -234,7 +233,6 @@
     #brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
     brks = pretty(c(-6, 6))
     tmout = carstm_map(  res=res, vn=vn, 
-      sppoly = sppoly, 
       breaks = brks,
       palette="-RdYlBu",
       plot_elements=c(  "compass", "scale_bar", "legend" ),
@@ -254,7 +252,6 @@
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
         tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
           breaks=brks, 
-          sppoly=sppoly,
           palette="-RdYlBu",
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
