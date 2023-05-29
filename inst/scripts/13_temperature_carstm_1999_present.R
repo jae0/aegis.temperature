@@ -12,7 +12,7 @@
     project_class="carstm", 
     carstm_model_label="1999_present",
     yrs=1999:year.assessment, 
-    theta = c(-0.717, 0.460, 0.599, 1.557, -1.480, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
+    theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
   ) 
                 
     # List of hyperparameters: 
@@ -59,6 +59,7 @@
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
       redo_fit=TRUE,
+      compress=TRUE,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       # control.inla = list( strategy='adaptive', int.strategy="eb" ),
@@ -84,81 +85,9 @@
 
     res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
 
-    ( res$summary)
-    # Deviance Information Criterion (DIC) ...............: 568920.50
-    # Deviance Information Criterion (DIC, saturated) ....: 2524870.13
-    # Effective number of parameters .....................: 7724.92
-
-    # Watanabe-Akaike information criterion (WAIC) ...: 569130.99
-    # Effective number of parameters .................: 7224.05
-
-    # Marginal log-Likelihood:  -278942.24 
-    # Posterior summaries for the linear predictor and the fitted values are computed
-    # (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
-
-
-    # $fixed_effects
-    #                mean       sd quant0.025 quant0.5 quant0.975   parameter
-    # (Intercept) 7.19164 0.216609     6.7663  7.19127    7.61622 (Intercept)
-
-    # $random_effects
-    #                                                   mean         sd quant0.025 quant0.5 quant0.975
-    # SD the Gaussian observations                  1.430173 0.00214346  1.4255766 1.430346   1.433921
-    # SD time                                       0.726388 0.14938807  0.4436396 0.726288   1.018488
-    # SD cyclic                                     0.508445 0.14043420  0.3026282 0.483691   0.848791
-    # SD space                                      2.032687 0.08870948  1.8376116 2.042843   2.176527
-    # SD inla.group(z, method = "quantile", n = 11) 5.292217 1.31654681  3.0246229 5.197588   8.141208
-    # SD space_time                                 1.318224 0.01600585  1.2887432 1.317409   1.351453
-    # Rho for time                                  0.544143 0.25703429  0.0448915 0.564011   0.944560
-    # GroupRho for space_time                       0.328919 0.01641543  0.2973550 0.328572   0.361639
-    # Phi for space                                 0.764311 0.05451491  0.6316819 0.775127   0.839297
-    # Phi for space_time                            0.996552 0.03835902  0.9995463 0.999756   0.999965
- 
-# #  2022:
-# Deviance Information Criterion (DIC) ...............: 562042.86
-# Deviance Information Criterion (DIC, saturated) ....: 179357.41
-# Effective number of parameters .....................: 15743.92
-
-# Watanabe-Akaike information criterion (WAIC) ...: 565216.51
-# Effective number of parameters .................: 15638.36
-
-# Marginal log-Likelihood:  -265967.87 
-#  is computed 
-# Posterior summaries for the linear predictor and the fitted values are computed
-# (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
-
-
-# $fixed_effects
-#             mean     sd quant0.025 quant0.5 quant0.975   parameter
-# (Intercept) 7.19 0.2209      6.756    7.189      7.623 (Intercept)
-
-# $random_effects
-#                                                 mean        sd quant0.025
-# SD the Gaussian observations                  1.2887 3.123e-03    1.28352
-# SD time                                       0.7554 9.627e-02    0.56433
-# SD cyclic                                     0.4999 1.277e-01    0.30439
-# SD space                                      2.3387 7.718e-02    2.16408
-# SD inla.group(z, method = "quantile", n = 11) 4.2720 1.504e+00    1.67528
-# SD space_time                                 1.4225 1.492e-02    1.39432
-# Rho for time                                  0.4163 1.775e-01    0.08968
-# GroupRho for space_time                       0.4159 1.720e-02    0.38005
-# Phi for space                                 0.7014 4.137e-02    0.60229
-# Phi for space_time                            1.0000 1.619e-06    0.99999
-#                                               quant0.5 quant0.975
-# SD the Gaussian observations                    1.2883     1.2956
-# SD time                                         0.7581     0.9374
-# SD cyclic                                       0.4804     0.8025
-# SD space                                        2.3498     2.4555
-# SD inla.group(z, method = "quantile", n = 11)   4.1945     7.3471
-# SD space_time                                   1.4220     1.4529
-# Rho for time                                    0.4106     0.7568
-# GroupRho for space_time                         0.4168     0.4473
-# Phi for space                                   0.7093     0.7583
-# Phi for space_time                              1.0000     1.0000
+  ( res$summary) 
   
-
-  
-    b0 = res$summary$fixed_effects["(Intercept)", "mean"]
+    res$summary$fixed_effects["(Intercept)", "mean"]
 
     ts =  res$random$time 
     vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 

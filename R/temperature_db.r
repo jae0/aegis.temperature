@@ -951,7 +951,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
  
     M$tiyr = M$yr + M$dyear 
  
-    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly  )
+    M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly)
 
 # check this
     M$space = M$AUID
