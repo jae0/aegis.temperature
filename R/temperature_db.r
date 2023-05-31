@@ -953,16 +953,18 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
  
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly)
 
-# check this
     M$space = M$AUID
-    M$time = M$yr    
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    M$time = M$year    
     M$time_space = M$time  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    cyclic_levels = factor(p$dyears + diff(p$dyears)[1]/2, ordered=TRUE )
+    M$cyclic = factor( as.character( M$dyri ), levels =levels(cyclic_levels) )   # copy for carstm/INLA
 
     M = M[ which( M$z < 2500) , ]
     M = M[ which( M$z > 5 ) , ]
     M = M[ which( M$yr %in% p$yrs), ]
-
 
     save( M, file=fn, compress=TRUE )
 
