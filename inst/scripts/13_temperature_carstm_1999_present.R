@@ -59,7 +59,6 @@
       num.threads="6:2",  # adjust for your machine
       mc.cores=2,
       redo_fit=TRUE,
-      compress=TRUE,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       # control.inla = list( strategy='adaptive', int.strategy="eb" ),
