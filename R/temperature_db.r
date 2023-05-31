@@ -953,7 +953,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
  
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly)
 
-    M$space = M$AUID
+    M$space = match( M$AUID, sppoly$AUID) 
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 
     M$time = M$year    
