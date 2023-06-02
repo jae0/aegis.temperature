@@ -59,6 +59,9 @@
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
+    space_id = sppoly$AUID,
+    time_id =  p$yrs,
+    cyclic_id = p$cyclic_levels,
     posterior_simulations_to_retain="predictions", 
     num.threads="4:2",  # adjust for your machine
     mc.cores=2,

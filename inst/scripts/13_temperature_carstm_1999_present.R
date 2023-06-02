@@ -50,10 +50,15 @@
   # !!! WARNING: this uses a lot of RAM  
     res = NULL
 
+    # required
+
     res = carstm_model( 
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
       sppoly=sppoly,
+      space_id = sppoly$AUID,
+      time_id =  p$yrs,
+      cyclic_id = p$cyclic_levels,
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
@@ -61,7 +66,7 @@
       redo_fit=TRUE,
       # if problems, try any of: c
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
-      # control.inla = list( strategy='adaptive', int.strategy="eb" ),
+      control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
       verbose=TRUE 
     )    
