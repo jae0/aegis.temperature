@@ -33,7 +33,7 @@
     # to recreate the underlying data
     xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-    sppoly = areal_units( p=p, xydata=xydata, redo=TRUE )  # to force create
+    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, n_iter_drop=3, redo=TRUE, verbose=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
     
