@@ -32,6 +32,8 @@
   # prep data
     # to recreate the underlying data
     xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
+
+    xydata=temperature_db(p=p, DS="areal_units_input")  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, n_iter_drop=3, redo=TRUE, verbose=TRUE )  # to force create
 
@@ -62,7 +64,6 @@
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
-      mc.cores=2,
       redo_fit=TRUE,
       # if problems, try any of: c
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
