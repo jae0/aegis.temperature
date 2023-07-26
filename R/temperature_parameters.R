@@ -124,7 +124,6 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     )
 
 
-
     if ( !exists("carstm_prediction_surface_parameters", p))  {
         # generics using "default" carstm models and stmv solutions for spatial effects
         p$carstm_prediction_surface_parameters = list()

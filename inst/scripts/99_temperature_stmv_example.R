@@ -2,6 +2,8 @@
 # twostep:  ~ 24 hrs :( .. consider shorter time range and less exhaustive settings
 
 
+set.seed(12345)
+
 year.assessment = 2018
 year.start = 1950
 
