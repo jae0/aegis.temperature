@@ -136,8 +136,9 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       if ( !exists("formula", p)  ) {
         p$formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
-          ' + f( time, model="ar1",  hyper=H$ar1 ) ',   
-          ' + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )',
+          ' + f( time, model="ar1", hyper=H$ar1 ) ',   
+          ' + f( cyclic, model="rw2", scale.model=TRUE, cyclic=TRUE, values=inla_args$cyclic_levels, hyper=H$rw2 )',
+          ' + f( cyclic_space, model="rw2", scale.model=TRUE, cyclic=TRUE, values=inla_args[["cyclic_levels"]], hyper=H$rw2, group=space_cyclic, control.group=list(model="iid")  )',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
@@ -145,7 +146,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       }
       if ( !exists("family", p)  )  p$family = "gaussian"
     }
- 
+
     return(p)
   }
 
@@ -189,8 +190,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       stmv_force_complete_method = "fft"
       # stmv_force_complete_method = "linear_interp"
     )
-
-
+ 
 
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 2 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)

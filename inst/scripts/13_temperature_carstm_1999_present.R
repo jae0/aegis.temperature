@@ -11,8 +11,8 @@
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment, 
-    theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
+    yrs=1999:year.assessment #, 
+    # theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
   ) 
                 
     # List of hyperparameters: 
@@ -26,8 +26,7 @@
 		# theta[7] = [Log precision for space_time]
 		# theta[8] = [Logit phi for space_time]
 		# theta[9] = [Group rho_intern for space_time]
-
-
+  
   # ------------------------------
   # prep data
     # to recreate the underlying data
@@ -54,9 +53,13 @@
 
     # required
 
+    M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
+    M$space_cyclic = as.numeric(M$cyclic)
+    # M$cyclic = as.numeric( M$cyclic ) 
+
     res = carstm_model( 
       p=p, 
-      data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
+      data =M,  
       sppoly=sppoly,
       space_id = sppoly$AUID,
       time_id =  p$yrs,
@@ -64,11 +67,12 @@
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       num.threads="6:2",  # adjust for your machine
-      redo_fit=TRUE,
+      # redo_fit=FALSE,
       # if problems, try any of: c
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
+      # debug = "random_spatiotemporal", 
       verbose=TRUE 
     )    
 

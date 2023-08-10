@@ -958,6 +958,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     M$time = M$year    
     M$time_space = match( M$time, p$yrs ) # copy for space_time component .. for groups, must be numeric index
+    M$time_space2 = M$time_space
+    
     M$cyclic = factor( as.character( M$dyri ), levels =levels(p$cyclic_levels) )   # copy for carstm/INLA
 
     M = M[ which( M$z < 2500) , ]
