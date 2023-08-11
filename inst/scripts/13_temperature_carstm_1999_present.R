@@ -56,7 +56,7 @@
     
     res = carstm_model( 
       p=p, 
-      data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly s)',  
+      data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
       sppoly=sppoly,
       space_id = sppoly$AUID,
       time_id =  p$yrs,
