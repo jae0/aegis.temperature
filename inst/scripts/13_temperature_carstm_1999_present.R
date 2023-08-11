@@ -15,18 +15,19 @@
     # theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
   ) 
                 
-    # List of hyperparameters: 
     # theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
 		# theta[2] = [Rho_intern for time]
 		# theta[3] = [Log precision for cyclic]
-		# theta[4] = [Log precision for space]
-		# theta[5] = [Logit phi for space]
-		# theta[6] = [Log precision for inla.group(z, method = "quantile", n = 11)]
-		# theta[7] = [Log precision for space_time]
-		# theta[8] = [Logit phi for space_time]
-		# theta[9] = [Group rho_intern for space_time]
-  
+		# theta[4] = [Log precision for cyclic_space]
+		# theta[5] = [Log precision for space]
+		# theta[6] = [Logit phi for space]
+		# theta[7] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+		# theta[8] = [Log precision for space_time]
+		# theta[9] = [Logit phi for space_time]
+		# theta[10] = [Group rho_intern for space_time]
+
+
   # ------------------------------
   # prep data
     # to recreate the underlying data
@@ -51,24 +52,20 @@
   # !!! WARNING: this uses a lot of RAM  
     res = NULL
 
-    # required
-
-    M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
-    M$space_cyclic = as.numeric(M$cyclic)
-    # M$cyclic = as.numeric( M$cyclic ) 
-
+    # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
+    
     res = carstm_model( 
       p=p, 
-      data =M,  
+      data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly s)',  
       sppoly=sppoly,
       space_id = sppoly$AUID,
       time_id =  p$yrs,
       cyclic_id = p$cyclic_levels,
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
-      num.threads="6:2",  # adjust for your machine
+      num.threads="4:2",  # adjust for your machine
       # redo_fit=FALSE,
-      # if problems, try any of: c
+      # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
@@ -77,7 +74,6 @@
     )    
 
 
-      
     # extract results
     if (0) {
       # very large files .. slow 
