@@ -11,8 +11,10 @@
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment #, 
+    yrs=1999:year.assessment, #, 
     # theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
+    theta =  c(0.022, 0.644, 0.878, 1.746, -0.449, -1.476, 0.121, -1.196, 0.442, -0.667, 0.473 ) 
+      
   ) 
                 
     # theta[0] = [Log precision for the Gaussian observations]
@@ -54,6 +56,8 @@
 
     # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
     
+    p$cyclic_levels = 1:10  # requires numeric
+
     res = carstm_model( 
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
@@ -63,8 +67,8 @@
       cyclic_id = p$cyclic_levels,
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
-      num.threads="4:2",  # adjust for your machine
-      # redo_fit=FALSE,
+      num.threads="3:2",  # adjust for your machine
+      redo_fit=FALSE,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       control.inla = list( strategy='adaptive', int.strategy="eb" ),

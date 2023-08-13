@@ -960,8 +960,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$time = M$year    
     M$time_space = match( M$time, p$yrs ) # copy time for space_time component .. for groups, must be numeric index
    
+    # as numeric is simpler
     M$cyclic = match( M$dyri, p$cyclic_levels) 
-    M$cyclic_space = M$cyclic
+    M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
+   
 
     M = M[ which( M$z < 2500), ]
     M = M[ which( M$z > 5 ), ]
