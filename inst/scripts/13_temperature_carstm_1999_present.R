@@ -85,6 +85,7 @@
       control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
       # redo_fit=FALSE,
+      # debug="extract",
       # debug = "random_spatiotemporal", 
       verbose=TRUE, 
       num.threads="5:2"  # adjust for your machine
@@ -137,7 +138,7 @@
     tmatch="2021"
     tmatch="2022"
 
-    umatch="0.75"
+    umatch="7"  # close to aug-sept
 
     plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
       sppoly=sppoly,

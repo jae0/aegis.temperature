@@ -953,12 +953,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
  
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly)
 
+    M$space = match( M$AUID, sppoly$AUID ) # for bym/car .. must be numeric index matching neighbourhood graphs
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
-    M$space_cyclic = M$space_time
-    M$space = match( M$AUID, sppoly$AUID) # for bym/car .. must be numeric index matching neighbourhood graphs
-    
-    M$time = M$year    
+    M$space_cyclic = M$space # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+
     M$time_space = match( M$time, p$yrs ) # copy time for space_time component .. for groups, must be numeric index
+    M$time = M$year    
    
     # as numeric is simpler
     M$cyclic = match( M$dyri, p$cyclic_levels) 
