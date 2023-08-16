@@ -200,45 +200,45 @@
   tmatch="2021"
   umatch="0.75"
 
-  tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
+  plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
     sppoly=sppoly,
     breaks=seq(-1, 9, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     title=paste( "Bottom temperature predictions", tmatch, umatch)  
   )
-  tmout
+  plt
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+  plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
     sppoly=sppoly,
     breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     title="Bottom temperature spatial effects (Celsius)"
   )
-  tmout
+  plt
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+  plt = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
   )
-  tmout
+  plt
 
 
   tmatch="2020"
   umatch="0.75"
 
-  tmout = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+  plt = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
     plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
     title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
   )
-  tmout
+  plt
  
   graphics.off()
 
@@ -249,7 +249,7 @@
 
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
-  additional_features = additional_features_tmap( 
+  additional_features = features_to_add( 
       p=p, 
       isobaths=c( 10, 100, 200, 300, 500, 1000 ), 
       coastline =  c("canada"), 
@@ -266,7 +266,7 @@
   toplot = carstm_results_unpack( res, vn )
   brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
-  tmout = carstm_map(  res=res, vn=vn, 
+  plt = carstm_map(  res=res, vn=vn, 
     sppoly = sppoly, 
     breaks = brks,
     palette="-RdYlBu",
@@ -275,7 +275,7 @@
     title= "Bottom temperature -- persistent spatial effect" ,
     outfilename=outfilename
   )  
-  tmout
+  plt
 
 
 
@@ -285,7 +285,7 @@
     for ( u in res$cyclic  ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
-      tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
+      plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=brks, 
         sppoly=sppoly,
         palette="-RdYlBu",

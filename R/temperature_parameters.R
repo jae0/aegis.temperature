@@ -132,16 +132,18 @@ temperature_parameters = function( p=list(), project_name="temperature", project
         )
     }
 
+# , values=inla_args[["cyclic_levels"]]
+
     if ( grepl("inla", p$carstm_modelengine) ) {
       if ( !exists("formula", p)  ) {
         p$formula = as.formula( paste(
          p$variabletomodel, ' ~ 1',
           ' + f( time, model="ar1", hyper=H$ar1 ) ',   
           ' + f( cyclic, model="rw2", scale.model=TRUE, cyclic=TRUE, values=1:10, hyper=H$rw2 )',
-          ' + f( cyclic_space, model="rw2", scale.model=TRUE, cyclic=TRUE, values=inla_args[["cyclic_levels"]], hyper=H$rw2, group=space_cyclic, control.group=list(model="iid")  )',
+#           ' + f( space_cyclic, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2, group=cyclic_space, control.group=list(model="ar1", hyper=H$ar1_group, cyclic=TRUE) ) ',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-          ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group) ) '
+          ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2, group=time_space, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
       if ( !exists("family", p)  )  p$family = "gaussian"

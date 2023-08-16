@@ -4,30 +4,42 @@
   require(aegis.temperature)
 
   year.assessment = 2022
-
+  loadfunctions("aegis.temperature")
   # about 24 hrs for 1999:2021
   # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs + ;  6+ for mapping )... 
   # the theta are starting points for the hyper params on link scale
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment, #, 
-    # theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
-    theta =  c(0.022, 0.644, 0.878, 1.746, -0.449, -1.476, 0.121, -1.196, 0.442, -0.667, 0.473 ) 
-      
-  ) 
-                
-    # theta[0] = [Log precision for the Gaussian observations]
+    yrs=1999:year.assessment 
+  )
+  
+  if (model_is_simple_cyclic) {
+    p$theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
+  }
+
+  if (model_is_space-cyclic) {
+
+  # maxld= -220690.650 fn=3450 theta= 0.031 0.081 1.373 1.052 -1.269 -0.628 2.308 1.694 -1.129 -1.644 0.475 -0.769 0.468 [9.02, 27.978]
+
+    p$theta = c(0.031, 0.081, 1.373, 1.052, -1.269, -0.628, 2.308, 1.694, -1.129, -1.644, 0.475, -0.769, 0.468) 
+
+ 		# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
 		# theta[2] = [Rho_intern for time]
 		# theta[3] = [Log precision for cyclic]
-		# theta[4] = [Log precision for cyclic_space]
-		# theta[5] = [Log precision for space]
-		# theta[6] = [Logit phi for space]
-		# theta[7] = [Log precision for inla.group(z, method = "quantile", n = 11)]
-		# theta[8] = [Log precision for space_time]
-		# theta[9] = [Logit phi for space_time]
-		# theta[10] = [Group rho_intern for space_time]
+		# theta[4] = [Log precision for space_cyclic]
+		# theta[5] = [Logit phi for space_cyclic]
+		# theta[6] = [Group rho_intern for space_cyclic]
+		# theta[7] = [Log precision for space]
+		# theta[8] = [Logit phi for space]
+		# theta[9] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+		# theta[10] = [Log precision for space_time]
+		# theta[11] = [Logit phi for space_time]
+		# theta[12] = [Group rho_intern for space_time]
+  }  
+                
+ 
 
 
   # ------------------------------
@@ -67,14 +79,15 @@
       cyclic_id = p$cyclic_levels,
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
-      num.threads="3:2",  # adjust for your machine
-      redo_fit=FALSE,
+      theta=p$theta,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
       control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
+      # redo_fit=FALSE,
       # debug = "random_spatiotemporal", 
-      verbose=TRUE 
+      verbose=TRUE, 
+      num.threads="5:2"  # adjust for your machine
     )    
 
 
@@ -126,7 +139,7 @@
 
     umatch="0.75"
 
-    tmout = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
+    plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
       sppoly=sppoly,
       breaks=seq(-1, 9, by=2), 
       palette="-RdYlBu",
@@ -134,16 +147,16 @@
       tmap_zoom= c(map_centre, map_zoom),
       title=paste( "Bottom temperature predictions", tmatch, umatch)  
     )
-    tmout
+    plt
 
-    tmout = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+    plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
       breaks=seq(-5, 5, by=1), 
       palette="-RdYlBu",
       plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
       tmap_zoom= c(map_centre, map_zoom),
       title="Bottom temperature spatial effects (Celsius)"
     )
-    tmout
+    plt
  
     # map all bottom temps:
     outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
@@ -153,24 +166,28 @@
     graphics.off()
   
   
-    additional_features = additional_features_tmap( 
+    additional_features = features_to_add( 
         p=p, 
-        isobaths=c(10, 100, 200, 300, 400, 500  ), 
+        area_lines="cfa.regions",
+        isobaths=c( 100, 200, 300, 400, 500  ), 
         coastline =  c("canada", "us"), 
         xlim=c(-80,-40), 
         ylim=c(38, 60) 
     )
   
-    
+
+    # e.g. management lines, etc
+   
     fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
     outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
     
     vn = c( "random", "space", "combined" ) 
     
-    toplot = carstm_results_unpack( res, vn )
-    #brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-    brks = pretty(c(-6, 6))
-    tmout = carstm_map(  res=res, vn=vn, 
+    # toplot = carstm_results_unpack( res, vn )
+    # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+    
+    brks = pretty(c(-1, 1))
+    plt = carstm_map(  res=res, vn=vn, 
       breaks = brks,
       palette="-RdYlBu",
       plot_elements=c(  "compass", "scale_bar", "legend" ),
@@ -178,17 +195,14 @@
       title= "Bottom temperature -- persistent spatial effect" ,
       outfilename=outfilename
     )  
-    tmout
-
-
-
-    # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
+    plt
+ 
     brks = pretty(c(1, 9))
     for (y in res$time_id ){
       for ( u in res$cyclic_id  ){
         fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
-        tmout = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
+        plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
           breaks=brks, 
           palette="-RdYlBu",
           plot_elements=c(  "compass", "scale_bar", "legend" ),
