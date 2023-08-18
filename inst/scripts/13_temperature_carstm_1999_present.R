@@ -11,9 +11,10 @@
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment 
+    yrs=1999:year.assessment
   )
   
+
   if (model_is_simple_cyclic) {
 
     p$theta =  c(-0.505, 0.460, 0.599, 1.551, -1.621, 1.406, -3.401, -0.618, 12.828, 0.679 ) 
@@ -36,9 +37,10 @@
 
   if (model_is_space-cyclic) {
 
-     # maxld= -229502.070 fn=335 theta= 0.031 0.152 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.475 -0.840 0.468 [8.81, 39.496]
+    # maxld= -240412.867 fn=300 theta= -0.058 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.545 -0.840 0.397 [8.66, 17.080]
+      maxld= -240410.169 fn=377 theta= -0.067 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.474 -0.840 0.468 [8.65, 16.870]
 
-    p$theta = c( 0.031, 0.152, 1.373, 1.052, -1.269, -0.699, 2.308, 1.694, -1.129, -1.644, 0.475, -0.840, 0.468) 
+    p$theta = c(-0.067, 0.223, 1.373, 1.052, -1.269, -0.699, 2.308, 1.694, -1.129, -1.644, 0.474, -0.840, 0.468) 
 
  		# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
@@ -65,7 +67,10 @@
 
     xydata=temperature_db(p=p, DS="areal_units_input")  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, n_iter_drop=3, sa_threshold_km2=4, redo=TRUE, verbose=TRUE )  # to force create
+    
+    p$areal_units_constraint_ntarget = floor(p$ny / 2) 
+  
+    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, lenprob=0.95, n_iter_drop=3, sa_threshold_km2=5, redo=TRUE, verbose=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
     
@@ -91,7 +96,6 @@
 
     p$cyclic_name = as.character(p$cyclic_levels)
     p$cyclic_id = 1:p$nw
-
  
     res = carstm_model( 
       p=p, 
@@ -102,7 +106,7 @@
       theta=p$theta,
       # if problems, try any of: 
       # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
-      control.inla = list( strategy='adaptive', int.strategy="eb" ),
+      # control.inla = list( strategy='adaptive', int.strategy="eb" ),
       # control.inla = list( strategy='laplace'  ),
       # redo_fit=FALSE,
       # debug="extract",

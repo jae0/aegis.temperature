@@ -82,15 +82,15 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     if (exists("carstm_model_label", p)) {
       if (p$carstm_model_label == "1999_present"){
           p$yrs = 1999:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_ntarget = length(p$yrs) / 3  # n time slices req in each au
           p$areal_units_constraint_nmin = 3   # n time slices req in each au
       } else if (p$carstm_model_label == "1970_present"){
           p$yrs = 1970:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_ntarget = length(p$yrs) /3  # n time slices req in each au
           p$areal_units_constraint_nmin = 5   # n time slices req in each au
       } else if (p$carstm_model_label == "1950_present"){
           p$yrs = 1950:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs)  # n time slices req in each au
+          p$areal_units_constraint_ntarget = length(p$yrs) /3 # n time slices req in each au
           p$areal_units_constraint_nmin = 5   # n time slices req in each au
       }
     }
@@ -140,9 +140,9 @@ temperature_parameters = function( p=list(), project_name="temperature", project
          p$variabletomodel, ' ~ 1',
           ' + f( time, model="ar1", hyper=H$ar1 ) ',   
           ' + f( cyclic, model="rw2", scale.model=TRUE, cyclic=TRUE, values=1:10, hyper=H$rw2 )',
-          ' + f( space_cyclic, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2, group=cyclic_space, control.group=list(model="ar1", hyper=H$ar1_group, cyclic=TRUE) ) ',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
+          ' + f( space_cyclic, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=cyclic_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group, cyclic=TRUE) ) ',
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2, group=time_space, control.group=list(model="ar1", hyper=H$ar1_group) ) '
           ) )
       }
