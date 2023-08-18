@@ -957,12 +957,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
     M$space_cyclic = M$space # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 
-
-    M$time_space = match( M$time, p$yrs ) # copy time for space_time component .. for groups, must be numeric index
-    M$time = M$year    
+    M$time = match( M$year, p$yrs ) # copy time for space_time component .. for groups, must be numeric index
+    M$time_space = M$time    
    
     # as numeric is simpler
-    M$cyclic = match( M$dyri, p$cyclic_levels) 
+    cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
+
+    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
    
 

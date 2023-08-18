@@ -140,7 +140,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
          p$variabletomodel, ' ~ 1',
           ' + f( time, model="ar1", hyper=H$ar1 ) ',   
           ' + f( cyclic, model="rw2", scale.model=TRUE, cyclic=TRUE, values=1:10, hyper=H$rw2 )',
-#           ' + f( space_cyclic, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2, group=cyclic_space, control.group=list(model="ar1", hyper=H$ar1_group, cyclic=TRUE) ) ',
+          ' + f( space_cyclic, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2, group=cyclic_space, control.group=list(model="ar1", hyper=H$ar1_group, cyclic=TRUE) ) ',
           ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2  ) ',
           ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2, group=time_space, control.group=list(model="ar1", hyper=H$ar1_group) ) '

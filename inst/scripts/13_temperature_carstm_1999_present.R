@@ -2,9 +2,9 @@
 
 
   require(aegis.temperature)
+  # loadfunctions("aegis.temperature")
 
   year.assessment = 2022
-  loadfunctions("aegis.temperature")
   # about 24 hrs for 1999:2021
   # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs + ;  6+ for mapping )... 
   # the theta are starting points for the hyper params on link scale
@@ -15,14 +15,30 @@
   )
   
   if (model_is_simple_cyclic) {
-    p$theta =  c(-0.576, 0.460, 0.599, 1.551, -1.55, 1.406, -3.401, -0.547, 12.828, 0.679 ) 
+
+    p$theta =  c(-0.505, 0.460, 0.599, 1.551, -1.621, 1.406, -3.401, -0.618, 12.828, 0.679 ) 
+
+    # maxld= -269327.874 fn=138 theta= -0.505 0.460 0.599 1.551 -1.621 1.406 -3.401 -0.618 12.828 0.679 [7.66, 16.287]
+
+    # theta[0] = [Log precision for the Gaussian observations]
+		# theta[1] = [Log precision for time]
+		# theta[2] = [Rho_intern for time]
+		# theta[3] = [Log precision for cyclic]
+		# theta[4] = [Log precision for space]
+		# theta[5] = [Logit phi for space]
+		# theta[6] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+		# theta[7] = [Log precision for space_time]
+		# theta[8] = [Logit phi for space_time]
+		# theta[9] = [Group rho_intern for space_time]
+
+                
   }
 
   if (model_is_space-cyclic) {
 
-  # maxld= -220690.650 fn=3450 theta= 0.031 0.081 1.373 1.052 -1.269 -0.628 2.308 1.694 -1.129 -1.644 0.475 -0.769 0.468 [9.02, 27.978]
+     # maxld= -229502.070 fn=335 theta= 0.031 0.152 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.475 -0.840 0.468 [8.81, 39.496]
 
-    p$theta = c(0.031, 0.081, 1.373, 1.052, -1.269, -0.628, 2.308, 1.694, -1.129, -1.644, 0.475, -0.769, 0.468) 
+    p$theta = c( 0.031, 0.152, 1.373, 1.052, -1.269, -0.699, 2.308, 1.694, -1.129, -1.644, 0.475, -0.840, 0.468) 
 
  		# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
@@ -49,7 +65,7 @@
 
     xydata=temperature_db(p=p, DS="areal_units_input")  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, n_iter_drop=3, sa_threshold_km2=9, redo=TRUE, verbose=TRUE )  # to force create
+    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, n_iter_drop=3, sa_threshold_km2=4, redo=TRUE, verbose=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
     
@@ -60,23 +76,27 @@
     sppoly = areal_units( p=p  )  # same
     
     M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
+    # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
     M = NULL
  
 
   # !!! WARNING: this uses a lot of RAM  
     res = NULL
 
-    # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
-    
-    p$cyclic_levels = 1:10  # requires numeric
+    p$space_name = sppoly$AUID 
+    p$space_id = 1:nrow(sppoly)
 
+    p$time_name = as.character(p$yrs)
+    p$time_id =  1:p$ny
+
+    p$cyclic_name = as.character(p$cyclic_levels)
+    p$cyclic_id = 1:p$nw
+
+ 
     res = carstm_model( 
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
       sppoly=sppoly,
-      space_id = sppoly$AUID,
-      time_id =  p$yrs,
-      cyclic_id = p$cyclic_levels,
       nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       theta=p$theta,
@@ -131,41 +151,7 @@
 
     
 
-    map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2   )
-    map_zoom = 7
-
     # maps of some of the results
-    tmatch="2021"
-    tmatch="2022"
-
-    umatch="7"  # close to aug-sept
-
-    plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
-      sppoly=sppoly,
-      breaks=seq(-1, 9, by=2), 
-      palette="-RdYlBu",
-      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-      tmap_zoom= c(map_centre, map_zoom),
-      title=paste( "Bottom temperature predictions", tmatch, umatch)  
-    )
-    plt
-
-    plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
-      breaks=seq(-5, 5, by=1), 
-      palette="-RdYlBu",
-      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-      tmap_zoom= c(map_centre, map_zoom),
-      title="Bottom temperature spatial effects (Celsius)"
-    )
-    plt
- 
-    # map all bottom temps:
-    outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
-    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-  
-  
-    graphics.off()
-  
   
     additional_features = features_to_add( 
         p=p, 
@@ -175,8 +161,36 @@
         xlim=c(-80,-40), 
         ylim=c(38, 60) 
     )
-  
+ 
+    plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+      additional_features=additional_features,
+      title="Bottom temperature spatial effects (Celsius)"
+    )
+    plt
+ 
+    # single time slice:
+    tmatch="2021"
+    tmatch="2022"
 
+    umatch="7"  # close to aug-sept
+
+    plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
+      sppoly=sppoly,
+      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+      additional_features=additional_features,
+      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
+      title=paste( "Bottom temperature predictions", tmatch, umatch)  
+    )
+    plt
+
+    # map all bottom temps:
+    outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+  
+  
+    graphics.off()
+  
     # e.g. management lines, etc
    
     fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
@@ -190,8 +204,7 @@
     brks = pretty(c(-1, 1))
     plt = carstm_map(  res=res, vn=vn, 
       breaks = brks,
-      palette="-RdYlBu",
-      plot_elements=c(  "compass", "scale_bar", "legend" ),
+      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
       additional_features=additional_features,
       title= "Bottom temperature -- persistent spatial effect" ,
       outfilename=outfilename
@@ -205,8 +218,7 @@
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
         plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
           breaks=brks, 
-          palette="-RdYlBu",
-          plot_elements=c(  "compass", "scale_bar", "legend" ),
+          colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
           additional_features=additional_features,
           title=fn_root,  
           outfilename=outfilename
