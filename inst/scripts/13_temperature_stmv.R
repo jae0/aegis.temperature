@@ -1,7 +1,7 @@
 # 1. stmv interpolations assuming some seasonal pattern
 # twostep:  ~ 1000+ hrs (40 days+)
 
-year.assessment = 2020
+year.assessment = 2022
 year.start = year.assessment - 30
 year.start = 1950
 

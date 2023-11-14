@@ -52,16 +52,23 @@
   M = NULL
 
 
-  # !!! WARNING: this uses a lot of RAM  
-  fit = NULL
+  p$space_name = sppoly$AUID 
+  p$space_id = 1:nrow(sppoly)
 
-  fit = carstm_model( 
+  p$time_name = as.character(p$yrs)
+  p$time_id =  1:p$ny
+
+  p$cyclic_name = as.character(p$cyclic_levels)
+  p$cyclic_id = 1:p$nw
+
+
+  # !!! WARNING: this uses a lot of RAM  
+  res = NULL
+
+  res = carstm_model( 
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
-    space_id = sppoly$AUID,
-    time_id =  p$yrs,
-    cyclic_id = p$cyclic_levels,
     posterior_simulations_to_retain="predictions", 
     num.threads="4:2",  # adjust for your machine
     mc.cores=2,
@@ -269,9 +276,7 @@
   plt = carstm_map(  res=res, vn=vn, 
     sppoly = sppoly, 
     breaks = brks,
-    palette="-RdYlBu",
-    plot_elements=c(  "compass", "scale_bar", "legend" ),
-    additional_features=additional_features,
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),    additional_features=additional_features,
     title= "Bottom temperature -- persistent spatial effect" ,
     outfilename=outfilename
   )  
@@ -281,15 +286,14 @@
 
   # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
   brks = pretty(c(1, 9))
-  for (y in res$time ){
-    for ( u in res$cyclic  ){
+  for (y in res$time_name ){
+    for ( u in res$cyclic_name  ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
       plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
         breaks=brks, 
         sppoly=sppoly,
-        palette="-RdYlBu",
-        plot_elements=c(  "compass", "scale_bar", "legend" ),
+        colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
         additional_features=additional_features,
         title=fn_root,  
         outfilename=outfilename

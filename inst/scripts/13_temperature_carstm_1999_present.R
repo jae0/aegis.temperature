@@ -1,12 +1,12 @@
   # 2022-01-14 14:17:20
 
-
+  
   require(aegis.temperature)
   # loadfunctions("aegis.temperature")
 
-  year.assessment = 2022
+  year.assessment = 2023
   # about 24 hrs for 1999:2021
-  # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs + ;  6+ for mapping )... 
+  # used by bio.snowcrab  --- about 24 hrs ( ~8 hrs +  )... 
   # the theta are starting points for the hyper params on link scale
   p = temperature_parameters( 
     project_class="carstm", 
@@ -14,8 +14,9 @@
     yrs=1999:year.assessment
   )
   
-
-  if (model_is_simple_cyclic) {
+  current_model = "model_is_space_cyclic"
+   
+  if (current_model == "simple_cyclic") {
 
     p$theta =  c(-0.505, 0.460, 0.599, 1.551, -1.621, 1.406, -3.401, -0.618, 12.828, 0.679 ) 
 
@@ -35,10 +36,11 @@
                 
   }
 
-  if (model_is_space-cyclic) {
+   
+  if (current_model == "space_cyclic") {
 
     # maxld= -240412.867 fn=300 theta= -0.058 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.545 -0.840 0.397 [8.66, 17.080]
-      maxld= -240410.169 fn=377 theta= -0.067 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.474 -0.840 0.468 [8.65, 16.870]
+    #  maxld= -240410.169 fn=377 theta= -0.067 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.474 -0.840 0.468 [8.65, 16.870]
 
     p$theta = c(-0.067, 0.223, 1.373, 1.052, -1.269, -0.699, 2.308, 1.694, -1.129, -1.644, 0.474, -0.840, 0.468) 
 
@@ -68,8 +70,7 @@
     xydata=temperature_db(p=p, DS="areal_units_input")  # redo if inpute data has changed
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     
-    p$areal_units_constraint_ntarget = floor(p$ny / 2) 
-  
+ 
     sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, lenprob=0.95, n_iter_drop=3, sa_threshold_km2=5, redo=TRUE, verbose=TRUE )  # to force create
 
     plot( sppoly[ "AUID" ] ) 
@@ -137,23 +138,18 @@
     res$summary$fixed_effects["(Intercept)", "mean"]
 
     ts =  res$random$time 
-    vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-    ts[, vns] = ts[, vns] 
-    plot( mean ~ ID, ts, type="b", ylim=c(-2,2), lwd=1.5, xlab="year")
-    lines( quant0.025 ~ ID, ts, col="gray", lty="dashed")
-    lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
+    IDx = as.numeric(res$time_name)
+    plot( mean ~ IDx, ts, type="b", ylim=c(-2,2), lwd=1.5, xlab="year")
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
 
 
     ts =  res$random$cyclic
-    vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-    ts[, vns] = ts[, vns]
-    plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5), lwd=1.5, xlab="fractional year")
-    lines( quant0.025 ~ID, ts, col="gray", lty="dashed")
-    lines( quant0.975 ~ID, ts, col="gray", lty="dashed")
-
-
-
-    
+    IDx = as.numeric(res$cyclic_name)
+    plot( mean ~IDx, ts, type="b", ylim=c(-1.5, 1.5), lwd=1.5, xlab="fractional year")
+    lines( quant0.025 ~IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~IDx, ts, col="gray", lty="dashed")
+ 
 
     # maps of some of the results
   
@@ -161,33 +157,11 @@
         p=p, 
         area_lines="cfa.regions",
         isobaths=c( 100, 200, 300, 400, 500  ), 
-        coastline =  c("canada", "us"), 
+        coastline =  c("canada", "united states of america"), 
         xlim=c(-80,-40), 
         ylim=c(38, 60) 
     )
- 
-    plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
-      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-      additional_features=additional_features,
-      title="Bottom temperature spatial effects (Celsius)"
-    )
-    plt
- 
-    # single time slice:
-    tmatch="2021"
-    tmatch="2022"
-
-    umatch="7"  # close to aug-sept
-
-    plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
-      sppoly=sppoly,
-      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-      additional_features=additional_features,
-      plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-      title=paste( "Bottom temperature predictions", tmatch, umatch)  
-    )
-    plt
-
+  
     # map all bottom temps:
     outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
@@ -205,7 +179,7 @@
     # toplot = carstm_results_unpack( res, vn )
     # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
     
-    brks = pretty(c(-1, 1))
+    brks = pretty(c(-7, 7))
     plt = carstm_map(  res=res, vn=vn, 
       breaks = brks,
       colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
@@ -216,8 +190,8 @@
     plt
  
     brks = pretty(c(1, 9))
-    for (y in res$time_id ){
-      for ( u in res$cyclic_id  ){
+    for (y in res$time_name ){
+      for ( u in res$cyclic_name  ){
         fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
         outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
         plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),

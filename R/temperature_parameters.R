@@ -78,19 +78,19 @@ temperature_parameters = function( p=list(), project_name="temperature", project
 
     #special cases
     if (!exists("carstm_model_label", p)) p$carstm_model_label = "1970_present"
-
+  
     if (exists("carstm_model_label", p)) {
       if (p$carstm_model_label == "1999_present"){
           p$yrs = 1999:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs) / 3  # n time slices req in each au
+          p$areal_units_constraint_ntarget = floor(length(p$yrs) / 2) # n time slices req in each au
           p$areal_units_constraint_nmin = 3   # n time slices req in each au
       } else if (p$carstm_model_label == "1970_present"){
           p$yrs = 1970:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs) /3  # n time slices req in each au
+          p$areal_units_constraint_ntarget = floor(length(p$yrs) /3)  # n time slices req in each au
           p$areal_units_constraint_nmin = 5   # n time slices req in each au
       } else if (p$carstm_model_label == "1950_present"){
           p$yrs = 1950:p$year.assessment
-          p$areal_units_constraint_ntarget = length(p$yrs) /3 # n time slices req in each au
+          p$areal_units_constraint_ntarget = floor(length(p$yrs) /3) # n time slices req in each au
           p$areal_units_constraint_nmin = 5   # n time slices req in each au
       }
     }
@@ -106,7 +106,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_proj4string_planar_km =  p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_type= "tesselation",
-      areal_units_constraint_ntarget = p$ny * 0.8,  # n time slices req in each au
+      areal_units_constraint_ntarget = floor(p$ny /3),  # n time slices req in each au
       areal_units_constraint_nmin = 5,   # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tesselation/ otherwise grid size ()
       areal_units_overlay = "none",
@@ -131,9 +131,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
           bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
         )
     }
-
-# , values=inla_args[["cyclic_levels"]]
-
+ 
     if ( grepl("inla", p$carstm_modelengine) ) {
       if ( !exists("formula", p)  ) {
         p$formula = as.formula( paste(
@@ -382,7 +380,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
             + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
           family = "gaussian",
           data= dat,
-          inla.mode="experimental",
+          inla.mode="compact",
           control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE, return.marginals.predictor=TRUE),  # config=TRUE if doing posterior simulations
           control.predictor=list(compute=FALSE, link=1 ),
           control.fixed=H$fixed,  # priors for fixed effects, generic is ok

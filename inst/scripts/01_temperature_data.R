@@ -35,7 +35,7 @@ p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # the
      
   }
 
-  # this one requires Orable connection
+  # this one requires Oracle connection
   o = temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1970:year.assessment )  # brent and amy's new db view
  
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
