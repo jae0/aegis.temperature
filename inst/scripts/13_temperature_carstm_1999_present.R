@@ -11,7 +11,10 @@
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment
+    yrs=1999:year.assessment,
+    spbuffer=9, lenprob=0.95,   # these are domain boundary options for areal_units
+    n_iter_drop=0, sa_threshold_km2=4, 
+    areal_units_constraint_ntarget=15, areal_units_constraint_nmin=1   # granularity options for areal_units
   )
   
   current_model = "model_is_space_cyclic"
@@ -39,10 +42,7 @@
    
   if (current_model == "space_cyclic") {
 
-    # maxld= -240412.867 fn=300 theta= -0.058 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.545 -0.840 0.397 [8.66, 17.080]
-    #  maxld= -240410.169 fn=377 theta= -0.067 0.223 1.373 1.052 -1.269 -0.699 2.308 1.694 -1.129 -1.644 0.474 -0.840 0.468 [8.65, 16.870]
-
-    p$theta = c(-0.067, 0.223, 1.373, 1.052, -1.269, -0.699, 2.308, 1.694, -1.129, -1.644, 0.474, -0.840, 0.468) 
+    p$theta = c(-0.068, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.497, -0.013, 2.419, 0.375, -0.504, 0.439)
 
  		# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
@@ -71,8 +71,9 @@
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     
  
-    sppoly = areal_units( p=p, xydata=xydata, spbuffer=10, lenprob=0.95, n_iter_drop=3, sa_threshold_km2=5, redo=TRUE, verbose=TRUE )  # to force create
-
+    # if sppoly opions need to change, do so at parameter-level such that they are consistent  (though, not necessary if sppoly is passed directly to carstm)
+    sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create
+ 
     plot( sppoly[ "AUID" ] ) 
     
     # or using carstm_map: 
@@ -102,7 +103,7 @@
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
       sppoly=sppoly,
-      nposteriors=1000,
+      nposteriors=2000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       theta=p$theta,
       # if problems, try any of: 
@@ -113,7 +114,7 @@
       # debug="extract",
       # debug = "random_spatiotemporal", 
       verbose=TRUE, 
-      num.threads="5:2"  # adjust for your machine
+      num.threads="4:2"  # adjust for your machine
     )    
 
 
