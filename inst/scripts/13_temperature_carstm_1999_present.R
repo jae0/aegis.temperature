@@ -42,7 +42,7 @@
    
   if (current_model == "space_cyclic") {
     # params from last run to speed up convergence
-    p$theta = c(-0.068, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.497, -0.013, 2.419, 0.375, -0.504, 0.439)
+    p$theta = c(0.073, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.568, -0.013, 2.419, 0.375, -0.504, 0.439)
 
  		# theta[0] = [Log precision for the Gaussian observations]
 		# theta[1] = [Log precision for time]
@@ -114,7 +114,7 @@
       # debug="extract",
       # debug = "random_spatiotemporal", 
       verbose=TRUE, 
-      num.threads="4:2"  # adjust for your machine
+      num.threads="3:2"  # adjust for your machine
     )    
 
 
@@ -180,7 +180,7 @@
     # toplot = carstm_results_unpack( res, vn )
     # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
     
-    brks = pretty(c(-7, 7))
+    brks = pretty(c(-1, 1))
     plt = carstm_map(  res=res, vn=vn, 
       breaks = brks,
       colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
