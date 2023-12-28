@@ -73,14 +73,14 @@
  
     # if sppoly opions need to change, do so at parameter-level such that they are consistent  (though, not necessary if sppoly is passed directly to carstm)
     sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create
+    # sppoly = areal_units( p=p  )  # reload
  
     plot( sppoly[ "AUID" ] ) 
     
     # or using carstm_map: 
-    carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
-    carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
+    # carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
+    # carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="plot" )  # regular plot
 
-    sppoly = areal_units( p=p  )  # same
     
     M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
     # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 

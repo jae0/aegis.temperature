@@ -106,23 +106,28 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_proj4string_planar_km =  p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_type= "tesselation",
-      areal_units_constraint_ntarget = floor(p$ny /3),  # n time slices req in each au
-      areal_units_constraint_nmin = 5,   # n time slices req in each au
+      #areal_units_constraint_ntarget = floor(p$ny /3),  # n time slices req in each au
+      areal_units_constraint_ntarget=15, 
+      areal_units_constraint_nmin=1   # granularity options for areal_units
+      #areal_units_constraint_nmin = 5,   # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tesselation/ otherwise grid size ()
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
-      sa_threshold_km2 = 5, 
+      # sa_threshold_km2 = 5, 
+      sa_threshold_km2=4, 
+      n_iter_drop=0, 
       fraction_todrop = 0.05,
       fraction_cv = 0.9,  # just under poisson (binomial)
       fraction_good_bad = 0.9,
+      spbuffer=9, 
+      lenprob=0.95,   # these are domain boundary options for areal_units
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "1970_present",
       carstm_inputs_prefilter = "aggregated",
       carstm_inputs_prefilter_n = 100  # only used for "sampled"
     )
-
 
     if ( !exists("carstm_prediction_surface_parameters", p))  {
         # generics using "default" carstm models and stmv solutions for spatial effects
