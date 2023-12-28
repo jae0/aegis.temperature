@@ -17,7 +17,7 @@
     # areal_units_constraint_ntarget=15, areal_units_constraint_nmin=1   # granularity options for areal_units
   )
   
-  current_model = "model_is_space_cyclic"
+  current_model = "space_cyclic"
    
   if (current_model == "simple_cyclic") {
 
@@ -41,7 +41,7 @@
 
    
   if (current_model == "space_cyclic") {
-
+    # params from last run to speed up convergence
     p$theta = c(-0.068, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.497, -0.013, 2.419, 0.375, -0.504, 0.439)
 
  		# theta[0] = [Log precision for the Gaussian observations]
