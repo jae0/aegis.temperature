@@ -79,22 +79,18 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     #special cases
     if (!exists("carstm_model_label", p)) p$carstm_model_label = "1970_present"
   
-    if (exists("carstm_model_label", p)) {
-      if (p$carstm_model_label == "1999_present"){
-          p$yrs = 1999:p$year.assessment
-          p$areal_units_constraint_ntarget = floor(length(p$yrs) / 2) # n time slices req in each au
-          p$areal_units_constraint_nmin = 3   # n time slices req in each au
-      } else if (p$carstm_model_label == "1970_present"){
-          p$yrs = 1970:p$year.assessment
-          p$areal_units_constraint_ntarget = floor(length(p$yrs) /3)  # n time slices req in each au
-          p$areal_units_constraint_nmin = 5   # n time slices req in each au
-      } else if (p$carstm_model_label == "1950_present"){
-          p$yrs = 1950:p$year.assessment
-          p$areal_units_constraint_ntarget = floor(length(p$yrs) /3) # n time slices req in each au
-          p$areal_units_constraint_nmin = 5   # n time slices req in each au
+    if (!exists("yrs", p)){
+      if (exists("carstm_model_label", p)) {
+        if (p$carstm_model_label == "1999_present"){
+            p$yrs = 1999:p$year.assessment
+        } else if (p$carstm_model_label == "1970_present"){
+            p$yrs = 1970:p$year.assessment
+        } else if (p$carstm_model_label == "1950_present"){
+            p$yrs = 1950:p$year.assessment
+        }
       }
     }
-
+    
     # resetss in case of changes above
     p$areal_units_timeperiod = p$carstm_model_label # needed?
     p$ny = length(p$yrs)
