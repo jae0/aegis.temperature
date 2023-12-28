@@ -13,8 +13,8 @@
     carstm_model_label="1999_present",
     yrs=1999:year.assessment #,
     # spbuffer=9, lenprob=0.95,   # these are domain boundary options for areal_units
-    # n_iter_drop=0, sa_threshold_km2=4, 
-    # areal_units_constraint_ntarget=15, areal_units_constraint_nmin=1   # granularity options for areal_units
+    # n_iter_drop=0, sa_threshold_km2=16, 
+    # areal_units_constraint_ntarget=12, areal_units_constraint_nmin=1   # granularity options for areal_units
   )
   
   current_model = "space_cyclic"
@@ -71,7 +71,7 @@
     xydata = xydata[ which(xydata$yr %in% p$yrs), ]
     
  
-    # if sppoly opions need to change, do so at parameter-level such that they are consistent  (though, not necessary if sppoly is passed directly to carstm)
+    # if sppoly options need to change, do so at parameter-level such that they are consistent  (though, not necessary if sppoly is passed directly to carstm)
     sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create
     # sppoly = areal_units( p=p  )  # reload
  
@@ -103,7 +103,7 @@
       p=p, 
       data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
       sppoly=sppoly,
-      nposteriors=2000,
+      nposteriors=1000,
       posterior_simulations_to_retain=c("predictions", "random_spatial"), 
       theta=p$theta,
       # if problems, try any of: 

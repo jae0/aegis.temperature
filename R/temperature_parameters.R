@@ -111,7 +111,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_timeperiod = "none",  # only relevent for groundfish polys
       tus="yr",
       # sa_threshold_km2 = 5, 
-      sa_threshold_km2=4, 
+      sa_threshold_km2=16, 
       n_iter_drop=0, 
       fraction_todrop = 0.05,
       fraction_cv = 0.9,  # just under poisson (binomial)
