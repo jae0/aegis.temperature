@@ -108,7 +108,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       areal_units_type= "tesselation",
       #areal_units_constraint_ntarget = floor(p$ny /3),  # n time slices req in each au
       areal_units_constraint_ntarget=15, 
-      areal_units_constraint_nmin=1   # granularity options for areal_units
+      areal_units_constraint_nmin=1,   # granularity options for areal_units
       #areal_units_constraint_nmin = 5,   # n time slices req in each au
       areal_units_resolution_km = 1,  # starting resolution .. if using tesselation/ otherwise grid size ()
       areal_units_overlay = "none",

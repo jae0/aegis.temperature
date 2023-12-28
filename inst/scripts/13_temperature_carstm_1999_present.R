@@ -11,10 +11,10 @@
   p = temperature_parameters( 
     project_class="carstm", 
     carstm_model_label="1999_present",
-    yrs=1999:year.assessment,
-    spbuffer=9, lenprob=0.95,   # these are domain boundary options for areal_units
-    n_iter_drop=0, sa_threshold_km2=4, 
-    areal_units_constraint_ntarget=15, areal_units_constraint_nmin=1   # granularity options for areal_units
+    yrs=1999:year.assessment #,
+    # spbuffer=9, lenprob=0.95,   # these are domain boundary options for areal_units
+    # n_iter_drop=0, sa_threshold_km2=4, 
+    # areal_units_constraint_ntarget=15, areal_units_constraint_nmin=1   # granularity options for areal_units
   )
   
   current_model = "model_is_space_cyclic"
