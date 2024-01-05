@@ -50,8 +50,8 @@ if (current_model == "simple_cyclic") {
   
 if (current_model == "space_cyclic") {
   # params from last run to speed up convergence
-  p$theta = c(0.073, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.568, -0.013, 2.419, 0.375, -0.504, 0.439)
-
+  p$theta = c(0.078, 0.442, 0.357, 2.107, 0.479, -2.409, -1.313, -1.568, -0.013, 2.419, 0.375, -0.575, 0.439)
+ 
   # theta[0] = [Log precision for the Gaussian observations]
   # theta[1] = [Log precision for time]
   # theta[2] = [Rho_intern for time]
@@ -86,6 +86,7 @@ if (current_model == "space_cyclic") {
   sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create
   # sppoly = areal_units( p=p  )  # reload
 
+
   plot( sppoly[ "AUID" ] ) 
   
   # or using carstm_map: 
@@ -96,19 +97,8 @@ if (current_model == "space_cyclic") {
   M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # must  redo if sppoly has changed or new data
   # M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) 
   M = NULL
+ 
 
-
-# !!! WARNING: this uses a lot of RAM  
-  res = NULL
-
-  p$space_name = sppoly$AUID 
-  p$space_id = 1:nrow(sppoly)
-
-  p$time_name = as.character(p$yrs)
-  p$time_id =  1:p$ny
-
-  p$cyclic_name = as.character(p$cyclic_levels)
-  p$cyclic_id = 1:p$nw
 ```
 
 
@@ -116,6 +106,19 @@ if (current_model == "space_cyclic") {
 
 
 ```r
+# dimensionality and labels:
+p$space_name = sppoly$AUID 
+p$space_id = 1:nrow(sppoly)
+
+p$time_name = as.character(p$yrs)
+p$time_id =  1:p$ny
+
+p$cyclic_name = as.character(p$cyclic_levels)
+p$cyclic_id = 1:p$nw
+
+# !!! WARNING: this uses a lot of RAM  
+res = NULL
+
 res = carstm_model( 
     p=p, 
     data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly)',  
@@ -131,6 +134,7 @@ res = carstm_model(
     # debug="extract",
     # debug = "random_spatiotemporal", 
     verbose=TRUE, 
+    compress=FALSE,  ## large file size makes compression/decompression too slow
     num.threads="3:2"  # adjust for your machine
   )    
 
@@ -179,11 +183,11 @@ res = carstm_model(
 
   additional_features = features_to_add( 
       p=p, 
-      area_lines="cfa.regions",
+#      area_lines="cfa.regions",
       isobaths=c( 100, 200, 300, 400, 500  ), 
       coastline =  c("canada", "united states of america"), 
       xlim=c(-80,-40), 
-      ylim=c(38, 60) 
+      ylim=c(38, 60) # ,redo=TRUE 
   )
 
   # map all bottom temps:
@@ -203,7 +207,7 @@ res = carstm_model(
   # toplot = carstm_results_unpack( res, vn )
   # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
   
-  brks = pretty(c(-0.8, 0.8))
+  brks = pretty(c(-0.5, 0.5))
   plt = carstm_map(  res=res, vn=vn, 
     breaks = brks,
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
@@ -211,8 +215,7 @@ res = carstm_model(
     title= "Bottom temperature -- persistent spatial effect" ,
     outfilename=outfilename
   )  
-  plt
-
+ 
   brks = pretty(c(1, 9))
   for (y in res$time_name ){
     for ( u in res$cyclic_name  ){
