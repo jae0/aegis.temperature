@@ -134,7 +134,7 @@ res = carstm_model(
     # debug="extract",
     # debug = "random_spatiotemporal", 
     verbose=TRUE, 
-    compress=FALSE,  ## large file size makes compression/decompression too slow
+    # compress=FALSE,  ## large file size makes compression/decompression too slow
     num.threads="3:2"  # adjust for your machine
   )    
 
@@ -211,7 +211,8 @@ res = carstm_model(
     breaks = brks,
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
     additional_features=additional_features,
-    title= "Bottom temperature -- persistent spatial effect" ,
+    annotation= "Bottom temperature -- persistent spatial effect" ,
+    legend.position=c( 0.1, 0.9 ),
     outfilename=outfilename
   )  
  
@@ -224,7 +225,8 @@ res = carstm_model(
         breaks=brks, 
         colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
         additional_features=additional_features,
-        title=fn_root,  
+        annotation=fn_root,  
+        legend.position=c( 0.1, 0.9 ),
         outfilename=outfilename
       )
     }
