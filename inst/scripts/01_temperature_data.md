@@ -69,16 +69,15 @@ Finally, extract and aggregate time slices into a one data file for use in model
 
   # Extract bottom data from each profile and discretization of space and time resolution to manageable numbers
   # temperature_db( DS="bottom.annual.redo", p=p, yr=1900:year.assessment )
-  o = temperature_db( DS="bottom.annual.redo", p=p,   yr=2020:year.assessment  ) # "basedata"
+  o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment  ) # "basedata"
 
   o = temperature_db( DS="bottom.all.redo", p=p, yr=1970:year.assessment  )  
   o = temperature_db( DS="aggregated_data", p=p, redo=TRUE )   # used to reduce data size and do quick empirical look ups (not modelled)
 
 ```
-Coninue to the next step: [modelling](03_temperature_carstm_1999_present.md)
+Continue to the next step: [modelling](03_temperature_carstm_1999_present.md)
 
 # end
 
 
 
-# finished

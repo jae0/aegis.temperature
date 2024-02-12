@@ -151,7 +151,7 @@ res = carstm_model(
   }
 
 
-( res$summary) 
+( res$summary ) 
 ```
 
 ## Some results and maps
