@@ -233,7 +233,7 @@ res = carstm_model(
   fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
   outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
   
-  vn = c( "random", "space", "combined" ) 
+  vn = c( "random", "space", "re_total" ) 
   
   # toplot = carstm_results_unpack( res, vn )
   # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )

@@ -216,7 +216,7 @@
   )
   plt
 
-  plt = carstm_map(  res=res, vn=c( "random", "space", "combined" ), 
+  plt = carstm_map(  res=res, vn=c( "random", "space", "re_total" ), 
     sppoly=sppoly,
     breaks=seq(-5, 5, by=0.25), 
     palette="-RdYlBu",
@@ -225,7 +225,7 @@
   )
   plt
 
-  plt = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+  plt = carstm_map(  res=res, vn=c( "random", "space_time", "re_total" ), tmatch=tmatch, umatch=umatch, 
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
@@ -238,7 +238,7 @@
   tmatch="2020"
   umatch="0.75"
 
-  plt = carstm_map(  res=res, vn=c( "random", "space_time", "combined" ), tmatch=tmatch, umatch=umatch, 
+  plt = carstm_map(  res=res, vn=c( "random", "space_time", "re_total" ), tmatch=tmatch, umatch=umatch, 
     sppoly=sppoly,
     breaks=seq(-2, 2, by=0.25), 
     palette="-RdYlBu",
@@ -267,7 +267,7 @@
   fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
   outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
   
-  vn = c( "random", "space", "combined" ) 
+  vn = c( "random", "space", "re_total" ) 
   
   toplot = carstm_results_unpack( res, vn )
   brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
