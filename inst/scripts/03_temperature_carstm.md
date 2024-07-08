@@ -74,6 +74,9 @@ if (year.start == "1970") {
 
 
 ```r
+
+sppoly = areal_units( p=p  )  # reload polygons
+
 # dimensionality and labels:
 p$space_name = sppoly$AUID 
 p$space_id = 1:nrow(sppoly)
@@ -89,7 +92,7 @@ res = NULL
 
 res = carstm_model( 
     p=p, 
-    data ='temperature_db( p=p, DS="carstm_inputs")',  
+    data ='temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )',  
     sppoly=sppoly,
     nposteriors=1000,
     toget = c("summary", "random_spatial", "predictions"),
