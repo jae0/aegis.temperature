@@ -163,98 +163,64 @@
     
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+
+      # EXAMINE POSTERIORS AND PRIORS
+      all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
+      hypers = fit$marginals.hyperpar
+
+      names(hypers)
+      
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=2 )  
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=3 )  
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=5 )   
+
     }
 
+    # parameters back transformed onto user scale
+    res = carstm_model(  p=p,  DS="carstm_summary" )  # parameters in p and direct summary
+    res$direct
 
-  res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
+    # annual component 
+    res$time$yr = as.numeric(p$time_name[res$time$ID])
+    plt = ggplot( res$time, aes(x=yr, y=mean)) +  geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+      geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.5) +
+      labs(title="Annual component", x="Year", y = "Bottom temperature (deg C)") +
+      theme_light( base_size=22) 
+    print(plt)    
+    # fn_plt = file.path() 
+    # ggsave(filename=fn_plt, plot=plt, device="png",dpi=144, width=12, height = 8)
 
+    # seasonal component 
+    res$cyclic$seas = as.numeric( p$cyclic_name[res$cyclic$ID] )
+    plt = ggplot( res$cyclic, aes(x=seas, y=mean) ) + geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+      geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.05) +
+      labs(title="Seasonal component", x="Year (fraction)", y = "Bottom temperature (deg C)") +
+      theme_light( base_size=22) 
+    print(plt)    
+    # fn_plt = file.path() 
+    # ggsave(filename=fn_plt, plot=plt, device="png",dpi=144, width=12, height = 8)
 
-  b0 = res$summary$fixed_effects["(Intercept)", "mean"]
-
-  ts =  res$random$time 
-  vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] 
-  plot( mean ~ ID, ts, type="b", ylim=c(-2,2), lwd=1.5, xlab="year")
-  lines( quant0.025 ~ ID, ts, col="gray", lty="dashed")
-  lines( quant0.975 ~ ID, ts, col="gray", lty="dashed")
-
-
-  ts =  res$random$cyclic
-  vns = c("mean", "quant0.025", "quant0.5", "quant0.975" ) 
-  ts[, vns] = ts[, vns] 
-  plot( mean ~ID, ts, type="b", ylim=c(-1.5, 1.5), lwd=1.5, xlab="fractional year")
-  lines( quant0.025 ~ID, ts, col="gray", lty="dashed")
-  lines( quant0.975 ~ID, ts, col="gray", lty="dashed")
-
-
-
-  carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-    type="b", ylim=c(-2, 2), xlab="Year", ylab="Botton temperature (Celsius)", h=7  )
-
-  carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-1.5, 1.5),
-    xlab="Season", ylab="Botton temperature (Celsius)", h=7  )
-
-  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-2, 2) ,
-    xlab="Depth (m)", ylab="Botton temperature (Celsius)", h=7  )
-
-
+    # relationship with depth
+    vn = "inla.group(z, method = \"quantile\", n = 11)"
+    plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+      geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+      labs(title="Depth component", x="Depth (m)", y = "Bottom temperature (deg C)") +
+      theme_light( base_size=22) 
+    print(plt)    
+    # fn_plt = file.path() 
+    # ggsave(filename=fn_plt, plot=plt, device="png",dpi=144, width=12, height = 8)
 
 
  
   # maps of some of the results
-  tmatch="2021"
-  umatch="0.75"
 
-  plt = carstm_map(  res=res, vn="predictions", tmatch=tmatch, umatch=umatch, 
-    sppoly=sppoly,
-    breaks=seq(-1, 9, by=0.25), 
-    palette="-RdYlBu",
-    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-    title=paste( "Bottom temperature predictions", tmatch, umatch)  
-  )
-  plt
-
-  plt = carstm_map(  res=res, vn=c( "random", "space", "re_total" ), 
-    sppoly=sppoly,
-    breaks=seq(-5, 5, by=0.25), 
-    palette="-RdYlBu",
-    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-    title="Bottom temperature spatial effects (Celsius)"
-  )
-  plt
-
-  plt = carstm_map(  res=res, vn=c( "random", "space_time", "re_total" ), tmatch=tmatch, umatch=umatch, 
-    sppoly=sppoly,
-    breaks=seq(-2, 2, by=0.25), 
-    palette="-RdYlBu",
-    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-    title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
-  )
-  plt
-
-
-  tmatch="2020"
-  umatch="0.75"
-
-  plt = carstm_map(  res=res, vn=c( "random", "space_time", "re_total" ), tmatch=tmatch, umatch=umatch, 
-    sppoly=sppoly,
-    breaks=seq(-2, 2, by=0.25), 
-    palette="-RdYlBu",
-    plot_elements=c( "isobaths",  "compass", "scale_bar", "legend" ),
-    title=paste( "Bottom temperature spatiotemporal effects", tmatch, umatch)  
-  )
-  plt
  
   graphics.off()
 
   # map all bottom temps:
   outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-
-
+ 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = features_to_add( 
       p=p, 
@@ -264,34 +230,39 @@
   )
   
   
+  # persistent spatial effects "re_total" ( icar neighbourhood random effects + unstructured random effects )
+   
   fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
   outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
   
-  vn = c( "random", "space", "re_total" ) 
-  
+  res = carstm_model(  p=p,  DS="carstm_randomeffects" ) 
+  vn = c(  "space", "re_total" ) 
   toplot = carstm_results_unpack( res, vn )
   brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
-  plt = carstm_map(  res=res, vn=vn, 
-    sppoly = sppoly, 
+  plt = carstm_map(  
+    res=res, vn=vn, 
     breaks = brks,
-    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),    additional_features=additional_features,
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),    
+    additional_features=additional_features,
     title= "Bottom temperature -- persistent spatial effect" ,
     outfilename=outfilename
   )  
   plt
 
 
+  # maps of some of the results .. this brings a webbrowser interface
+  res = carstm_model(  p=p,  DS="carstm_predictions" ) 
 
-  # slow due to use of webshot to save html to png (partial solution until tmap view mode saves directly)
   brks = pretty(c(1, 9))
   for (y in res$time_name ){
     for ( u in res$cyclic_name  ){
       fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
       outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
-      plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
-        breaks=brks, 
-        sppoly=sppoly,
+      plt = carstm_map(  
+        res=res, 
+        vn="predictions", tmatch=as.character(y), umatch=as.character(u),
+        breaks=brks,  
         colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
         additional_features=additional_features,
         title=fn_root,  
