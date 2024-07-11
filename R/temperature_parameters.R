@@ -77,13 +77,13 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     p$project_class = "carstm"
 
     #special cases
-    if (!exists("carstm_model_label", p)) p$carstm_model_label = "1970_present"
+    if (!exists("carstm_model_label", p)) p$carstm_model_label = "default"
   
     if (!exists("yrs", p)){
       if (exists("carstm_model_label", p)) {
         if (p$carstm_model_label == "1999_present"){
             p$yrs = 1999:p$year.assessment
-        } else if (p$carstm_model_label == "1970_present"){
+        } else if (p$carstm_model_label == "default"){
             p$yrs = 1970:p$year.assessment
         } else if (p$carstm_model_label == "1950_present"){
             p$yrs = 1950:p$year.assessment
@@ -121,7 +121,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       lenprob=0.95,   # these are domain boundary options for areal_units
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
-      carstm_model_label = "1970_present",
+      carstm_model_label = "default",
       carstm_inputs_prefilter = "aggregated",
       carstm_inputs_prefilter_n = 100  # only used for "sampled"
     )

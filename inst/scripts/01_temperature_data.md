@@ -75,7 +75,7 @@ Finally, extract and aggregate time slices into a one data file for use in model
   o = temperature_db( DS="aggregated_data", p=p, redo=TRUE )   # used to reduce data size and do quick empirical look ups (not modelled)
 
 ```
-Continue to the next step: [modelling](03_temperature_carstm_1999_present.md)
+Continue to the next step: [modelling](03_temperature_carstm.md)
 
 # end
 

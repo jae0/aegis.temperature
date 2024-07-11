@@ -22,4 +22,4 @@ require( aegis.temperature )
 
 Data assimilation, thinning and organisation occurs in [inst/scripts/01_temperature_data.md](inst/scripts/01_temperature_data.md).
 
-Data modelling to address spatiotemporal aliasing occurs in [inst/scripts/03_temperature_carstm_1999_present.md](inst/scripts/03_temperature_carstm_1999_present.md).
+Data modelling to address spatiotemporal aliasing occurs in [inst/scripts/03_temperature_carstm.md](inst/scripts/03_temperature_carstm.md).
