@@ -845,6 +845,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     xydata = xydata[ which(xydata$z  > 5) , ]
     xydata = xydata[ , c("lon", "lat", "yr" )]
 
+    # could filter earlier for speed but here it is more compact  
+    if (exists("carstm_input_time_limit", p))  xydata = xydata[ which( xydata$yr >= p$carstm_input_time_limit), ]   
+
     save(xydata, file=fn, compress=TRUE )
     return( xydata )
    }
@@ -970,8 +973,10 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     M = M[ which( M$z < 2500), ]
     M = M[ which( M$z > 5 ), ]
 
-    M = M[ which( M$yr >= p$carstm_input_time_limit), ]   
-    
+      
+    # could filter earlier for speed but here it is more compact  
+    if (exists("carstm_input_time_limit", p))  M = M[ which( M$yr >= p$carstm_input_time_limit), ]   
+
     save( M, file=fn, compress=TRUE )
 
     return( M )

@@ -45,7 +45,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     }
   }
 
-  yrs_default = 1950:p$year.assessment
+  yrs_default = 1970:p$year.assessment
   p = parameters_add_without_overwriting( p, yrs = yrs_default, timezone="America/Halifax" )  # default unless already provided
   p = temporal_parameters(p=p)
 

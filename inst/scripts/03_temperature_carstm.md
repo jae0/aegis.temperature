@@ -1,30 +1,43 @@
+
+<!-- NOTE 
+  This doc is markdown formatted and can/should be viewed through a viewer:
+  - a web browser with view ability (Firefox with Markdown Viewer Webext extension)
+  - vscode with built-in "preview" or "Markdown Editor" extension
+  - Zettlr, Quarto, Rstudio, etc
+ -->
+
 # Spatiotemporal model of bottom temperatures
+
 
 ## Purpose
 
-Data collected (marine ocean bottom temperatures) from miscellaneous sources, opportunistically and from surveys with different rationales result in spatial and temporal aliasing/bias. The reduce some of this bias, the data are subjected to a spatiotemporal model using [carstm](https://github.com/jae0/carstm), a simple front-end to [INLA](https://www.r-inla.org/), used to perform Conditional autocorrelation (BYM) models and temporal (AR1). 
+Data collected (marine ocean bottom temperatures) from miscellaneous sources, opportunistically and from surveys with different rationales result in spatial and temporal aliasing/bias. To help reduce some of this selection bias, the data are subjected to a spatiotemporal model using [carstm](https://github.com/jae0/carstm), a simple front-end to [INLA](https://www.r-inla.org/), to perform Conditional autocorrelation (BYM) and temporal (AR1) models. 
 
 ## Prepare parameter settings
 
 Here we prepare the parameter setting to control this modelling and prediction.
 
 ```r
+
 require(aegis.temperature)
 # loadfunctions("aegis.temperature")
 
-year.assessment = 2023
-year.start = 1970
+year_assessment = 2023
+year_start = 1999    
+year_start_carstm_inputs = year_start - 5 # add 5 years prior of data to improve stability of parameters
 
 p = temperature_parameters( 
   project_class="carstm", 
   carstm_model_label="default",
-  carstm_input_time_limit = 1950, # to reduce file size
-  yrs=year.start:year.assessment #,  
-  # spbuffer=9, lenprob=0.95,   # these are domain boundary options for areal_units
-  # n_iter_drop=0, sa_threshold_km2=16, 
-  # areal_units_constraint_ntarget=12, areal_units_constraint_nmin=1   # granularity options for areal_units
+  carstm_input_time_limit = year_start_carstm_inputs, # to reduce file size /improve speed .. if 1950: ~ 4 days of compute
+  yrs=year_start:year_assessment,
+  spbuffer=9, # these are domain boundary options for areal_units ( search radius for aggregation)
+  lenprob=0.95,   # these are domain boundary options for areal_units ( boundary determination)
+  n_iter_drop=0, # no. of additional repasses in tesselation phase
+  sa_threshold_km2=16, # min sa of AU
+  areal_units_constraint_ntarget=12, # target no data points in each AU
+  areal_units_constraint_nmin=1   # min no data points in each AU 
 )
-
 
 
 ```
@@ -37,14 +50,15 @@ p = temperature_parameters(
   # to recreate the underlying data
   xydata=temperature_db(p=p, DS="areal_units_input", redo=TRUE)  # redo if inpute data has changed
 
-  xydata=temperature_db(p=p, DS="areal_units_input")  # redo if inpute data has changed
+  xydata=temperature_db(p=p, DS="areal_units_input")  # redo if input data has changed
   # note learn from all available data 
   # xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-  
+  xydata = xydata[ which(xydata$yr >= p$carstm_input_time_limit), ]
 
   # if sppoly options need to change, do so at parameter-level such that they are consistent  (though, not necessary if sppoly is passed directly to carstm)
-  sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create
-  # sppoly = areal_units( p=p  )  # reload
+  sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create : 1000-2000 units seems optimal .. this is higher to resolve space a bit better
+  
+  sppoly = areal_units( p=p  )  # reload
 
 
   plot( sppoly[ "AUID" ] ) 
@@ -67,7 +81,7 @@ p = temperature_parameters(
 ```r
 
 sppoly = areal_units( p=p  )  # reload polygons
-M = temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )  
+M = ' temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )  '
 
 # dimensionality and labels:
 p$space_name = sppoly$AUID 
@@ -86,11 +100,15 @@ res = carstm_model(
     p=p, 
     data =M,  
     sppoly=sppoly,
+    redo_fit=FALSE,
     nposteriors=1000,
     toget = c("summary", "random_spatial", "predictions"),
-    posterior_simulations_to_retain = c("predictions"),
+    # posterior_simulations_to_retain = c("predictions"),  # not used at the moment
     family = "gaussian",
-    theta=c( -0.2500, 1.5781, 0.7455, 2.3843, 0.7624, -2.2602, -0.2053, -1.3372, -0.8578, 2.4444, 0.2848, -1.1474, 0.6269 ),
+    theta=c( 
+      0.1874, 0.5392, 1.2752, 0.6673, 0.6426, -3.8628, -2.8436, -1.4463, -0.7512,  2.4547, 0.3513, -0.9288, 0.4742 
+    ),
+    #debug ="predictions",
     # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
@@ -98,12 +116,17 @@ res = carstm_model(
     # redo_fit=FALSE,
     # debug="extract",
     # debug = "random_spatiotemporal", 
+    # improve.hyperparam.estimates=TRUE,
     verbose=TRUE, 
     # compress=FALSE,  ## large file size makes compression/decompression too slow
-    num.threads="3:2"  # adjust for your machine
+    num.threads="1:1"  # safer .. 2:2 works on linux adjust for your machine; # 2023: 86GB RAM for fit with num.threads="3:2" ; reduce as required
   )    
+  
+  # res contains the "modelinfo"
+  str(res)
+  res = NULL 
+  gc()
 
-  ( res$summary ) 
 
     if (0) {
       # some random effects and checks
@@ -118,14 +141,29 @@ res = carstm_model(
       hypers = fit$marginals.hyperpar
       names(hypers)
 
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=2, xrange=c(0.02, 10) )  # note xrange is for precision .. this gets converted to SD   
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space", transf=FALSE )  # no conversion to SD 
+      
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space" )  # conversion to SD 
+    
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for time" )  # conversion to SD 
 
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space_time" )  # conversion to SD 
+
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space_cyclic" )  # conversion to SD 
+
+            
       carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Rho for time" )  
       carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
       
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space_time" )  
+
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space_cyclic" )  
+      
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="GroupRho for space_time" )  
+
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="GroupRho for space_cyclic" )  
+      
       # posterior predictive check
-      carstm_posterior_predictive_check(p=p, M=temperature_db( p=p, DS="carstm_inputs" ) )
+      carstm_posterior_predictive_check(p=p, M=temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) )
 
     }
 
@@ -138,32 +176,33 @@ res = carstm_model(
  
   # maps of some of the results
 
-    additional_features = features_to_add( 
-      p=p, 
+  additional_features = features_to_add( 
+    p=p, 
 #      area_lines="cfa.regions",
-      isobaths=c( 100, 200, 300, 400, 500  ), 
-      xlim=c(-80,-40), 
-      ylim=c(38, 60) # ,redo=TRUE 
-    )
+    isobaths=c( 100, 200, 300, 400, 500  ), 
+    xlim=c(-80,-40), 
+    ylim=c(38, 60) # ,redo=TRUE 
+  )
 
   # map all bottom temps: 
-  
-    outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
 
-    fn_root_prefix = "Substrate grainsize (mm)"
-     
-    carstm_plot_map( p=p, outputdir=outputdir, 
-      additional_features=additional_features, 
-      toplot="random_spatial", probs=c(0.025, 0.975),  transf=log10, 
-      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
+  outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
 
-    carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
-      toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) )
+  fn_root_prefix = "Substrate grainsize (mm)"
+    
+  carstm_plot_map( p=p, outputdir=outputdir, 
+    additional_features=additional_features, 
+    toplot="random_spatial", probs=c(0.025, 0.975),  
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
 
- 
+  carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
+    toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+    brks=seq(0, 10, 2 ) )
 
-'''
 
-# end
+
+```
+
+# End
 
 
