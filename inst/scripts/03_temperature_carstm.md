@@ -130,41 +130,25 @@ res = carstm_model(
 
     if (0) {
       # some random effects and checks
-      fit = carstm_model( p=p, DS="modelled_fit"  )  # extract currently saved model fit
-      summary(fit)  # inla object
+      # fit = carstm_model( p=p, DS="modelled_fit"  )  # extract currently saved model fit
+      # summary(fit)  # inla object
         
-      plot(fit)
-      plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+      # plot(fit)
+      # plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
-      # EXAMINE POSTERIORS AND PRIORS
-      all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
-      hypers = fit$marginals.hyperpar
-      names(hypers)
-
-      
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space" )  # conversion to SD 
-    
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for time" )  # conversion to SD 
-
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space_time" )  # conversion to SD 
-
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space_cyclic" )  # conversion to SD 
-
-            
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Rho for time" )  
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
-      
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space_time" )  
-
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space_cyclic" )  
-      
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="GroupRho for space_time" )  
-
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="GroupRho for space_cyclic" )  
-      
       # posterior predictive check
-      carstm_posterior_predictive_check(p=p, M=temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly  ) )
-
+      M = speciescomposition_db( p=p, DS='carstm_inputs', sppoly=sppoly  )
+      carstm_posterior_predictive_check(p=p, M=M  )
+  
+      # EXAMINE POSTERIORS AND PRIORS
+      res = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and summary
+  
+      names(res$hypers)
+      for (i in 1:length(names(res$hypers)) ){
+        o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
+        dev.new(); print(o)
+      } 
+      
     }
 
 
