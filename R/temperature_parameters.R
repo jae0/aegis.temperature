@@ -40,12 +40,11 @@ temperature_parameters = function( p=list(), project_name="temperature", project
     } else if (exists("yrs", p)) {
       p$year.assessment = max(p$yrs)
     } else {
-      message("probably want to assign current year.assessment, using current year for now")  
-      p$year.assessment = lubridate::year(lubridate::now()) 
+      stop("Require year.assessment")  
     }
   }
 
-  yrs_default = 1970:p$year.assessment
+  yrs_default = 1999:p$year.assessment
   p = parameters_add_without_overwriting( p, yrs = yrs_default, timezone="America/Halifax" )  # default unless already provided
   p = temporal_parameters(p=p)
 
