@@ -101,25 +101,28 @@ res = carstm_model(
     data =M,  
     sppoly=sppoly,
     redo_fit=FALSE,
-    nposteriors=1000,
+    # nposteriors=1000,
     toget = c("summary", "random_spatial", "predictions"),
     # posterior_simulations_to_retain = c("predictions"),  # not used at the moment
     family = "gaussian",
     theta=c( 
       0.1874, 0.5392, 1.2752, 0.6673, 0.6426, -3.8628, -2.8436, -1.4463, -0.7512,  2.4547, 0.3513, -0.9288, 0.4742 
     ),
-    #debug ="predictions",
-    # if problems, try any of: 
+    # control.inla = list( strategy='adaptive', int.strategy='eb' ),  # "eb" required for stabilization
+    control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
+    # control.inla = list( strategy='auto'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
+    # if problems, try any of: 
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     # control.inla = list( strategy='laplace'  ),
     # redo_fit=FALSE,
+    # debug ="predictions",
     # debug="extract",
     # debug = "random_spatiotemporal", 
     # improve.hyperparam.estimates=TRUE,
     verbose=TRUE, 
     # compress=FALSE,  ## large file size makes compression/decompression too slow
-    num.threads="1:1"  # safer .. 2:2 works on linux adjust for your machine; # 2023: 86GB RAM for fit with num.threads="3:2" ; reduce as required
+    num.threads="2:2"  # safer .. 2:2 works on linux adjust for your machine; # 2023: 86GB RAM for fit with num.threads="3:2" ; reduce as required
   )    
   
   # res contains the "modelinfo"

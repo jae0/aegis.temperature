@@ -80,20 +80,21 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       p$carstm_model_label = "default"
     }
 
-    if (exists("carstm_model_label", p)) {
-      if (p$carstm_model_label == "1999_present"){
-          p$yrs = 1999:p$year.assessment
-      } else if (p$carstm_model_label == "default"){
-          p$yrs = 1970:p$year.assessment
-      } else if (p$carstm_model_label == "1950_present"){
-          p$yrs = 1950:p$year.assessment
+    if (!exists("yrs", p)) {
+      if (exists("carstm_model_label", p)) {
+        if (p$carstm_model_label == "default"){
+            p$yrs = 1999:p$year.assessment
+        } else if (p$carstm_model_label == "1970_present"){
+            p$yrs = 1970:p$year.assessment
+        } else if (p$carstm_model_label == "1950_present"){
+            p$yrs = 1950:p$year.assessment
+        }
       }
+      p = temporal_parameters(p=p)  # reset in case yrs changed
     }
-  
-    # resetss in case of changes above
+
+    # resets in case of changes above
     p$areal_units_timeperiod = p$carstm_model_label # needed?
-    p$ny = length(p$yrs)
-    p$nt = p$nw*p$ny # i.e., seasonal with p$nw (default is annual: nt=ny)
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
