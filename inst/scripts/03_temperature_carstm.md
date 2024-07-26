@@ -93,23 +93,20 @@ p$time_id =  1:p$ny
 p$cyclic_name = as.character(p$cyclic_levels)
 p$cyclic_id = 1:p$nw
 
+gc()
+
 # !!! WARNING: this uses a lot of RAM  
-res = NULL
- 
-res = carstm_model( 
+carstm_model( 
     p=p, 
     data =M,  
     sppoly=sppoly,
-    redo_fit=FALSE,
     # nposteriors=1000,
     toget = c("summary", "random_spatial", "predictions"),
     # posterior_simulations_to_retain = c("predictions"),  # not used at the moment
     family = "gaussian",
-    theta=c( 
-      0.1874, 0.5392, 1.2752, 0.6673, 0.6426, -3.8628, -2.8436, -1.4463, -0.7512,  2.4547, 0.3513, -0.9288, 0.4742 
+    theta=c( 0.1877, 0.7413, 1.1496, 0.9075, 2.1036, -3.6689, -2.1444, -1.4800, -0.7984, 2.5011, 0.3563, -0.9661, 0.4787 
     ),
-    # control.inla = list( strategy='adaptive', int.strategy='eb' ),  # "eb" required for stabilization
-    control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
+    # control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2 (gsl seems less memory demanding)
     # control.inla = list( strategy='auto'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
     # if problems, try any of: 
@@ -124,11 +121,6 @@ res = carstm_model(
     # compress=FALSE,  ## large file size makes compression/decompression too slow
     num.threads="2:2"  # safer .. 2:2 works on linux adjust for your machine; # 2023: 86GB RAM for fit with num.threads="3:2" ; reduce as required
   )    
-  
-  # res contains the "modelinfo"
-  str(res)
-  res = NULL 
-  gc()
 
 
     if (0) {
@@ -140,7 +132,7 @@ res = carstm_model(
       # plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
       # posterior predictive check
-      M = speciescomposition_db( p=p, DS='carstm_inputs', sppoly=sppoly  )
+      M = temperature_db( p=p, DS='carstm_inputs', sppoly=sppoly  )
       carstm_posterior_predictive_check(p=p, M=M  )
   
       # EXAMINE POSTERIORS AND PRIORS
@@ -175,7 +167,7 @@ res = carstm_model(
 
   outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
 
-  fn_root_prefix = "Substrate grainsize (mm)"
+  fn_root_prefix = "Bottom temperature (Celcius)"
     
   carstm_plot_map( p=p, outputdir=outputdir, 
     additional_features=additional_features, 
