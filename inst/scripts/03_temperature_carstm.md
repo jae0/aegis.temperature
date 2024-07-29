@@ -26,6 +26,7 @@ year_assessment = 2023
 year_start = 1999    
 year_start_carstm_inputs = year_start - 5 # add 5 years prior of data to improve stability of parameters
 
+# any changes here should be moved to temperature_parameters.R ... to find data lookup table simpler
 p = temperature_parameters( 
   project_class="carstm", 
   carstm_model_label="default",
