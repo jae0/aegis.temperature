@@ -37,8 +37,13 @@ degree_days = function( plu, pg, years, t0) {
     M$year = trunc( M$tiyr )
     M$dyear = M$tiyr - M$year
 
+    pL = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs )
+
+    LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+        project_class="carstm", DS="carstm_predictions", pL=pL )
+
     M$t = aegis_lookup(
-        parameters=plu["temperature"], # single square brackets as we need the
+        pL=pL, LUT=LUT,
         ## name of the list kept  ----> here!
         LOCS=M[ , c("AUID", "timestamp")],
         LOCS_AU=pg,
