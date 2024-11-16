@@ -15,7 +15,7 @@ This step is an example of data processing and QA/QC that might be relevant to y
 ## Set up parameters controlling spatial and temporal domains
 
 ```r
-year.assessment=2023
+year.assessment=2024
 
 p = aegis.temperature::temperature_parameters( yrs=1950:year.assessment )  # these are default years
 
