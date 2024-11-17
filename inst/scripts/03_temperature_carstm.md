@@ -140,9 +140,11 @@ carstm_model(
       # EXAMINE POSTERIORS AND PRIORS
       res = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and summary
 
+      outputdir = file.path(p$modeldir, p$carstm_model_label)
+
       res_vars = c( names( res$hypers), names(res$fixed) )
       for (i in 1:length(res_vars) ) {
-        o = carstm_prior_posterior_compare( res, vn=res_vars[i] )  
+        o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir )  
         dev.new(); print(o)
       }     
 
