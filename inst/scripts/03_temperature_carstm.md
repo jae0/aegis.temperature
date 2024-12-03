@@ -105,7 +105,7 @@ carstm_model(
     toget = c("summary", "random_spatial", "predictions"),
     # posterior_simulations_to_retain = c("predictions"),  # not used at the moment
     family = "gaussian",
-    theta=c( 0.1897, 0.7404, 1.1476, 0.9086, 2.1071, -3.6679, -2.1515, -1.4829, -0.8335, 2.5024, 0.3690, -1.0223, 0.4095 ),  # 2024 solutions
+    # theta=c( 0.1897, 0.7404, 1.1476, 0.9086, 2.1071, -3.6679, -2.1515, -1.4829, -0.8335, 2.5024, 0.3690, -1.0223, 0.4095 ),  # 2024 solutions
     # control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2 (gsl seems less memory demanding)
     # control.inla = list( strategy='auto'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" , optimise.strategy="plain", strategy='laplace', fast=FALSE),
