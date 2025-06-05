@@ -768,7 +768,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       M$dyear[j] = 0.999
     }
 
-    M$dyear = discretize_data( M$dyear, seq(0, 1, by=p$inputdata_temporal_discretization_yr), digits=6 )
+    nw = 1 / p$inputdata_temporal_discretization_yr
+
+    M$dyear = discretize_data( x=M$dyear, span=c(0, 1, nw)  )
 
     k = which( !is.finite(M$dyear +M$tiyr) )  
     if (length(j) > 0) {
@@ -962,18 +964,13 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     M$time = match( M$year, p$yrs ) # copy time for space_time component .. for groups, must be numeric index
     M$time_space = M$time    
-   
-    # as numeric is simpler
-    cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
-
-    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
+     
+    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) )  ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
-   
-
+    
     M = M[ which( M$z < 2500), ]
     M = M[ which( M$z > 5 ), ]
-
-      
+  
     # could filter earlier for speed but here it is more compact  
     if (exists("carstm_input_time_limit", p))  M = M[ which( M$yr >= p$carstm_input_time_limit), ]   
 

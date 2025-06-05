@@ -66,13 +66,11 @@ degree_days = function( plu, pg, years, t0) {
     ii = which( M$dyear > 1)
     if (length(ii) > 0) M$dyear[ii] = 0.99 # cap it .. some surveys go into the next year
 
-    M$dyri = discretize_data( M[["dyear"]], discretizations()[["dyear"]] )
+    M$dyri = discretize_data( x=M[["dyear"]], span=c(0, 1, nw) )
+    
     M$space = match( M$AUID, sppoly$AUID ) # for bym/car .. must be numeric index matching neighbourhood graphs
-    M$time = match( M$year, years ) # copy time for space_time component .. for groups, must be numeric index
-
-    # as numeric is simpler
-    cyclic_levels = dyears + diff(dyears)[1]/2
-    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) )
+    M$time  = match( M$year, years ) # copy time for space_time component .. for groups, must be numeric index
+    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, nw) ) )  # as integer
 
     return(M)
 }
