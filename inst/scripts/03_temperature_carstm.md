@@ -118,7 +118,6 @@ carstm_model(
     # debug = "random_spatiotemporal", 
     # improve.hyperparam.estimates=TRUE,
     verbose=TRUE, 
-    # compress=FALSE,  ## large file size makes compression/decompression too slow
     num.threads="2:2"  # safer .. 2:2 works on linux adjust for your machine; # 2023: 86GB RAM for fit with num.threads="3:2" ; reduce as required
   )    
 

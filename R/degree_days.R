@@ -18,17 +18,12 @@ degree_days = function( plu, pg, years, t0) {
     nt = nw * ny # i.e., seasonal with nw (default is annual: nt=ny)
     tres = 1 / nw # time resolution .. predictions are made with models that use seasonal components
 
-    dyears = (c(1:nw)-1) / nw # intervals of decimal years... fractional year breaks
-    dyear_centre = dyears[ trunc(nw/2) ] + tres/2
-    cyclic_levels = factor(dyears + diff(dyears)[1]/2, ordered=TRUE )
-    prediction_dyear = lubridate::decimal_date(
-    lubridate::ymd("0000/Sep/01")) # used for creating timeslices and
-    
-    # predictions .. needs to match the values in aegis_parameters() --------------------> here!
-
+    dyears = discretize_data( span=c(0, 1, nw), toreturn="lower" )  # left breaks .. (c(1:nw)-1) / nw # intervals of decimal years... fractional year breaks
+    cyclic_levels = factor( discretize_data( span=c(0, 1, nw), toreturn="midpoints" ), ordered=TRUE )
+ 
     # predictions at these time values (decimal-year), # output timeslices for predictions in decimal years, yes all of them here
-    tout = expand.grid( yr=years, dyear=1:nw, KEEP.OUT.ATTRS=FALSE )
-    prediction_ts = sort( tout$yr + tout$dyear/nw - tres/2 )# mid-points
+    tout = expand.grid( yr=years, dyear=discretize_data( span=c(0, 1, nw), toreturn="midpoints" ), KEEP.OUT.ATTRS=FALSE )
+    prediction_ts = sort( tout$yr + tout$dyear  ) # mid-points
 
     # time and cyclic
     M = cbind( M[ rep.int(1:nau, nt), ], rep.int( prediction_ts, rep(nau, nt )) )
