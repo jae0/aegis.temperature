@@ -810,7 +810,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     xydata = temperature_db( p=p, DS="aggregated_data"  )  #
     names(xydata)[which(names(xydata)=="z.mean" )] = "z"
-    xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
+    xydata = xydata[ filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
 
     keep = which( xydata$lon < -54 & xydata$lon > -71 & xydata$lat < 49 & xydata$lat > 41 )
 
