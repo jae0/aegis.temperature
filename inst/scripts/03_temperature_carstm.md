@@ -36,14 +36,9 @@ p = temperature_parameters(
   lenprob=0.95,   # these are domain boundary options for areal_units ( boundary determination)
   n_iter_drop=0, # no. of additional repasses in tesselation phase
   sa_threshold_km2=16, # min sa of AU
-  areal_units_constraint_ntarget=12, # target no data points in each AU
-  areal_units_constraint_nmin=1   # min no data points in each AU 
+  areal_units_constraint_ntarget=15, # target no data points in each AU
+  areal_units_constraint_nmin=3   # min no data points in each AU 
 )
-
-p$fraction_cv=0.8
-p$fraction_todrop=.1
-p$spbuffer=10
-p$sa_threshold_km2=9
 
 ```
 
