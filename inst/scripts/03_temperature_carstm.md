@@ -31,13 +31,7 @@ p = temperature_parameters(
   project_class="carstm", 
   carstm_model_label="default",
   carstm_input_time_limit = year_start_carstm_inputs, # to reduce file size /improve speed .. if 1950: ~ 4 days of compute
-  yrs=year_start:year_assessment,
-  spbuffer=9, # these are domain boundary options for areal_units ( search radius for aggregation)
-  lenprob=0.95,   # these are domain boundary options for areal_units ( boundary determination)
-  n_iter_drop=0, # no. of additional repasses in tesselation phase
-  sa_threshold_km2=16, # min sa of AU
-  areal_units_constraint_ntarget=15, # target no data points in each AU
-  areal_units_constraint_nmin=3   # min no data points in each AU 
+  yrs=year_start:year_assessment
 )
 
 ```
