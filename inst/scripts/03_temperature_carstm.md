@@ -87,17 +87,7 @@ additional_features = features_to_add(
 
 sppoly = areal_units( p=p  )  # reload polygons
 M = ' temperature_db( p=p, DS="carstm_inputs", sppoly=sppoly )  '
-
-# dimensionality and labels:
-p$space_name = sppoly$AUID 
-p$space_id = 1:nrow(sppoly)
-
-p$time_name = as.character(p$yrs)
-p$time_id =  1:p$ny
-
-p$cyclic_name = as.character(p$cyclic_levels)
-p$cyclic_id = 1:p$nw
-
+ 
 gc()
 
 # !!! WARNING: this uses a lot of RAM  ... about 130 GB in 2024
