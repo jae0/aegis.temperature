@@ -114,8 +114,7 @@ temperature_parameters = function( p=list(), project_name="temperature", project
       fraction_todrop = 0.05,
       fraction_cv = 0.9,  # just under poisson (binomial)
       fraction_good_bad = 0.9,
-      spbuffer=9, 
-      lenprob=0.95,   # these are domain boundary options for areal_units
+      hull_boundary_ratio = 0.1,
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
