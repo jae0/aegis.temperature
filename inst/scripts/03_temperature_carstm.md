@@ -34,6 +34,15 @@ p = temperature_parameters(
   yrs=year_start:year_assessment
 )
 
+
+additional_features = features_to_add( 
+  p=p, 
+#      area_lines="cfa.regions",
+  isobaths=c( 100, 200, 300, 400, 500  ), 
+  xlim=c(-80,-40), 
+  ylim=c(38, 60) # ,redo=TRUE 
+)
+
 ```
 
 
@@ -53,9 +62,11 @@ p = temperature_parameters(
   sppoly = areal_units( p=p, xydata=xydata,  redo=TRUE, verbose=TRUE )  # to force create : 1000-2000 units seems optimal .. this is higher to resolve space a bit better
   
   sppoly = areal_units( p=p  )  # reload
+  
+  plt = areal_units( sppoly=sppoly, xydata=xydata, additional_features=additional_features, plotit=TRUE )
+  
+  (plt)
 
-
-  plot( sppoly[ "AUID" ] ) 
   
   # or using carstm_map: 
   # carstm_map( sppoly=sppoly, vn="au_sa_km2", map_mode="view" )  # interactive
@@ -151,13 +162,6 @@ carstm_model(
  
   # maps of some of the results
 
-  additional_features = features_to_add( 
-    p=p, 
-#      area_lines="cfa.regions",
-    isobaths=c( 100, 200, 300, 400, 500  ), 
-    xlim=c(-80,-40), 
-    ylim=c(38, 60) # ,redo=TRUE 
-  )
 
   # map all bottom temps: 
 
