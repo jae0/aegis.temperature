@@ -55,7 +55,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     out = NULL
     for ( y in yr ) {
       # print (y)
-      fn = file.path( loc.basedata, paste( "osd.rawdata", y, "rdz", sep=".") )
+      fn = file.path( loc.basedata, paste( "osd.rawdata", y, "rds", sep=".") )
       if (file.exists ( fn ) ) {
         X = read_write_fast(fn)
         out = rbind( out, X )
@@ -76,7 +76,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       fyears = as.numeric( matrix( unlist( strsplit( f$CRUISE_DATE, "/" ) ), ncol=3, byrow=T) [,3] )
       years = sort( unique( fyears ))
       for (yrs in years) {
-        fn.out = file.path( loc.basedata,  paste( "osd.rawdata", yrs, "rdz", sep=".") )
+        fn.out = file.path( loc.basedata,  paste( "osd.rawdata", yrs, "rds", sep=".") )
         print( paste(yrs, ":", fn.out) )
         X = f[ which( fyears == yrs) ,]
         names(X) = tolower( names(X) )
@@ -105,7 +105,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     yrs = sort( unique( XX$year) )
     for ( y in yrs ) {
       print (y)
-      fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdz", sep=".") )
+      fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rds", sep=".") )
       ii = which ( XX$year == y )
       if (length(ii) > 1) {
         X= XX[ ii, varstosave ]
@@ -124,7 +124,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     for ( y in yr ) {
       print (y)
       fndata = file.path( loc.archive, paste( "Data_", y, ".csv.xz", sep="" ) )
-      fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdz", sep=".") )
+      fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rds", sep=".") )
       X = read.csv( file=xzfile(fndata), skip=2, stringsAsFactors=FALSE, na.strings="9999" )
       # insert Header :
       header = c("MissionID", "Latitude", "Longitude", "Year", "Month", "Day", "Hour", "Minute", "Pressure", "Temperature", "Salinity", "SigmaT" ,"StationID" )
@@ -142,7 +142,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if (DS=="USSurvey_NEFSC") {
     # data dump supplied by Adam Cook .. assumed to tbe bottom temperatures from their surveys in Gulf of Maine area?
-    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "NEFSCTemps_formatted.rdz" )
+    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "NEFSCTemps_formatted.rds" )
     if (!is.null(yr)) {
       if (file.exists(fn)) {
         ne = read_write_fast(fn)
@@ -154,7 +154,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     }
     # else assume a re-assimilation of data
     ne = NULL
-    fn_input = file.path( project.datadirectory("aegis", "temperature"), "archive", "NEFSCTemps.rdz" )
+    fn_input = file.path( project.datadirectory("aegis", "temperature"), "archive", "NEFSCTemps.rds" )
     if (file.exists(fn_input)) ne = read_write_fast(fn_input)
     ne$id = paste(ne$plon, ne$plat, lubridate::date( ne$timestamp), sep="~" )
     ne$salinity = NA
@@ -172,8 +172,8 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   # ----------------------
 
   if (DS %in% c("lobster","lobster.redo")) {
-    fn_odbc = file.path( project.datadirectory("aegis", "temperature"), "archive", "FSRStempdata.rdz" )
-    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "FSRStempdata_formatted.rdz" )
+    fn_odbc = file.path( project.datadirectory("aegis", "temperature"), "archive", "FSRStempdata.rds" )
+    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "FSRStempdata_formatted.rds" )
 
 
 
@@ -254,7 +254,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if (DS %in% c("misc","misc.redo")) {
     # mostly scallop data right now...
     fn_datadump = file.path( project.datadirectory("aegis", "temperature"), "archive", "bottom_temps_survey.csv" )
-    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "bottom_temps_survey.rdz" )
+    fn = file.path( project.datadirectory("aegis", "temperature"), "archive", "bottom_temps_survey.rds" )
 
     if (!is.null(yr)) {
       if (file.exists(fn)) {
@@ -318,7 +318,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     out = NULL
     if ( is.null(DS) | DS=="ODF_ARCHIVE" ) {
-      fl = list.files( path=fn.root, pattern="*.rdz", full.names=T )
+      fl = list.files( path=fn.root, pattern="*.rds", full.names=T )
       for ( fny in fl ) {
         odfdat = read_write_fast(fny)
         out = rbind( out, odfdat )
@@ -330,7 +330,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     cruises   = ROracle::dbGetQuery(con, "select * from ODF_ARCHIVE.ODF_CRUISE_EVENT" )
 
     for ( y in yr ) {
-      fny = file.path( fn.root, paste( y, "rdz", sep="."))
+      fny = file.path( fn.root, paste( y, "rds", sep="."))
       odfdat = ROracle::dbGetQuery( con,  paste(
       " select * " ,
       " from ODF_ARCHIVE.ODF_CRUISE_EVENT i, ODF_ARCHIVE.ODF_DATA j " ,
@@ -357,7 +357,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # read in annual depth profiles then extract bottom temperatures
 
     if (DS=="osd.profiles.annual") {
-      fn = file.path(  loc.profile, paste("depthprofiles", yr, "rdz", sep="."))
+      fn = file.path(  loc.profile, paste("depthprofiles", yr, "rds", sep="."))
       Y = NULL
       if (file.exists( fn) ) Y = read_write_fast(fn )
       return(Y)
@@ -433,7 +433,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           bad = which( Y$temperature < -5 | Y$temperature > 30 )
           if (length(bad)>0) Y=Y[-bad,]
 
-          fn = file.path( loc.profile, paste("depthprofiles", yt, "rdz", sep="."))
+          fn = file.path( loc.profile, paste("depthprofiles", yt, "rds", sep="."))
           print( fn )
           read_write_fast( Y, file=fn )
         }
@@ -449,7 +449,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # extract bottom temperatures and save annual time slice
    
     if (DS=="bottom.annual.rawdata") {
-      fn = file.path( loc.bottomdatabase, paste("bottom", yr, "rdz", sep="."))
+      fn = file.path( loc.bottomdatabase, paste("bottom", yr, "rds", sep="."))
       Z = NULL
       if (file.exists(fn) ) Z = read_write_fast(fn )
       return(Z)
@@ -500,7 +500,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
         if (!is.null(Z)) {
           if ( nrow(Z) > 0  ) {
-            fn = file.path(  loc.bottomdatabase, paste("bottom", yt, "rdz", sep="."))
+            fn = file.path(  loc.bottomdatabase, paste("bottom", yt, "rds", sep="."))
             print (fn)
             read_write_fast( Z, file=fn )
           }
@@ -514,7 +514,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     # extract bottom temperatures and save annual time slice
 
     if (DS=="bottom.annual") {
-      fn = file.path( loc.bottom, paste("bottom", yr, "rdz", sep="."))
+      fn = file.path( loc.bottom, paste("bottom", yr, "rds", sep="."))
       Z = NULL
       if (file.exists(fn) ) Z = read_write_fast(fn )
       return(Z)
@@ -663,7 +663,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         Z = Z[ -which( is.na( Z_st_id)) ,]
       }
       Z_st_id = NULL
-      fn = file.path( loc.bottom, paste("bottom", yt, "rdz", sep="."))
+      fn = file.path( loc.bottom, paste("bottom", yt, "rds", sep="."))
       print (fn)
       read_write_fast( Z, file=fn )
     }
@@ -678,7 +678,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
   if (DS %in% c( "bottom.all", "bottom.all.redo" ) ) {
     # collect all bottom temperatures (1990 to present)
 
-    fbAll = file.path( loc.bottom, "bottom.all.rdz" )
+    fbAll = file.path( loc.bottom, "bottom.all.rds" )
     if (DS=="bottom.all") {
       O = NULL
       if (file.exists(fbAll) ) O = read_write_fast(fbAll)
@@ -715,7 +715,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
   if ( DS=="aggregated_data") {
 
-    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6), round(p$inputdata_temporal_discretization_yr, 6), "rdz", sep=".") )
+    fn = file.path( loc.bottom, paste( "temperature", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6), round(p$inputdata_temporal_discretization_yr, 6), "rds", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
         M = read_write_fast( fn)
@@ -798,7 +798,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     
     outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
-    fn = file.path( outdir, "areal_units_input.rdz"  )
+    fn = file.path( outdir, "areal_units_input.rds"  )
     if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
     xydata = NULL
@@ -1040,7 +1040,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS %in% c("predictions")) {
       out = NULL
-      fn = file.path( outdir, paste("stmv.prediction", ret,  yr, "rdz", sep=".") )
+      fn = file.path( outdir, paste("stmv.prediction", ret,  yr, "rds", sep=".") )
       if (file.exists(fn) ) out = read_write_fast(fn)
     }
 
@@ -1084,9 +1084,9 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             }
             outdir_p1 = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
             dir.create( outdir_p1, recursive=T, showWarnings=F )
-            fn1_sg = file.path( outdir_p1, paste("stmv.prediction.mean",  yy, "rdz", sep=".") )
-            fn2_sg = file.path( outdir_p1, paste("stmv.prediction.lb",  yy, "rdz", sep=".") )
-            fn3_sg = file.path( outdir_p1, paste("stmv.prediction.ub",  yy, "rdz", sep=".") )
+            fn1_sg = file.path( outdir_p1, paste("stmv.prediction.mean",  yy, "rds", sep=".") )
+            fn2_sg = file.path( outdir_p1, paste("stmv.prediction.lb",  yy, "rds", sep=".") )
+            fn3_sg = file.path( outdir_p1, paste("stmv.prediction.ub",  yy, "rds", sep=".") )
             read_write_fast( P, file=fn1_sg )
             read_write_fast( Pl, file=fn2_sg )
             read_write_fast( Pu, file=fn3_sg )
@@ -1119,7 +1119,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS == "bottom.statistics.climatology" ) {
       clim = NULL
-      fn.climatology = file.path( tstatdir, paste("bottom.statistics.climatology", p$spatial_domain, "rdz", sep=".") )
+      fn.climatology = file.path( tstatdir, paste("bottom.statistics.climatology", p$spatial_domain, "rds", sep=".") )
       if (file.exists( fn.climatology ) ) clim = read_write_fast(fn.climatology)
       return ( clim )
     }
@@ -1127,21 +1127,21 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS %in% c("bottom.statistics.annual")) {
       BS = NULL
-      fn = file.path( tstatdir, paste("bottom.statistics.annual", p$spatial_domain, ret, "rdz", sep=".") )
+      fn = file.path( tstatdir, paste("bottom.statistics.annual", p$spatial_domain, ret, "rds", sep=".") )
       if (file.exists( fn) ) BS = read_write_fast(fn)
       return ( BS )
     }
 
     if (DS == "bottom.degree.days.climatology" ) {
       bdd.clim = NULL
-      fn.bdd.climatology = file.path( tstatdir, paste("bottom.degree.days.climatology", p$spatial_domain, "rdz", sep=".") )
+      fn.bdd.climatology = file.path( tstatdir, paste("bottom.degree.days.climatology", p$spatial_domain, "rds", sep=".") )
       if (file.exists( fn.bdd.climatology ) ) bdd.clim = read_write_fast(fn.bdd.climatology)
       return ( bdd.clim )
     }
 
 		if (DS %in% c("bottom.degree.days")) {
       bdd = NULL
-      bdd.fn = file.path( tstatdir, paste("bottom.degree.days", p$spatial_domain, "rdz", sep=".") )
+      bdd.fn = file.path( tstatdir, paste("bottom.degree.days", p$spatial_domain, "rds", sep=".") )
       if (file.exists( bdd.fn) ) bdd = read_write_fast(bdd.fn)
       return ( bdd )
     }
@@ -1175,14 +1175,14 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
             P = NULL
           }
 
-          fn.bdd = file.path( tstatdir_p1, paste("bottom.degree.days", p1$spatial_domain, "rdz", sep=".") )
+          fn.bdd = file.path( tstatdir_p1, paste("bottom.degree.days", p1$spatial_domain, "rds", sep=".") )
           read_write_fast( bdd, file=fn.bdd )
           # climatology bdd
           bdd.clim = matrix( NA, nrow=nrow(L1), ncol=p$nw )
           for (si in 1:p$nw) {
             bdd.clim[,si] = rowMeans(bdd[,,si], na.rm=T)
           }
-          fn.bdd.climatology = file.path( tstatdir_p1, paste("bottom.degree.days.climatology", p1$spatial_domain, "rdz", sep=".") )
+          fn.bdd.climatology = file.path( tstatdir_p1, paste("bottom.degree.days.climatology", p1$spatial_domain, "rds", sep=".") )
           colnames(bdd.clim) = 1:p$nw
           read_write_fast( bdd.clim, file=fn.bdd.climatology )
           bdd = bdd.clim = NULL
@@ -1191,7 +1191,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           for ( st in 1:length(p$bstats) ){
             BS = O[,,st]
             colnames(BS) = p$yrs
-            fn = file.path( tstatdir_p1, paste("bottom.statistics.annual", p1$spatial_domain, p$bstats[st], "rdz", sep=".") )
+            fn = file.path( tstatdir_p1, paste("bottom.statistics.annual", p1$spatial_domain, p$bstats[st], "rds", sep=".") )
             read_write_fast( BS, file=fn )
             BS = NULL
             gc()
@@ -1201,7 +1201,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
           for (si in 1:length(p$bstats)) {
             clim[,si] = rowMeans(O[,,si], na.rm=T)
           }
-          fn.climatology = file.path( tstatdir_p1, paste("bottom.statistics.climatology", p1$spatial_domain, "rdz", sep=".") )
+          fn.climatology = file.path( tstatdir_p1, paste("bottom.statistics.climatology", p1$spatial_domain, "rds", sep=".") )
           colnames(clim) = p$bstats
           read_write_fast( clim, file=fn.climatology )
           clim = NULL
@@ -1223,7 +1223,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if ( DS=="spatial.annual.seasonal" ) {
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
 
-      outfile =  file.path( outdir, paste( "temperature.spatial.annual.seasonal", ret, ".rdz", sep="") )
+      outfile =  file.path( outdir, paste( "temperature.spatial.annual.seasonal", ret, ".rds", sep="") )
       O = NULL
       if (file.exists(outfile)) O = read_write_fast( outfile )
       return (O)
@@ -1241,7 +1241,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         }
         outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
         dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
-        outfile =  file.path( outdir, paste("temperature.spatial.annual.seasonal", ret, ".rdz", sep="") )
+        outfile =  file.path( outdir, paste("temperature.spatial.annual.seasonal", ret, ".rds", sep="") )
         read_write_fast (O, file=outfile )
         print(outfile)
       }
@@ -1271,7 +1271,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS %in% c("timeslice")) {
       O = NULL
-      outfile =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, ret, "rdz", sep=".") )
+      outfile =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, ret, "rds", sep=".") )
       if (file.exists( outfile ) ) O = read_write_fast(outfile)
       return ( O )
     }
@@ -1294,7 +1294,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         if (!is.null(P))  O[,r] = P[,dyear_index]
         P = NULL
       }
-      outfileP =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "mean", "rdz", sep=".") )
+      outfileP =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "mean", "rds", sep=".") )
       read_write_fast( O, file=outfileP )
       print(outfileP)
 
@@ -1304,7 +1304,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         if (!is.null(Pl)) O[,r] = Pl[,dyear_index]
         Pl = NULL
       }
-      outfileV =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "lb", "rdz", sep=".") )
+      outfileV =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "lb", "rds", sep=".") )
       read_write_fast( O, file=outfileV )
 
       O = O * NA
@@ -1313,7 +1313,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
         if (!is.null(Pu)) O[,r] = Pu[,dyear_index]
         Pu = NULL
       }
-      outfileW =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "ub", "rdz", sep=".") )
+      outfileW =  file.path( tslicedir, paste("bottom.timeslice", dyear_index, "ub", "rds", sep=".") )
       read_write_fast( O, file=outfileW )
 
     }
@@ -1332,7 +1332,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
 
     if (DS %in% c("stmv.stats")) {
       stats = NULL
-      fn = file.path( outdir, paste( "stmv.statistics", "rdz", sep=".") )
+      fn = file.path( outdir, paste( "stmv.statistics", "rds", sep=".") )
       if (file.exists(fn) )  stats = read_write_fast(fn)
       return( stats )
     }
@@ -1365,7 +1365,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       colnames(stats) = Snames
       outdir_p1 = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
       dir.create( outdir_p1, recursive=T, showWarnings=F )
-      fn1_sg = file.path( outdir_p1, paste("stmv.statistics", "rdz", sep=".") )
+      fn1_sg = file.path( outdir_p1, paste("stmv.statistics", "rds", sep=".") )
       read_write_fast( stats, file=fn1_sg )
       print (fn1_sg)
     }
@@ -1384,7 +1384,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
     if (DS=="complete") {
       TM = NULL
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p$spatial_domain )
-      outfile =  file.path( outdir, paste( "temperature", "complete", p$spatial_domain, "rdz", sep= ".") )
+      outfile =  file.path( outdir, paste( "temperature", "complete", p$spatial_domain, "rds", sep= ".") )
       if ( file.exists( outfile ) )  TM = read_write_fast( outfile )
       Tnames = names(TM)
       if (is.null(varnames)) varnames=Tnames
@@ -1413,7 +1413,7 @@ temperature_db = function ( p=NULL, DS, varnames=NULL, yr=NULL, ret="mean", dyea
       # bring in last stats
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), voi, p1$spatial_domain )
       dir.create( outdir, recursive=T, showWarnings=F )
-      outfile =  file.path( outdir, paste( "temperature", "complete", p1$spatial_domain, "rdz", sep= ".") )
+      outfile =  file.path( outdir, paste( "temperature", "complete", p1$spatial_domain, "rds", sep= ".") )
       read_write_fast( TM, file=outfile )
 
       print( outfile )
